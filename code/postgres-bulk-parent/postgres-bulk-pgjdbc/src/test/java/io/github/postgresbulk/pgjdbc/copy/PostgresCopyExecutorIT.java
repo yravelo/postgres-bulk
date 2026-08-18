@@ -4,10 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.postgresbulk.core.BulkException;
+import io.github.postgresbulk.core.BulkInsertOptions;
+import io.github.postgresbulk.core.BulkWriteResult;
 import io.github.postgresbulk.core.metadata.ColumnMetadata;
 import io.github.postgresbulk.core.metadata.EntityMetadata;
 import io.github.postgresbulk.core.metadata.TableName;
@@ -26,7 +30,11 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
@@ -57,6 +65,7 @@ class PostgresCopyExecutorIT {
       statement.execute("DROP TABLE IF EXISTS copy_transactions");
       statement.execute("DROP TABLE IF EXISTS copy_failures");
       statement.execute("DROP TABLE IF EXISTS copy_streaming");
+      statement.execute("DROP TABLE IF EXISTS bulk_insert_rows");
     }
   }
 
@@ -353,6 +362,164 @@ class PostgresCopyExecutorIT {
     }
   }
 
+  @Test
+  void bulkInsertHandlesEmptySingleExactAndMultipleBatches() throws Exception {
+    createBulkInsertTable();
+    PostgresBulkInserter<BulkRow> inserter = PostgresBulkInserter.prepare(bulkMetadata());
+
+    try (Connection connection = connection()) {
+      assertEquals(
+          BulkWriteResult.empty(),
+          inserter.insert(connection, List.of(), BulkInsertOptions.ofBatchSize(3)));
+      assertEquals(
+          new BulkWriteResult(1, 1), inserter.insert(connection, List.of(new BulkRow(1, null))));
+      assertEquals(
+          new BulkWriteResult(3, 1),
+          inserter.insert(connection, bulkRows(2, 4), BulkInsertOptions.ofBatchSize(3)));
+      assertEquals(
+          new BulkWriteResult(5, 3),
+          inserter.insert(connection, bulkRows(5, 9), BulkInsertOptions.ofBatchSize(2)));
+
+      assertTrue(connection.getAutoCommit());
+      assertFalse(connection.isClosed());
+      assertEquals(9, scalarLong(connection, "SELECT count(*) FROM bulk_insert_rows"));
+      assertNull(scalarString(connection, "SELECT value FROM bulk_insert_rows WHERE id = 1"));
+    }
+  }
+
+  @Test
+  void bulkInsertConsumesOneShotIterableExactlyOnce() throws Exception {
+    createBulkInsertTable();
+    AtomicInteger iteratorCalls = new AtomicInteger();
+    Iterable<BulkRow> rows = oneShotRows(7, iteratorCalls);
+    PostgresBulkInserter<BulkRow> inserter = PostgresBulkInserter.prepare(bulkMetadata());
+
+    try (Connection connection = connection()) {
+      assertEquals(
+          new BulkWriteResult(7, 3),
+          inserter.insert(connection, rows, BulkInsertOptions.ofBatchSize(3)));
+      assertEquals(1, iteratorCalls.get());
+      assertEquals(7, scalarLong(connection, "SELECT count(*) FROM bulk_insert_rows"));
+    }
+  }
+
+  @Test
+  void bulkInsertLeavesAllBatchesUnderCallerCommitAndRollbackControl() throws Exception {
+    createBulkInsertTable();
+    PostgresBulkInserter<BulkRow> inserter = PostgresBulkInserter.prepare(bulkMetadata());
+    List<BulkRow> rows = bulkRows(1, 2_500);
+
+    try (Connection connection = connection()) {
+      connection.setAutoCommit(false);
+      assertEquals(new BulkWriteResult(2_500, 3), inserter.insert(connection, rows));
+      assertFalse(connection.getAutoCommit());
+      assertFalse(connection.isClosed());
+      assertEquals(2_500, scalarLong(connection, "SELECT count(*) FROM bulk_insert_rows"));
+
+      connection.rollback();
+      assertEquals(0, scalarLong(connection, "SELECT count(*) FROM bulk_insert_rows"));
+
+      assertEquals(new BulkWriteResult(2_500, 3), inserter.insert(connection, rows));
+      connection.commit();
+      assertFalse(connection.getAutoCommit());
+      assertFalse(connection.isClosed());
+    }
+    try (Connection observer = connection()) {
+      assertEquals(2_500, scalarLong(observer, "SELECT count(*) FROM bulk_insert_rows"));
+    }
+  }
+
+  @Test
+  void laterBulkBatchFailureWithAutocommitKeepsCompletedBatches() throws Exception {
+    createConstrainedBulkInsertTable();
+    PostgresBulkInserter<BulkRow> inserter = PostgresBulkInserter.prepare(bulkMetadata());
+    List<BulkRow> rows =
+        List.of(new BulkRow(1, "one"), new BulkRow(2, "two"), new BulkRow(-3, "invalid"));
+
+    try (Connection connection = connection()) {
+      BulkException thrown =
+          assertThrows(
+              BulkException.class,
+              () -> inserter.insert(connection, rows, BulkInsertOptions.ofBatchSize(2)));
+
+      assertTrue(thrown.getMessage().contains("batch 2"));
+      assertNotNull(findCause(thrown, SQLException.class));
+      assertTrue(connection.getAutoCommit());
+      assertFalse(connection.isClosed());
+      assertEquals(2, scalarLong(connection, "SELECT count(*) FROM bulk_insert_rows"));
+      assertEquals(1, scalarLong(connection, "SELECT 1"));
+    }
+  }
+
+  @Test
+  void laterBulkBatchFailureInManualTransactionCanRollBackAllBatches() throws Exception {
+    createConstrainedBulkInsertTable();
+    PostgresBulkInserter<BulkRow> inserter = PostgresBulkInserter.prepare(bulkMetadata());
+    List<BulkRow> rows =
+        List.of(new BulkRow(1, "one"), new BulkRow(2, "two"), new BulkRow(-3, "invalid"));
+
+    try (Connection connection = connection()) {
+      connection.setAutoCommit(false);
+      BulkException thrown =
+          assertThrows(
+              BulkException.class,
+              () -> inserter.insert(connection, rows, BulkInsertOptions.ofBatchSize(2)));
+
+      assertTrue(thrown.getMessage().contains("batch 2"));
+      assertNotNull(findCause(thrown, SQLException.class));
+      assertFalse(connection.getAutoCommit());
+      assertFalse(connection.isClosed());
+      connection.rollback();
+      assertEquals(0, scalarLong(connection, "SELECT count(*) FROM bulk_insert_rows"));
+
+      assertEquals(
+          new BulkWriteResult(1, 1), inserter.insert(connection, List.of(new BulkRow(4, "four"))));
+      connection.commit();
+    }
+    try (Connection observer = connection()) {
+      assertEquals(1, scalarLong(observer, "SELECT count(*) FROM bulk_insert_rows"));
+      assertEquals(4, scalarLong(observer, "SELECT id FROM bulk_insert_rows"));
+    }
+  }
+
+  @Test
+  void nullItemInsideActiveBulkCopyCancelsItAndLeavesConnectionReusable() throws Exception {
+    createBulkInsertTable();
+    PostgresBulkInserter<BulkRow> inserter = PostgresBulkInserter.prepare(bulkMetadata());
+    List<BulkRow> rows = Arrays.asList(new BulkRow(1, "one"), null, new BulkRow(3, "three"));
+
+    try (Connection connection = connection()) {
+      IllegalArgumentException thrown =
+          assertThrows(
+              IllegalArgumentException.class,
+              () -> inserter.insert(connection, rows, BulkInsertOptions.ofBatchSize(3)));
+
+      assertTrue(thrown.getMessage().contains("position 2"));
+      assertTrue(connection.getAutoCommit());
+      assertFalse(connection.isClosed());
+      assertEquals(0, scalarLong(connection, "SELECT count(*) FROM bulk_insert_rows"));
+      assertEquals(1, scalarLong(connection, "SELECT 1"));
+    }
+  }
+
+  @Test
+  void bulkInsertStreamsTwentyThousandRowsAcrossRealCopyBatches() throws Exception {
+    createBulkInsertTable();
+    AtomicInteger iteratorCalls = new AtomicInteger();
+    PostgresBulkInserter<BulkRow> inserter = PostgresBulkInserter.prepare(bulkMetadata());
+
+    try (Connection connection = connection()) {
+      BulkWriteResult result =
+          inserter.insert(
+              connection, oneShotRows(20_000, iteratorCalls), BulkInsertOptions.ofBatchSize(777));
+
+      assertEquals(new BulkWriteResult(20_000, 26), result);
+      assertEquals(1, iteratorCalls.get());
+      assertFalse(connection.isClosed());
+      assertEquals(20_000, scalarLong(connection, "SELECT count(*) FROM bulk_insert_rows"));
+    }
+  }
+
   private static EntityMetadata<StringRow> stringMetadata() {
     return EntityMetadata.of(
         StringRow.class,
@@ -412,6 +579,32 @@ class PostgresCopyExecutorIT {
         List.of(ColumnMetadata.of("id", Integer.class, IdRow::id)));
   }
 
+  private static EntityMetadata<BulkRow> bulkMetadata() {
+    return EntityMetadata.of(
+        BulkRow.class,
+        TableName.of("bulk_insert_rows"),
+        List.of(
+            ColumnMetadata.of("id", Integer.class, BulkRow::id),
+            ColumnMetadata.of("value", String.class, BulkRow::value)));
+  }
+
+  private static List<BulkRow> bulkRows(int firstId, int lastId) {
+    return IntStream.rangeClosed(firstId, lastId)
+        .mapToObj(id -> new BulkRow(id, "value-" + id))
+        .toList();
+  }
+
+  private static Iterable<BulkRow> oneShotRows(int count, AtomicInteger iteratorCalls) {
+    return () -> {
+      if (iteratorCalls.incrementAndGet() != 1) {
+        throw new IllegalStateException("iterator requested more than once");
+      }
+      Iterator<BulkRow> iterator =
+          IntStream.rangeClosed(1, count).mapToObj(id -> new BulkRow(id, "value-" + id)).iterator();
+      return iterator;
+    };
+  }
+
   private <T> long copyRows(Connection connection, EntityMetadata<T> metadata, Iterable<T> rows) {
     PreparedCopyCsvRowEncoder<T> encoder = PreparedCopyCsvRowEncoder.prepare(metadata);
     return executor.execute(
@@ -434,6 +627,15 @@ class PostgresCopyExecutorIT {
         Statement statement = connection.createStatement()) {
       statement.execute(ddl);
     }
+  }
+
+  private static void createBulkInsertTable() throws SQLException {
+    createTable("CREATE TABLE bulk_insert_rows (id integer PRIMARY KEY, value text)");
+  }
+
+  private static void createConstrainedBulkInsertTable() throws SQLException {
+    createTable(
+        "CREATE TABLE bulk_insert_rows (id integer PRIMARY KEY CHECK (id > 0), value text)");
   }
 
   private static long scalarLong(Connection connection, String sql) throws SQLException {
@@ -507,6 +709,8 @@ class PostgresCopyExecutorIT {
   private record QuotedRow(String customer, int number) {}
 
   private record IdRow(int id) {}
+
+  private record BulkRow(int id, String value) {}
 
   private enum State {
     READY,

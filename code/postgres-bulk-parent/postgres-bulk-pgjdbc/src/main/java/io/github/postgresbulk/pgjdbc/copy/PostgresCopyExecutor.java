@@ -12,11 +12,12 @@ import org.postgresql.copy.CopyIn;
 import org.postgresql.copy.PGCopyOutputStream;
 
 /** Executes one caller-supplied COPY command against a caller-owned JDBC connection. */
-final class PostgresCopyExecutor {
+final class PostgresCopyExecutor implements CopyExecutor {
 
   private static final int COPY_BUFFER_SIZE = 64 * 1024;
 
-  long execute(Connection connection, String copySql, CopyDataWriter producer) {
+  @Override
+  public long execute(Connection connection, String copySql, CopyDataWriter producer) {
     Objects.requireNonNull(connection, "connection must not be null");
     Objects.requireNonNull(copySql, "copySql must not be null");
     Objects.requireNonNull(producer, "producer must not be null");
@@ -48,9 +49,12 @@ final class PostgresCopyExecutor {
       producer.writeTo(characterDestination);
       characterDestination.flush();
       return byteDestination.endCopy();
-    } catch (IOException | SQLException | RuntimeException | Error failure) {
+    } catch (IOException | SQLException failure) {
       cancel(copy, failure);
       throw new CopyExecutionException("PostgreSQL COPY FROM STDIN failed", failure);
+    } catch (RuntimeException | Error failure) {
+      cancel(copy, failure);
+      throw failure;
     }
   }
 
