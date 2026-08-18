@@ -2,11 +2,12 @@
 
 ## Alcance
 
-Este documento enumera la superficie pública al cerrar Phase 9. Core añade el puerto
+Este documento enumera la superficie pública al cerrar Phase 10. Core añade el puerto
 `EntityMetadataResolver`; pgJDBC expone una fachada caller-owned y su callback anidado; Spring
 Data expone fragmento, resolver por persistence unit e implementación de infraestructura externa.
 Las coordenadas y el namespace siguen sujetos a ADR-008 mientras el proyecto permanezca en
-`0.1.0-SNAPSHOT`.
+`0.1.0-SNAPSHOT`. Phase 10 no añade operaciones para invocación directa; añade dos tipos públicos
+de infraestructura requeridos por Spring Boot.
 
 Los cuatro tipos de operacion son API, los cuatro descriptores de metadata son public SPI
 para productores/consumidores y el resolver Hibernate es API de adapter. No existe un SPI
@@ -188,7 +189,18 @@ public final class BulkKeyMetadata<K> {
 - `JpaEntityMetadataResolver`: puerto Spring/JPA que resuelve por `EntityManagerFactory`; su
   factory `caching` adapta resolvers core ligados a una persistence unit.
 - `DefaultPostgresBulkOperations<T, ID>`: implementación pública por requisito de carga externa
-  de Spring Data; es infraestructura y no se instancia directamente.
+  de Spring Data; es infraestructura proxyable y no se instancia directamente.
+
+## Infraestructura pública añadida en Phase 10
+
+- `PostgresBulkAutoConfiguration`: clase de configuración descubierta por Spring Boot mediante
+  `AutoConfiguration.imports`; no es una API de negocio ni debe importarse manualmente.
+- `PostgresBulkProperties`: record de binding para `postgres-bulk.enabled`; existe para el
+  contrato de configuración y metadata IDE, no para coordinar operaciones.
+
+El número de nuevos tipos de API de operaciones es cero. La infraestructura pública crece en dos
+tipos porque Boot necesita cargar la clase y exponer el objeto de propiedades como bean. No se
+publican conditions propias, failure analyzers, customizers, ejecutores o tuning.
 
 ## Fuera de la API publica
 

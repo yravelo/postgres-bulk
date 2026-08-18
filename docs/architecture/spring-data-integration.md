@@ -9,7 +9,8 @@ interface ProductRepository
     extends JpaRepository<Product, Long>, PostgresBulkRepository<Product, Long> {}
 ```
 
-Sin Boot, la aplicación aporta el bridge de metadata para cada persistence unit:
+Con `postgres-bulk-spring-boot-starter`, Boot aporta automáticamente el bridge de metadata. Sin
+Boot, la aplicación lo declara explícitamente:
 
 ```java
 @Bean
@@ -22,6 +23,11 @@ Después puede ejecutar `bulkInsert(items)`, `bulkInsert(items, options)` y
 `findAllByBulkKey(keys, keyMetadata)`. El fragmento se registra desde el JAR con
 `spring.factories`; no requiere una implementación en el package de la aplicación ni una factory
 custom.
+
+La autoconfiguración no cambia el mecanismo de registro: `spring.factories` continúa cargando el
+fragmento externo de Spring Data y `AutoConfiguration.imports` registra solamente el bean de
+composición Boot. Un resolver del usuario gana por back-off. Con varias persistence units, el
+bridge cachea por identidad de factory y `JpaContext` decide por tipo gestionado en cada llamada.
 
 ## Transacciones y conexión
 

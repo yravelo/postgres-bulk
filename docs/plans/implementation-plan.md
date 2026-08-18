@@ -381,6 +381,8 @@ completa (Phase 11), matriz mínimo/último Spring Data/Hibernate y varias PU re
 
 ## Phase 10 — Spring Boot auto-configuration
 
+**Estado:** completada el 2026-08-18. Phase 11 no iniciada.
+
 - **Goal:** starter usable con defaults y back-off predecible.
 - **Scope:** conditions, properties mínimas, configuration metadata, starter POM y context tests.
 - **Out of scope:** observabilidad y tuning automático.
@@ -388,10 +390,43 @@ completa (Phase 11), matriz mínimo/último Spring Data/Hibernate y varias PU re
 - **Files/modules affected:** autoconfigure, starter, docs.
 - **Implementation tasks:** decidir propiedades tras medir necesidad; defaults batch/buffer/temp prefix; `enabled`; bean override; failure analysis si falta PostgreSQL/Hibernate.
 - **Tests:** ApplicationContextRunner: happy path, disabled, missing class/bean, custom beans, property validation, starter sin código.
-- **Acceptance criteria:** añadir dependencia + fragment basta; no activa con DB/driver incompatible; back-off documentado.
+- **Acceptance criteria:** añadir dependencia + fragment basta; sin pgJDBC no activa y un datasource
+  no PostgreSQL con el driver presente falla explícitamente al primer uso sin I/O de startup;
+  back-off documentado.
 - **Risks:** demasiadas properties y auto-config agresiva.
 - **Dependencies:** Phase 9 y Boot 3.5 baseline.
 - **Definition of Done:** app de test arranca sin configuración extra y metadata IDE generada.
+
+### Registro de cierre de Phase 10
+
+- [x] ADR-018 acepta autoconfiguración moderna por `AutoConfiguration.imports`, ordenada después
+      de Hibernate JPA y antes de Spring Data repositories.
+- [x] Conditions exigen clases JPA/Hibernate/pgJDBC/Spring Data/library, cualquier
+      `EntityManagerFactory` y `postgres-bulk.enabled=true` con default habilitado.
+- [x] El único bean default es el `JpaEntityMetadataResolver` cacheado; un bean del usuario provoca
+      back-off por tipo y no se abren conexiones al arrancar.
+- [x] Varias factories se aceptan sin elegir una global; resolución y cache ocurren por tipo y por
+      identidad de persistence unit durante la invocación.
+- [x] El fragmento sigue siendo opt-in y su registro Spring Data permanece separado de la
+      autoconfiguración Boot.
+- [x] El starter agrega Data JPA y autoconfigure y conserva cero clases/recursos productivos.
+- [x] Se publica sólo `postgres-bulk.enabled`; no se convierten batch/buffer/temp prefix en
+      configuración prematura. Configuration metadata y auto-configuration metadata se generan.
+- [x] Nueve context tests cubren happy path, disabled, missing EMF/classes, multiple EMF, custom
+      resolver y cero acceso JDBC de startup.
+- [x] Una aplicación Boot real dependiente del starter valida insert, lookup, rollback y read-only
+      contra PostgreSQL 15.18 sin wiring manual de la librería.
+- [x] README ofrece el Getting Started y la guía Boot documenta activación, back-off, DB incorrecta
+      y múltiples persistence units.
+
+**Decisiones diferidas:** failure analyzer y fault injection JDBC/transaccional (Phase 11),
+Micrometer y más properties sólo si la observabilidad las exige (Phase 12), y matriz mínimo/último
+Boot/Hibernate/pgJDBC/PostgreSQL (Phase 13).
+
+**Aprendizajes:** detectar el producto de base de datos durante startup rompería el carácter lazy
+del datasource; el gate de classpath y el unwrap al primer uso mantienen un arranque sin I/O. El
+repository fragment externo necesita ser proxyable cuando Boot habilita el interceptor
+transaccional. Respetar el BOM Boot evita una matriz de patches incoherente.
 
 ## Phase 11 — Transactions and robustness
 

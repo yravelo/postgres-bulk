@@ -50,23 +50,31 @@ Paquetes candidatos: `repository`, `factory` (sólo si finalmente hace falta), `
 
 ## `postgres-bulk-spring-boot-autoconfigure`
 
-**Puede conocer:** módulos anteriores y APIs Boot de auto-configuración. Es el composition root que conecta adapter Hibernate, ejecución pgjdbc y fragment Spring Data; detecta classpath/beans/properties, crea defaults y hace back-off ante beans del usuario. Micrometer/Observation sólo como dependencia opcional.
+**Puede conocer:** Spring Boot Autoconfigure, Spring Data, Hibernate y pgJDBC. Es el composition
+root que registra el bridge cacheado de metadata cuando el classpath, cualquier
+`EntityManagerFactory` y `postgres-bulk.enabled` lo permiten; hace back-off por tipo ante el bean
+del usuario. Micrometer/Observation sólo podrá añadirse como dependencia opcional.
 
 **No puede conocer:** clases de aplicación ni activar repositorios globalmente de forma sorpresiva. No contiene lógica de COPY, metadata o mapping.
 
 ## `postgres-bulk-spring-boot-starter`
 
-**Puede contener:** POM y, sólo si es imprescindible, metadata de starter. Su función es agrupar auto-configure y dependencias runtime coherentes.
+**Contiene:** únicamente el POM agregador de `spring-boot-starter-data-jpa` y
+`postgres-bulk-spring-boot-autoconfigure`. No tiene `src/main`, clases ni recursos productivos.
 
 **No puede contener:** código Java, configuración de negocio, properties ni tests de lógica.
 
 ## Dependencias y scopes previstos
 
 - Core no tendrá dependencias runtime externas salvo necesidad demostrada.
-- APIs de frameworks que no deban filtrarse al consumidor serán `optional` o de scope apropiado; el BOM de Spring Boot del consumidor seguirá gobernando versiones.
+- El parent importa Spring Boot BOM 3.5.16 para una baseline coherente sin añadir dependencias a
+  módulos. El BOM del consumidor puede gobernar los mismos artefactos transitivos.
 - pgJDBC debe estar confinado al adapter; que el starter lo agregue no convierte sus tipos en API pública.
 - Testcontainers, JUnit, ArchUnit y benchmarks nunca serán dependencias transitivas productivas.
 
-## Reglas verificables futuras
+## Reglas verificables
 
-Phase 1 codifica el DAG en dependencias Maven y Enforcer prohíbe dependencias framework/infraestructura en core. Cuando Phase 2 introduzca clases, ArchUnit comprobará imports prohibidos en core, pgjdbc/hibernate sin dependencias cruzadas, starter sin lógica y API pública sin `org.postgresql.*`/internals Hibernate. Los compatibility tests permanecerán separados de unit tests.
+Maven codifica el DAG y Enforcer prohíbe dependencias framework/infraestructura en core.
+Auditorías de imports/JAR confirman core sin frameworks, pgjdbc/hibernate sin cruce, starter sin
+lógica y APIs sin tipos pgJDBC/internals Hibernate. Los compatibility tests permanecen separados
+de unit tests.

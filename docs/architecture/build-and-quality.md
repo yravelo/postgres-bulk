@@ -13,8 +13,8 @@ El bytecode objetivo es Java 17 mediante `maven.compiler.release`; el JDK que ej
 El parent gestiona versiones, pero no añade dependencias runtime globales. Gestiona:
 
 - artefactos internos con la versión del reactor;
+- el BOM Spring Boot 3.5.16 para Spring Framework, Spring Data JPA, Hibernate y pgJDBC;
 - el BOM JUnit 5.12.2;
-- pgJDBC 42.7.13;
 - el BOM Testcontainers 2.0.5;
 - versiones de plugins de lifecycle y quality gates.
 
@@ -23,6 +23,9 @@ pgJDBC como implementación productiva y `testcontainers-postgresql`,
 `testcontainers-junit-jupiter` y JUnit sólo con scope `test`. Testcontainers no es
 transitivo en artefactos productivos y ningún otro módulo recibe pgJDBC por el parent.
 
+El módulo autoconfigure ejecuta los processors oficiales de configuration metadata y
+auto-configuration metadata. El starter agrega Data JPA y autoconfigure, sin código productivo.
+
 ## Tests
 
 - Surefire ejecuta unit tests llamados `*Test.java` en la fase `test`.
@@ -30,6 +33,9 @@ transitivo en artefactos productivos y ningún otro módulo recibe pgJDBC por el
 - JUnit Jupiter se declara con scope `test` en cada módulo con pruebas.
 - `./mvnw clean verify` ejecuta ambos carriles. Los integration tests pgJDBC requieren
   Docker y levantan `postgres:15.18-alpine`; no están ocultos tras un perfil.
+- `ApplicationContextRunner` prueba nueve escenarios de conditions/back-off sin Docker.
+- El starter contiene tres `*IT` que arrancan una aplicación Boot real y prueban insert, lookup,
+  rollback y read-only contra PostgreSQL 15.18 sin configuración manual de la librería.
 
 ## Formato
 

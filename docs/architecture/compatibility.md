@@ -76,6 +76,18 @@ rollback exterior, rechazo read-only, `REQUIRES_NEW`, rechazo `NESTED` por el
 El cache de metadata por identidad de `EntityManagerFactory` se valida con dos factories.
 Esta evidencia no afirma todavía compatibilidad con Spring Data 4 ni Hibernate 7.
 
+## Evidencia Spring Boot de Phase 10
+
+Spring Boot 3.5.16 gobierna y valida en conjunto Spring Framework 6.2.19, Spring Data JPA
+3.5.13, Hibernate ORM 6.6.53.Final y pgJDBC 42.7.11. Nueve context tests verifican las
+conditions y el back-off; una aplicación Boot real prueba el starter contra PostgreSQL 15.18 sin
+wiring manual de la librería. El cambio desde Hibernate 6.6.55.Final/pgJDBC 42.7.13 de las fases
+anteriores es intencional: la integración Boot respeta su BOM y no fuerza patches independientes.
+
+La evidencia histórica Phase 5–9 conserva exactamente las versiones usadas entonces. Phase 10
+acredita la combinación gestionada por Boot 3.5.16, pero no amplía todavía el claim a otros patches
+3.5, PostgreSQL 16–18, Boot 4 o Hibernate 7; esa matriz corresponde a Phase 13.
+
 ## Decisiones aún abiertas
 
 - Coordenadas definitivas (`groupId` actual es provisional).

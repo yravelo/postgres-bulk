@@ -35,6 +35,13 @@ La cadena lineal propuesta inicialmente se reemplaza por un grafo acíclico con 
 
 En dependencias Maven: `pgjdbc → core`, `hibernate → core`, `spring-data → core + pgjdbc`, `autoconfigure → spring-data + pgjdbc + hibernate` y `starter → autoconfigure` más dependencias de experiencia de usuario. Hibernate no necesita pgJDBC y pgJDBC no necesita Hibernate; auto-configure compone los adapters concretos. Sin Boot, el consumidor los ensambla explícitamente.
 
+Phase 10 materializa esa composición: Boot descubre `PostgresBulkAutoConfiguration` por
+`AutoConfiguration.imports`, espera a Hibernate JPA, crea el resolver default antes de ensamblar
+repositories y hace back-off ante uno del usuario. Sólo se activa con las clases necesarias, algún
+`EntityManagerFactory` y `postgres-bulk.enabled=true`; no abre una conexión al arrancar. El
+repository continúa siendo opt-in. El contrato completo está en
+[`spring-boot-autoconfiguration.md`](spring-boot-autoconfiguration.md).
+
 ## Componentes conceptuales (no clases comprometidas)
 
 - Una fachada `BulkOperations<T>` expresa casos de uso y options/resultados estables.
