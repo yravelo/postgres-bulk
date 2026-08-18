@@ -2,10 +2,10 @@
 
 ## Alcance
 
-Este documento enumera toda la superficie publica del proyecto al cerrar Phase 5. Existen
+Este documento enumera toda la superficie publica del proyecto al cerrar Phase 6. Existen
 exactamente **ocho tipos publicos**, todos en `postgres-bulk-core` y en los packages
 provisionales `io.github.postgresbulk.core` y `io.github.postgresbulk.core.metadata`.
-Phases 4 y 5 no añaden tipos públicos en `postgres-bulk-pgjdbc`. La forma conceptual de la API
+Phases 4–6 no añaden tipos públicos en `postgres-bulk-pgjdbc`. La forma conceptual de la API
 core esta ACCEPTED por ADR-009/011, pero las coordenadas y el namespace siguen sujetos a
 ADR-008 (PROPOSED) mientras el proyecto permanezca en `0.1.0-SNAPSHOT`.
 
@@ -177,13 +177,15 @@ public final class BulkKeyMetadata<K> {
 
 ## Fuera de la API publica
 
-Phase 5 no crea una operacion publica de lookup, resolver/cache de metadata, encoding,
+Phase 6 no crea una operacion publica de lookup, resolver/cache de metadata, encoding,
 CSV, COPY, execution, JDBC, ORM, observabilidad o serialization. Tampoco crea command
 objects, builders, repositories, metadata de ID/lifecycle/nullability ni una jerarquia
 generica de resultados.
 
 El package `io.github.postgresbulk.pgjdbc.copy` contiene exclusivamente detalles
 package-private: registro de encoders, representación NULL/texto, framing CSV, encoder de
-fila, quoting, builder SQL, callback y executor pgJDBC. `BulkEncodingException` y
+fila, quoting, builder SQL, callback, executor pgJDBC y coordinador bulk insert.
+`PostgresBulkInserter<T>` recibe una conexión caller-owned; no implementa aún la fachada
+pública porque el boundary de adquisición se probará en Phase 9. `BulkEncodingException` y
 `CopyExecutionException` son subtipos internos de la raíz pública `BulkException`; no se
 compromete una API de transporte antes de tener una operación pública que la necesite.

@@ -71,10 +71,12 @@ En éxito:
 4. devuelve el conteo `long` reportado por el servidor/driver.
 
 En cualquier `IOException`, `SQLException`, `RuntimeException` o `Error` después de iniciar
-COPY, si la operación sigue activa se invoca `cancelCopy()`. El fallo original es la causa
-principal de una única `CopyExecutionException` interna. Si cancelación también falla, su
-`SQLException` se añade como suppressed al fallo original. Nunca se intenta `endCopy()`
-después de un fallo del productor.
+COPY, si la operación sigue activa se invoca `cancelCopy()`. Los fallos checked de I/O/JDBC
+son la causa principal de una `CopyExecutionException` interna. ADR-014 refina el caso del
+productor: una `RuntimeException` o `Error` se relanza sin envolver después del cleanup
+para preservar la identidad de errores de argumento/accessor. Si cancelación también
+falla, su `SQLException` se añade como suppressed al fallo original. Nunca se intenta
+`endCopy()` después de un fallo del productor.
 
 `PGCopyOutputStream.close()` finaliza exitosamente un COPY activo, por lo que no se usa
 como cleanup genérico: podría convertir una producción parcial en éxito. La terminación

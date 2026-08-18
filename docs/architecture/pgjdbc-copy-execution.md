@@ -52,8 +52,10 @@ la transacción recibida: con autocommit activo queda confirmado al finalizar; c
 autocommit desactivado el caller conserva control completo sobre commit o rollback.
 
 Si falla producción, escritura o finalización, el executor cancela `CopyIn` mientras siga
-activo. La causa original queda como causa de `CopyExecutionException`; si la cancelación
-también falla, ese error queda suppressed en la causa. No se usa `close()` de
+activo. Los fallos checked JDBC/I/O quedan como causa de `CopyExecutionException`; los
+fallos runtime y `Error` del productor se relanzan sin envolver después de cancelar para
+preservar el contrato del llamador. Si la cancelación también falla, ese error queda
+suppressed en el fallo original. No se usa `close()` de
 `PGCopyOutputStream` como cleanup porque cerrarlo finaliza un COPY activo y podría aceptar
 contenido parcial.
 

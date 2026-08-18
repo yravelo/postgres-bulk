@@ -159,7 +159,7 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 
 ## Phase 5 — pgJDBC COPY executor
 
-**Estado:** completada el 2026-08-18. Phase 6 no iniciada.
+**Estado:** completada el 2026-08-18. Phase 6 completada posteriormente.
 
 - **Goal:** encapsular por completo el protocolo COPY y su lifecycle.
 - **Scope:** connection scope port, unwrap validado, SQL builder/quoting, executor COPY CSV, cancel/close/error row count.
@@ -194,9 +194,10 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 - [x] ADR-003 pasa a ACCEPTED y el inventario público permanece en ocho tipos core.
 - [x] Spotless, unit/integration tests, Javadocs, reactor y auditorías cierran la fase.
 
-**Decisiones diferidas:** facade/batching y adquisición de conexión (Phase 6), tablas
-temporales (Phase 7), integración transaccional Spring/pools, PostgreSQL 16–18, fallos de
-red, timeout/cancelación externa, buffer configurable y formatos/tipos adicionales.
+**Decisiones entonces diferidas:** batching quedó resuelto en Phase 6; facade y adquisición
+de conexión transaction-aware pasan a Phase 9. Continúan pendientes tablas temporales
+(Phase 7), PostgreSQL 16–18, fallos de red, timeout/cancelación externa, buffer configurable
+y formatos/tipos adicionales.
 
 **Aprendizajes:** el API push del encoder encaja directamente con
 `PGCopyOutputStream`; `CopyManager.copyIn(String, Reader)` exigiría un bridge pull o un
@@ -206,17 +207,54 @@ executor en propietario de la conexión.
 
 ## Phase 6 — Bulk insert
 
+**Estado:** completada el 2026-08-18. Phase 7 no iniciada.
+
 - **Goal:** entregar insert end-to-end programático sobre core + pgjdbc.
 - **Scope:** validación, batching iterativo, un connection scope, progreso interno, resultado agregado y semántica de fallo.
 - **Out of scope:** Hibernate/Spring repositories, callbacks JPA, streaming API y generated IDs.
-- **Architecture changes:** decidir si una clase service separada aporta cohesión; si no, implementación directa de fachada.
-- **Files/modules affected:** core/pgjdbc y integration tests.
+- **Architecture changes:** motor preparado package-private; facade y connection-access SPI
+  diferidos hasta validar integración Spring.
+- **Files/modules affected:** pgjdbc e integration tests; contratos core consumidos sin cambios.
 - **Implementation tasks:** evitar `subList`; iterator batches acotados; preparar metadata/SQL una vez; documentar persistence-context caveats y atomicidad.
-- **Tests:** empty, 1, multi, 10k, tamaños 1/>input/final, iterable one-shot, batch N falla, transaction commit/rollback y datos especiales.
+- **Tests:** empty, 1, multi, 20k, tamaños 1/>input/final, iterable one-shot, batch N falla, transaction commit/rollback y datos especiales.
 - **Acceptance criteria:** conteos/batches exactos; sin materializar input completo; rollback integral dentro de transacción JDBC suministrada.
 - **Risks:** partial commit fuera de tx; entidades con IDs/defaults/callbacks.
 - **Dependencies:** Phase 2–5.
-- **Definition of Done:** operación pública estable provisional y guía de semántica.
+- **Definition of Done:** motor end-to-end completo; facade pública sólo si connection
+  acquisition puede fijarse sin una SPI prematura; guía de semántica publicada.
+
+### Registro de cierre de Phase 6
+
+- [x] ADR-014 separa el engine caller-owned de adquisición/liberación y difiere una SPI
+      transaction-aware hasta probar el adapter Spring.
+- [x] `PostgresBulkInserter<T>` prepara COPY SQL y encoder una vez, y coordina cada batch
+      sobre la misma `Connection` sin cerrar, commit, rollback ni reconfiguración.
+- [x] Un único iterator se consume directamente con lookahead de una fila; no hay
+      materialización global/por batch ni COPY vacío adicional, con memoria `O(1)`.
+- [x] `batchSize` produce exactamente un COPY por batch no vacío; conteos de servidor se
+      validan contra filas emitidas y se agregan con detección de overflow.
+- [x] Empty, null item/column, boundaries, default 1.000, one-shot/lazy, misma conexión,
+      mismatch y fallo posterior quedan cubiertos por 21 tests unitarios del coordinador.
+- [x] 18 integration tests pgJDBC verifican PostgreSQL 15.18; los casos Phase 6 incluyen
+      2.500 filas/3 COPY, commit/rollback, fallo posterior con autocommit true/false,
+      cancelación por null, one-shot y 20.000 filas/26 COPY.
+- [x] No se implementa todavía `BulkOperations<T>`: fijar ahora `DataSource` o provider
+      sería incompatible con ownership Spring aún no validado; el motor completo queda
+      interno y reutilizable por el futuro wiring.
+- [x] La superficie pública permanece en ocho tipos core; no hay cambios tecnológicos en
+      core, Hibernate o módulos Spring y Phase 7 no se inicia.
+- [x] La guía `architecture/bulk-insert.md`, ADR-013, overview, inventario público y README
+      reflejan batching, conteos, fallos, ownership, transacciones y caveats ORM.
+
+**Decisiones diferidas:** connection-access callback/SPI y facade concreta (Phase 9),
+metadata Hibernate (Phase 8), generated IDs/defaults/callbacks JPA, retries, progreso,
+paralelismo, buffers configurables y atomicidad automática fuera de una transacción.
+
+**Aprendizajes:** separar COPY de batching permite alimentar el driver directamente desde
+un iterator sin buffer de filas. Un lookahead evita el COPY vacío, pero un null dentro del
+batch requiere que el executor cancele y preserve la excepción runtime. Resultado de la
+llamada y persistencia transaccional son contratos distintos: no devolver resultado
+parcial no revierte COPY ya confirmados con autocommit.
 
 ## Phase 7 — Temporary-table bulk lookup
 

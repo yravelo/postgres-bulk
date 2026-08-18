@@ -4,10 +4,11 @@ Workspace de diseño para una librería de operaciones bulk sobre PostgreSQL, co
 
 ## Estado
 
-Phase 5: pgJDBC COPY executor completada. Core conserva la API bulk mínima y el SPI
-neutral de metadata; `postgres-bulk-pgjdbc` contiene encoding CSV, SQL quoted y ejecución
-streaming internos, verificados con PostgreSQL 15 real. La librería todavía no ofrece la
-operación bulk insert end-to-end. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
+Phase 6: motor bulk insert completado. Core conserva la API bulk mínima y el SPI neutral
+de metadata; `postgres-bulk-pgjdbc` compone batching single-pass, encoding CSV y ejecución
+COPY sobre una `Connection` prestada, verificados con PostgreSQL 15 real. El motor es aún
+interno: `BulkOperations<T>` y la adquisición transaction-aware se conectarán cuando
+Phase 9 pruebe el boundary Spring. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
 
 ## Navegación
 
@@ -17,6 +18,7 @@ operación bulk insert end-to-end. La versión `0.1.0-SNAPSHOT` no ofrece estabi
 - [`docs/architecture/build-and-quality.md`](docs/architecture/build-and-quality.md): Wrapper, tests, formato y quality gates.
 - [`docs/architecture/copy-encoding.md`](docs/architecture/copy-encoding.md): contrato tipado y framing COPY CSV.
 - [`docs/architecture/pgjdbc-copy-execution.md`](docs/architecture/pgjdbc-copy-execution.md): SQL, UTF-8, lifecycle y ownership JDBC.
+- [`docs/architecture/bulk-insert.md`](docs/architecture/bulk-insert.md): batching, conteos, fallos y semántica transaccional.
 - [`docs/legacy/current-behavior.md`](docs/legacy/current-behavior.md): caracterización del código existente.
 - [`docs/legacy/risk-register.md`](docs/legacy/risk-register.md): problemas y riesgos priorizados.
 - [`docs/decisions/`](docs/decisions/): decisiones y propuestas arquitectónicas.
@@ -54,4 +56,4 @@ Para aplicar el formato Java localmente:
 ./mvnw spotless:apply
 ```
 
-Phase 6 — Bulk insert es la siguiente fase prevista.
+Phase 7 — Temporary-table bulk lookup es la siguiente fase prevista.

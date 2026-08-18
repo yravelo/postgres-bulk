@@ -57,7 +57,14 @@ caller → facade → validate options/input → obtain entity metadata
        → pgJDBC COPY per batch → accumulate server row counts → result
 ```
 
-La misma conexión vive durante la operación. Un fallo cancela el COPY activo y conserva la causa. La atomicidad total sólo se promete dentro de una transacción que abarque todos los batches; fuera de ella se documentará y probará la política elegida antes de publicar la API.
+Phase 6 materializa este flujo como `PostgresBulkInserter<T>`, un motor package-private
+preparado que recibe una conexión caller-owned. Obtiene un solo iterator, usa lookahead de
+una fila y alimenta cada COPY directamente sin listas por batch. SQL y encoders se preparan
+una vez por instancia. La misma conexión vive durante todos los batches; el motor no la
+cierra, reconfigura, confirma ni revierte. Un fallo cancela el COPY activo y conserva la
+causa. Con `autoCommit=false` el caller puede confirmar/revertir toda la operación; con
+`autoCommit=true` los COPY previos pueden quedar confirmados. El contrato completo está en
+[`bulk-insert.md`](bulk-insert.md).
 
 ## Flujo bulk lookup
 
@@ -116,6 +123,10 @@ operación activa, conserva la causa original y añade como suppressed cualquier
 cleanup. No cierra ni reconfigura la conexión y nunca hace commit o rollback. El contrato
 completo y su evidencia se documentan en
 [`pgjdbc-copy-execution.md`](pgjdbc-copy-execution.md).
+
+Phase 6 refina el error del productor: después de cancelar un COPY activo, las excepciones
+runtime y `Error` se relanzan sin envolver para conservar los contratos de argumentos y
+accessors. Los fallos checked JDBC/I/O conservan `CopyExecutionException` y su cause chain.
 
 ## Metadata y tablas temporales
 
