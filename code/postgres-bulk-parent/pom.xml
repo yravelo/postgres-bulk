@@ -38,11 +38,9 @@
     <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.outputTimestamp>2026-08-18T00:00:00Z</project.build.outputTimestamp>
 
+    <spring-boot.version>3.5.16</spring-boot.version>
     <junit.version>5.12.2</junit.version>
-    <hibernate.version>6.6.55.Final</hibernate.version>
     <jakarta-activation.version>2.1.1</jakarta-activation.version>
-    <postgresql.version>42.7.13</postgresql.version>
-    <spring-data-jpa.version>3.5.13</spring-data-jpa.version>
     <testcontainers.version>2.0.5</testcontainers.version>
 
     <google-java-format.version>1.28.0</google-java-format.version>
@@ -83,21 +81,11 @@
       </dependency>
 
       <dependency>
-        <groupId>org.hibernate.orm</groupId>
-        <artifactId>hibernate-core</artifactId>
-        <version>${hibernate.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.springframework.data</groupId>
-        <artifactId>spring-data-jpa</artifactId>
-        <version>${spring-data-jpa.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.postgresql</groupId>
-        <artifactId>postgresql</artifactId>
-        <version>${postgresql.version}</version>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring-boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
 
       <dependency>

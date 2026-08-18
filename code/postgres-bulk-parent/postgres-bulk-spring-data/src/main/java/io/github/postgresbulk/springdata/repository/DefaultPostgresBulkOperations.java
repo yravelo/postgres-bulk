@@ -25,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /** Spring Data infrastructure implementation loaded through external fragment registration. */
-public final class DefaultPostgresBulkOperations<T, ID>
+public class DefaultPostgresBulkOperations<T, ID>
     implements PostgresBulkRepository<T, ID>, RepositoryMetadataAccess {
 
   private final JpaContext jpaContext;
