@@ -1,4 +1,4 @@
-package io.github.postgresbulk.pgjdbc.encoding;
+package io.github.postgresbulk.pgjdbc.copy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

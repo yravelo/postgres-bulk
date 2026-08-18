@@ -1,4 +1,4 @@
-package io.github.postgresbulk.pgjdbc.encoding;
+package io.github.postgresbulk.pgjdbc.copy;
 
 import java.io.IOException;
 import java.util.Objects;

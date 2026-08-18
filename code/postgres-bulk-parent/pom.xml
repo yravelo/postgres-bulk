@@ -39,6 +39,8 @@
     <project.build.outputTimestamp>2026-08-18T00:00:00Z</project.build.outputTimestamp>
 
     <junit.version>5.12.2</junit.version>
+    <postgresql.version>42.7.13</postgresql.version>
+    <testcontainers.version>2.0.5</testcontainers.version>
 
     <google-java-format.version>1.28.0</google-java-format.version>
     <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
@@ -61,6 +63,20 @@
         <version>${junit.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>testcontainers-bom</artifactId>
+        <version>${testcontainers.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>${postgresql.version}</version>
       </dependency>
 
       <dependency>

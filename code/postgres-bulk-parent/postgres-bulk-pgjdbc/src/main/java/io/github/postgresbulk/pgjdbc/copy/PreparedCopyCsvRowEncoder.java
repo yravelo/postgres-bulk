@@ -1,4 +1,4 @@
-package io.github.postgresbulk.pgjdbc.encoding;
+package io.github.postgresbulk.pgjdbc.copy;
 
 import io.github.postgresbulk.core.metadata.ColumnMetadata;
 import io.github.postgresbulk.core.metadata.EntityMetadata;
