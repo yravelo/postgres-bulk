@@ -93,14 +93,29 @@ como terminador. Por tanto NULL se emite `\N`, empty se emite `""` y el texto li
 `\N` se emite `"\N"`. CR, LF, delimiter y quote fuerzan quoting, y una quote interna se
 duplica. Las reglas provienen del contrato oficial de
 [COPY](https://www.postgresql.org/docs/current/sql-copy.html) y se detallan en
-[`copy-encoding.md`](copy-encoding.md). Phase 5 deberá reflejar exactamente estas opciones
-en la sentencia y convertir los caracteres a bytes UTF-8.
+[`copy-encoding.md`](copy-encoding.md). Phase 5 refleja exactamente estas opciones en la
+sentencia y convierte los caracteres a bytes UTF-8.
 
 Los built-ins cubren strings/caracteres, numéricos integrales y arbitrarios, floating
 point incluidos los valores especiales de PostgreSQL, boolean, UUID, temporales ISO,
 enum por `name()` y `byte[]` hexadecimal. No existe fallback a `Object.toString()` ni SPI
 pública de custom encoders. TEXT/BINARY, JSON/JSONB, arrays y custom types continúan
 diferidos.
+
+## Ejecución COPY pgJDBC
+
+Phase 5 materializa una primitive interna con el contrato
+`Connection + COPY SQL + Writer callback -> long`. SQL se construye aparte desde
+`EntityMetadata`: schema, tabla y columnas se citan siempre por componente y el orden de
+columnas es el mismo que consume el encoder preparado.
+
+El executor obtiene `PGConnection` únicamente mediante `Connection.unwrap`, inicia un
+`CopyIn`, transmite caracteres incrementalmente por `OutputStreamWriter(UTF_8)` y un
+`PGCopyOutputStream` de 64 KiB, y devuelve el conteo de `endCopy()`. En fallo cancela la
+operación activa, conserva la causa original y añade como suppressed cualquier error de
+cleanup. No cierra ni reconfigura la conexión y nunca hace commit o rollback. El contrato
+completo y su evidencia se documentan en
+[`pgjdbc-copy-execution.md`](pgjdbc-copy-execution.md).
 
 ## Metadata y tablas temporales
 

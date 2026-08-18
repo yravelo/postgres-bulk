@@ -4,7 +4,7 @@
 
 Phase 4 convierte las columnas ordenadas de `EntityMetadata<T>` en caracteres para
 `COPY FROM ... FORMAT CSV`. No abre conexiones, no construye SQL, no llama pgJDBC y no
-convierte caracteres a bytes. Esas responsabilidades pertenecen al executor de Phase 5.
+convierte caracteres a bytes. El executor de Phase 5 posee esas responsabilidades.
 
 El mecanismo vive íntegramente en `postgres-bulk-pgjdbc`; core no conoce CSV ni
 PostgreSQL. Todos sus tipos son package-private para que el formato permanezca invisible
@@ -22,11 +22,11 @@ ordered framed fields ──row encoder──> Appendable + LF
 La preparación recorre la metadata una sola vez. Cada fila reutiliza los encoders ya
 resueltos, lee las columnas en encounter order y escribe directamente al destino. No se
 materializa el input ni es obligatorio construir una `String` por fila. El encoder no
-cierra el `Appendable`; el owner de Phase 5 controlará su lifecycle y buffering.
+cierra el `Appendable`; el executor controla su lifecycle y buffering.
 
 ## Contrato NULL y CSV
 
-El dialecto requiere que Phase 5 emita una sentencia equivalente a:
+El dialecto emitido por Phase 5 es equivalente a:
 
 ```sql
 COPY ... FROM STDIN WITH (
@@ -60,7 +60,7 @@ representación interna no usa `null` como texto: distingue estado NULL de estad
 Un VALUE se cita si está vacío, contiene `\N`, es exactamente `\.` o contiene comma,
 quote, CR o LF. Los espacios iniciales/finales son significativos y se conservan; no
 obligan a quoting. La barra inversa no se escapa en CSV fuera de esas protecciones. Unicode
-y emoji se conservan como caracteres Java; el executor deberá escribir el stream en UTF-8
+y emoji se conservan como caracteres Java; el executor escribe el stream en UTF-8
 explícito. Citar `\.` mantiene compatibilidad con la excepción de end-of-data descrita por
 PostgreSQL para versiones anteriores a 18.
 
@@ -116,8 +116,8 @@ identifica columna, clase declarada y clase runtime. Ningún mensaje incluye el 
 
 Las excepciones del accessor se propagan sin envolver para respetar ADR-011. Una
 `IOException` del destino también se propaga sin convertirla ni cerrar el destino. Como
-la escritura es incremental, el owner debe descartar/cancelar el COPY activo tras
-cualquier fallo; Phase 5 probará ese lifecycle.
+la escritura es incremental, el executor cancela el COPY activo tras cualquier fallo; ese
+lifecycle está probado contra PostgreSQL real.
 
 ## Inmutabilidad, concurrencia y coste
 
@@ -138,7 +138,8 @@ NULL/empty/marcador literal, comma, quote, CR/LF/CRLF, espacios, Unicode/emoji,
 backslash/end-of-data, orden, varias filas, escritura incremental, ownership, errores de accessor,
 tipo no soportado, mismatch runtime y fallo de I/O.
 
-No se afirma todavía round-trip real ni contrato de bytes: Phase 5 añadirá Testcontainers,
-construirá el SQL con estas opciones, usará UTF-8 explícito y verificará valores
-persistidos. JSON/JSONB, arrays, tipos custom, registro público de encoders, otros
-marcadores y COPY TEXT/BINARY siguen fuera de alcance.
+Phase 5 valida con Testcontainers el round-trip y contrato de bytes real para todas las
+familias soportadas, incluidos NULL/empty/marcadores, Unicode/emoji, floating point
+especial, temporales y `bytea`. El builder genera exactamente las opciones anteriores y
+el único boundary a bytes usa UTF-8 explícito. JSON/JSONB, arrays, tipos custom, registro
+público de encoders, otros marcadores y COPY TEXT/BINARY siguen fuera de alcance.

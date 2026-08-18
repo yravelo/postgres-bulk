@@ -14,16 +14,22 @@ El parent gestiona versiones, pero no añade dependencias runtime globales. Gest
 
 - artefactos internos con la versión del reactor;
 - el BOM JUnit 5.12.2;
+- pgJDBC 42.7.13;
+- el BOM Testcontainers 2.0.5;
 - versiones de plugins de lifecycle y quality gates.
 
-Cada módulo declara únicamente dependencias que consume. Testcontainers no se importa todavía: cuando aparezca el primer test PostgreSQL en Phase 4, su BOM vivirá en `dependencyManagement` del parent y las dependencias concretas (`junit-jupiter`, `postgresql`) sólo en los módulos con integration tests. No será transitivo en artefactos productivos.
+Cada módulo declara únicamente dependencias que consume. `postgres-bulk-pgjdbc` declara
+pgJDBC como implementación productiva y `testcontainers-postgresql`,
+`testcontainers-junit-jupiter` y JUnit sólo con scope `test`. Testcontainers no es
+transitivo en artefactos productivos y ningún otro módulo recibe pgJDBC por el parent.
 
 ## Tests
 
 - Surefire ejecuta unit tests llamados `*Test.java` en la fase `test`.
 - Failsafe ejecuta integration tests llamados `*IT.java` en `integration-test` y verifica resultados en `verify`.
-- JUnit Jupiter se añadirá con scope `test` al primer módulo que tenga tests; no existe un test vacío en Phase 1.
-- `./mvnw clean verify` ejecuta ambos carriles. Los integration tests que necesiten Docker podrán separarse mediante perfiles sólo cuando existan y sin ocultarlos en CI.
+- JUnit Jupiter se declara con scope `test` en cada módulo con pruebas.
+- `./mvnw clean verify` ejecuta ambos carriles. Los integration tests pgJDBC requieren
+  Docker y levantan `postgres:15.18-alpine`; no están ocultos tras un perfil.
 
 ## Formato
 

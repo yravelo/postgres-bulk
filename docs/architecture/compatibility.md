@@ -40,6 +40,14 @@ No se afirmará soporte dual hasta que el mismo suite de integración pase. Dado
 
 Java 17 y Maven Wrapper 3.9.16 quedan fijados por ADR-007. El build puede ejecutarse con JDK superior, pero `maven.compiler.release=17` evita adoptar accidentalmente APIs de ese JDK. Maven 4 no se usa mientras sea preview. Esto fija infraestructura de build, no convierte todavía la matriz Spring/Hibernate/PostgreSQL en promesa de soporte.
 
+## Evidencia pgJDBC de Phase 5
+
+El executor compila y se prueba con pgJDBC 42.7.13. La suite Failsafe ejecuta el contrato
+completo sobre `postgres:15.18-alpine`: dialecto COPY CSV, UTF-8, tipos soportados,
+identificadores quoted, conteo, autocommit, commit/rollback y recuperación tras fallos.
+Esto confirma la baseline PostgreSQL 15, no la matriz propuesta 16–18; esa matriz sigue
+reservada para Phase 13.
+
 ## Decisiones aún abiertas
 
 - Coordenadas definitivas (`groupId` actual es provisional).

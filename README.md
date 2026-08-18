@@ -4,10 +4,10 @@ Workspace de diseño para una librería de operaciones bulk sobre PostgreSQL, co
 
 ## Estado
 
-Phase 4: COPY encoding completada. Core conserva la API bulk mínima y el SPI neutral de
-metadata; `postgres-bulk-pgjdbc` ya contiene encoding tipado y framing COPY CSV internos,
-deterministas y cubiertos por tests. Todavía no existe conexión ni ejecución COPY contra
-PostgreSQL. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
+Phase 5: pgJDBC COPY executor completada. Core conserva la API bulk mínima y el SPI
+neutral de metadata; `postgres-bulk-pgjdbc` contiene encoding CSV, SQL quoted y ejecución
+streaming internos, verificados con PostgreSQL 15 real. La librería todavía no ofrece la
+operación bulk insert end-to-end. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
 
 ## Navegación
 
@@ -16,6 +16,7 @@ PostgreSQL. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
 - [`docs/architecture/compatibility.md`](docs/architecture/compatibility.md): matriz inicial de compatibilidad.
 - [`docs/architecture/build-and-quality.md`](docs/architecture/build-and-quality.md): Wrapper, tests, formato y quality gates.
 - [`docs/architecture/copy-encoding.md`](docs/architecture/copy-encoding.md): contrato tipado y framing COPY CSV.
+- [`docs/architecture/pgjdbc-copy-execution.md`](docs/architecture/pgjdbc-copy-execution.md): SQL, UTF-8, lifecycle y ownership JDBC.
 - [`docs/legacy/current-behavior.md`](docs/legacy/current-behavior.md): caracterización del código existente.
 - [`docs/legacy/risk-register.md`](docs/legacy/risk-register.md): problemas y riesgos priorizados.
 - [`docs/decisions/`](docs/decisions/): decisiones y propuestas arquitectónicas.
@@ -45,7 +46,7 @@ cd code/postgres-bulk-parent
 ./mvnw clean verify
 ```
 
-No se requiere Maven global. El Wrapper oficial descarga Maven 3.9.16, verifica su SHA-256 y ejecuta unit tests (`*Test`), integration tests (`*IT`), Enforcer y Spotless. Se requiere un JDK 17 o superior; el bytecode objetivo permanece en Java 17.
+No se requiere Maven global. El Wrapper oficial descarga Maven 3.9.16, verifica su SHA-256 y ejecuta unit tests (`*Test`), integration tests (`*IT`), Enforcer y Spotless. Los `*IT` de pgJDBC requieren un daemon Docker accesible y levantan PostgreSQL 15.18 mediante Testcontainers. Se requiere un JDK 17 o superior; el bytecode objetivo permanece en Java 17.
 
 Para aplicar el formato Java localmente:
 
@@ -53,4 +54,4 @@ Para aplicar el formato Java localmente:
 ./mvnw spotless:apply
 ```
 
-Phase 5 — pgJDBC COPY executor es la siguiente fase prevista.
+Phase 6 — Bulk insert es la siguiente fase prevista.

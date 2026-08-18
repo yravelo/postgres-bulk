@@ -123,7 +123,7 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 
 ## Phase 4 — COPY encoding
 
-**Estado:** completada el 2026-08-18. Phase 5 no iniciada.
+**Estado:** completada el 2026-08-18. Phase 5 completada posteriormente.
 
 - **Goal:** producir registros CSV correctos y extensibles para COPY.
 - **Scope:** encoder registry, built-ins acordados, writer CSV, contrato UTF-8, NULL/empty y escritura incremental.
@@ -135,7 +135,7 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 - **Acceptance criteria:** unit contract distingue todos los casos; sin fallback `toString`; mensajes no incluyen valores sensibles. El round-trip integrado es gate conjunto de Phase 4/5 antes de aceptar ADR-003.
 - **Risks:** formatos temporales y `bytea`; allocations ocultas.
 - **Dependencies:** Phase 3; PostgreSQL Testcontainers se materializa con el executor de Phase 5.
-- **Definition of Done:** ADR-012 aceptado con suite rápida; ADR-003 permanece PROPOSED hasta la prueba integradora de Phase 5.
+- **Definition of Done:** ADR-012 aceptado con suite rápida; ADR-003 permaneció PROPOSED hasta la prueba integradora de Phase 5.
 
 ### Registro de cierre de Phase 4
 
@@ -159,6 +159,8 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 
 ## Phase 5 — pgJDBC COPY executor
 
+**Estado:** completada el 2026-08-18. Phase 6 no iniciada.
+
 - **Goal:** encapsular por completo el protocolo COPY y su lifecycle.
 - **Scope:** connection scope port, unwrap validado, SQL builder/quoting, executor COPY CSV, cancel/close/error row count.
 - **Out of scope:** insert de entidades, temp tables, Spring transaction integration.
@@ -170,6 +172,37 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 - **Risks:** cerrar conexión prestada o enmascarar error de COPY durante close.
 - **Dependencies:** Phase 4.
 - **Definition of Done:** executor usable con metadata fixture, sin Spring/Hibernate.
+
+### Registro de cierre de Phase 5
+
+- [x] ADR-013 fija antes del código el contrato interno, API pgJDBC, ownership, lifecycle,
+      error mapping, UTF-8 y SQL.
+- [x] Encoding, builder y executor forman el package package-private cohesivo
+      `io.github.postgresbulk.pgjdbc.copy`; core no cambia.
+- [x] El builder always-quote trata schema/tabla/columnas como componentes, duplica quotes
+      y conserva el orden de metadata con el dialecto ADR-012 exacto.
+- [x] El executor usa `Connection.unwrap(PGConnection.class)`, `CopyIn`, buffer de 64 KiB,
+      `OutputStreamWriter(UTF_8)` y devuelve el `long` de `endCopy()`.
+- [x] La conexión es caller-owned: no close, commit, rollback ni cambio de estado; tests
+      reales cubren autocommit y control manual de transacción.
+- [x] Todo fallo posterior al inicio cancela COPY si sigue activo, conserva causa original
+      y deja errores de cleanup como suppressed.
+- [x] Testcontainers 2.0.5 es test-only y Failsafe ejecuta 11 tests contra PostgreSQL
+      15.18; pgJDBC 42.7.13 queda confinado al adapter.
+- [x] Round-trip real valida texto/NULL, numéricos, temporales, `bytea`, enum y nombres
+      quoted; también servidor inválido, productor mid-stream y 20.000 filas streaming.
+- [x] ADR-003 pasa a ACCEPTED y el inventario público permanece en ocho tipos core.
+- [x] Spotless, unit/integration tests, Javadocs, reactor y auditorías cierran la fase.
+
+**Decisiones diferidas:** facade/batching y adquisición de conexión (Phase 6), tablas
+temporales (Phase 7), integración transaccional Spring/pools, PostgreSQL 16–18, fallos de
+red, timeout/cancelación externa, buffer configurable y formatos/tipos adicionales.
+
+**Aprendizajes:** el API push del encoder encaja directamente con
+`PGCopyOutputStream`; `CopyManager.copyIn(String, Reader)` exigiría un bridge pull o un
+hilo. `PGCopyOutputStream.close()` no es cleanup seguro tras fallo porque ejecuta
+`endCopy()`. El conteo real y el estado transaccional pueden comprobarse sin convertir el
+executor en propietario de la conexión.
 
 ## Phase 6 — Bulk insert
 

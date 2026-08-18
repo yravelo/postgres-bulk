@@ -27,8 +27,9 @@ Fuentes primarias:
 
 ### Ubicación y fronteras
 
-Todo el mecanismo reside en `postgres-bulk-pgjdbc`, bajo un único package interno de
-encoding. Core no cambia. Se mantienen tres pasos independientes:
+Todo el mecanismo reside en `postgres-bulk-pgjdbc`, bajo el package interno cohesivo
+`io.github.postgresbulk.pgjdbc.copy`. Core no cambia. Se mantienen tres pasos
+independientes:
 
 1. un encoder tipado convierte un valor Java no-null en texto lógico;
 2. el writer CSV convierte `NULL` o texto en un campo COPY CSV;
@@ -59,8 +60,8 @@ versiones PostgreSQL anteriores a 18 puedan interpretarlo como end-of-data cuand
 única columna de la fila. Espacios iniciales/finales, las demás barras inversas y Unicode
 se conservan sin normalización.
 
-El executor de Phase 5 deberá generar una sentencia COPY con exactamente estas opciones y
-representar el marcador mediante el escape string SQL `E'\\N'`, que produce los dos
+El executor de Phase 5 genera una sentencia COPY con exactamente estas opciones y
+representa el marcador mediante el escape string SQL `E'\\N'`, que produce los dos
 caracteres backslash + `N` sin depender de `standard_conforming_strings`. No puede confiar
 en los defaults de sesión o servidor.
 
@@ -116,9 +117,9 @@ ADR-011; los errores de escritura del destino se propagan como `IOException`.
 
 Phase 4 valida mediante tests unitarios el texto lógico, todas las ramas de framing CSV,
 el orden de columnas, NULL/empty/marcador literal, tipos no soportados, errores de accessor
-y escritura incremental. La prueba de ida y vuelta contra PostgreSQL real queda en Phase
-5, junto con la sentencia COPY y el charset UTF-8 del stream. Por esa razón ADR-003
-permanece PROPOSED hasta completar esa verificación integrada.
+y escritura incremental. Phase 5 añadió la prueba de ida y vuelta con PostgreSQL 15.18,
+la sentencia COPY exacta y el charset UTF-8 explícito. Los valores persistidos cubren
+todas las familias soportadas y ADR-003 pasa a ACCEPTED.
 
 ## Consecuencias
 
