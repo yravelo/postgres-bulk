@@ -1,13 +1,21 @@
 package io.github.postgresbulk.autoconfigure;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.postgresbulk.core.metadata.EntityMetadata;
 import io.github.postgresbulk.springdata.repository.JpaEntityMetadataResolver;
+import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.config.MeterFilter;
+import io.micrometer.core.instrument.observation.DefaultMeterObservationHandler;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
 import jakarta.persistence.EntityManagerFactory;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.sql.DataSource;
 import org.hibernate.Session;
@@ -36,9 +44,59 @@ class PostgresBulkAutoConfigurationTest {
             context -> {
               assertThat(context).hasSingleBean(JpaEntityMetadataResolver.class);
               assertThat(context).hasSingleBean(PostgresBulkProperties.class);
+              assertThat(context).hasSingleBean(MeterFilter.class);
               assertThat(context.getBean(PostgresBulkProperties.class).enabled()).isTrue();
+              assertThat(context.getBean(PostgresBulkProperties.class).observability().enabled())
+                  .isTrue();
               assertThat(outcomes(context).isFullMatch()).isTrue();
             });
+  }
+
+  @Test
+  void observabilityCanBeDisabledIndependently() {
+    contextRunner
+        .withUserConfiguration(
+            SingleEntityManagerFactoryConfiguration.class, MeterRegistryConfiguration.class)
+        .withPropertyValues("postgres-bulk.observability.enabled=false")
+        .run(
+            context -> {
+              assertThat(context).hasSingleBean(JpaEntityMetadataResolver.class);
+              assertThat(context.getBean(PostgresBulkProperties.class).enabled()).isTrue();
+              assertThat(context.getBean(PostgresBulkProperties.class).observability().enabled())
+                  .isFalse();
+              assertThat(context).doesNotHaveBean(MeterFilter.class);
+            });
+  }
+
+  @Test
+  void boundsAutomaticErrorTagForBulkOperationTimer() {
+    SimpleMeterRegistry meters = new SimpleMeterRegistry();
+    meters
+        .config()
+        .meterFilter(new PostgresBulkAutoConfiguration().postgresBulkObservationErrorTagFilter());
+    ObservationRegistry observations = ObservationRegistry.create();
+    observations.observationConfig().observationHandler(new DefaultMeterObservationHandler(meters));
+
+    assertThatThrownBy(
+            () ->
+                Observation.createNotStarted("postgres.bulk.operation", observations)
+                    .lowCardinalityKeyValue("operation", "insert")
+                    .lowCardinalityKeyValue("outcome", "error")
+                    .observe(
+                        () -> {
+                          throw new ConsumerSpecificFailure();
+                        }))
+        .isInstanceOf(ConsumerSpecificFailure.class);
+
+    Timer timer =
+        meters
+            .get("postgres.bulk.operation")
+            .tags("operation", "insert", "outcome", "error")
+            .timer();
+    assertThat(timer.getId().getTag("error")).isEqualTo("error");
+    assertThat(timer.getId().getTags())
+        .extracting(io.micrometer.core.instrument.Tag::getKey)
+        .containsExactlyInAnyOrderElementsOf(Set.of("error", "operation", "outcome"));
   }
 
   @Test
@@ -205,4 +263,15 @@ class PostgresBulkAutoConfigurationTest {
       return getConnection();
     }
   }
+
+  @Configuration(proxyBeanMethods = false)
+  static class MeterRegistryConfiguration {
+
+    @Bean
+    SimpleMeterRegistry meterRegistry() {
+      return new SimpleMeterRegistry();
+    }
+  }
+
+  private static final class ConsumerSpecificFailure extends RuntimeException {}
 }

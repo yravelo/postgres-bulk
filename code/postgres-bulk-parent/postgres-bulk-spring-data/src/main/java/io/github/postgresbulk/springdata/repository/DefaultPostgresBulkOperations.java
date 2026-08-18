@@ -5,6 +5,8 @@ import io.github.postgresbulk.core.BulkWriteResult;
 import io.github.postgresbulk.core.metadata.BulkKeyMetadata;
 import io.github.postgresbulk.core.metadata.EntityMetadata;
 import io.github.postgresbulk.pgjdbc.copy.PostgresBulkJdbcOperations;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.observation.ObservationRegistry;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.FlushModeType;
 import jakarta.persistence.Query;
@@ -17,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.hibernate.Session;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.jpa.repository.JpaContext;
 import org.springframework.data.repository.core.RepositoryMethodContext;
@@ -32,6 +37,7 @@ public class DefaultPostgresBulkOperations<T, ID>
   private final JpaEntityMetadataResolver metadataResolver;
   private final Map<EntityMetadata<?>, PostgresBulkJdbcOperations<?>> operations =
       Collections.synchronizedMap(new IdentityHashMap<>());
+  private volatile PostgresBulkObservability observability = PostgresBulkObservability.disabled();
 
   public DefaultPostgresBulkOperations(
       JpaContext jpaContext, JpaEntityMetadataResolver metadataResolver) {
@@ -40,9 +46,29 @@ public class DefaultPostgresBulkOperations<T, ID>
         Objects.requireNonNull(metadataResolver, "metadataResolver must not be null");
   }
 
+  @Autowired
+  void configureObservability(
+      ObjectProvider<ObservationRegistry> observationRegistries,
+      ObjectProvider<MeterRegistry> meterRegistries,
+      Environment environment) {
+    if (!environment.getProperty("postgres-bulk.observability.enabled", Boolean.class, true)) {
+      observability = PostgresBulkObservability.disabled();
+      return;
+    }
+    ObservationRegistry observationRegistry = observationRegistries.getIfAvailable();
+    observability =
+        observationRegistry == null
+            ? PostgresBulkObservability.disabled()
+            : new PostgresBulkObservability(observationRegistry, meterRegistries.getIfAvailable());
+  }
+
   @Override
   @Transactional
   public BulkWriteResult bulkInsert(Iterable<? extends T> items, BulkInsertOptions options) {
+    return observability.observeInsert(() -> doBulkInsert(items, options));
+  }
+
+  private BulkWriteResult doBulkInsert(Iterable<? extends T> items, BulkInsertOptions options) {
     Objects.requireNonNull(items, "items must not be null");
     Objects.requireNonNull(options, "options must not be null");
     PreparedIterable<T> preparedItems = PreparedIterable.from(items, "items");
@@ -59,6 +85,11 @@ public class DefaultPostgresBulkOperations<T, ID>
   @Override
   @Transactional
   public <K> List<T> findAllByBulkKey(Iterable<? extends K> keys, BulkKeyMetadata<K> keyMetadata) {
+    return observability.observeLookup(() -> doFindAllByBulkKey(keys, keyMetadata));
+  }
+
+  private <K> List<T> doFindAllByBulkKey(
+      Iterable<? extends K> keys, BulkKeyMetadata<K> keyMetadata) {
     Objects.requireNonNull(keys, "keys must not be null");
     Objects.requireNonNull(keyMetadata, "keyMetadata must not be null");
     PreparedIterable<K> preparedKeys = PreparedIterable.from(keys, "keys");
