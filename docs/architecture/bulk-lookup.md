@@ -141,3 +141,7 @@ flush mode `COMMIT`. ADR-017 contiene la decisión transaccional completa.
 - [SELECT DISTINCT](https://www.postgresql.org/docs/15/queries-select-lists.html#QUERIES-DISTINCT)
 - [Identificadores](https://www.postgresql.org/docs/15/sql-syntax-lexical.html)
 - [Transacciones read-only](https://www.postgresql.org/docs/15/runtime-config-client.html)
+
+Phase 11 confirma mediante fault injection CREATE/COPY/SELECT/callback/DROP, incluido cleanup
+suppressed en una transacción abortada. Hikari con una sola conexión prueba cero temporales y
+estado JDBC limpio después de éxito, fallo y rollback.

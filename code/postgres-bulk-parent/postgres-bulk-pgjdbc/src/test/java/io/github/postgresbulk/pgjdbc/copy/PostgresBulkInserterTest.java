@@ -13,6 +13,8 @@ import io.github.postgresbulk.core.metadata.EntityMetadata;
 import io.github.postgresbulk.core.metadata.TableName;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -259,6 +261,149 @@ class PostgresBulkInserterTest {
     assertSame(failure, thrown);
   }
 
+  @Test
+  void acceptsIntegerMaxBatchSizeWithoutAllocatingForTheBoundary() {
+    RecordingCopyExecutor executor = new RecordingCopyExecutor();
+    PostgresBulkInserter<Row> inserter = PostgresBulkInserter.prepare(metadata(), executor);
+
+    BulkWriteResult result =
+        inserter.insert(
+            CONNECTION,
+            List.of(new Row(1, "one"), new Row(2, "two")),
+            BulkInsertOptions.ofBatchSize(Integer.MAX_VALUE));
+
+    assertEquals(new BulkWriteResult(2, 1), result);
+    assertEquals(1, executor.calls);
+  }
+
+  @Test
+  void iteratorFailuresBeforeCopyPreserveIdentityAndAvoidJdbc() {
+    IllegalStateException hasNextFailure = new IllegalStateException("hasNext unavailable");
+    RecordingCopyExecutor hasNextExecutor = new RecordingCopyExecutor();
+    PostgresBulkInserter<Row> hasNextInserter =
+        PostgresBulkInserter.prepare(metadata(), hasNextExecutor);
+    Iterable<Row> hasNextSource =
+        () ->
+            new Iterator<>() {
+              @Override
+              public boolean hasNext() {
+                throw hasNextFailure;
+              }
+
+              @Override
+              public Row next() {
+                throw new AssertionError("next must not be called");
+              }
+            };
+
+    assertSame(
+        hasNextFailure,
+        assertThrows(
+            IllegalStateException.class, () -> hasNextInserter.insert(CONNECTION, hasNextSource)));
+    assertEquals(0, hasNextExecutor.calls);
+
+    IllegalArgumentException nextFailure = new IllegalArgumentException("next unavailable");
+    RecordingCopyExecutor nextExecutor = new RecordingCopyExecutor();
+    PostgresBulkInserter<Row> nextInserter = PostgresBulkInserter.prepare(metadata(), nextExecutor);
+    Iterable<Row> nextSource =
+        () ->
+            new Iterator<>() {
+              @Override
+              public boolean hasNext() {
+                return true;
+              }
+
+              @Override
+              public Row next() {
+                throw nextFailure;
+              }
+            };
+
+    assertSame(
+        nextFailure,
+        assertThrows(
+            IllegalArgumentException.class, () -> nextInserter.insert(CONNECTION, nextSource)));
+    assertEquals(0, nextExecutor.calls);
+  }
+
+  @Test
+  void iteratorHasNextAndNextFailuresDuringCopyPreserveIdentity() {
+    IllegalStateException hasNextFailure = new IllegalStateException("mid-copy hasNext failed");
+    RecordingCopyExecutor hasNextExecutor = new RecordingCopyExecutor();
+    PostgresBulkInserter<Row> inserter = PostgresBulkInserter.prepare(metadata(), hasNextExecutor);
+    Iterable<Row> hasNextSource = failingIterator(hasNextFailure, false);
+
+    assertSame(
+        hasNextFailure,
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                inserter.insert(
+                    CONNECTION, hasNextSource, BulkInsertOptions.ofBatchSize(Integer.MAX_VALUE))));
+    assertEquals(1, hasNextExecutor.calls);
+
+    IllegalArgumentException nextFailure = new IllegalArgumentException("mid-copy next failed");
+    RecordingCopyExecutor nextExecutor = new RecordingCopyExecutor();
+    PostgresBulkInserter<Row> nextInserter = PostgresBulkInserter.prepare(metadata(), nextExecutor);
+
+    assertSame(
+        nextFailure,
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                nextInserter.insert(
+                    CONNECTION,
+                    failingIterator(nextFailure, true),
+                    BulkInsertOptions.ofBatchSize(Integer.MAX_VALUE))));
+    assertEquals(1, nextExecutor.calls);
+  }
+
+  @Test
+  void laterAccessorFailurePreservesIdentityWithoutExposingTheRow() {
+    IllegalStateException failure = new IllegalStateException("accessor failed");
+    EntityMetadata<Row> failingMetadata =
+        EntityMetadata.of(
+            Row.class,
+            TableName.of("rows"),
+            List.of(
+                ColumnMetadata.of(
+                    "id",
+                    Integer.class,
+                    row -> {
+                      if (row.id() == 2) {
+                        throw failure;
+                      }
+                      return row.id();
+                    })));
+    RecordingCopyExecutor executor = new RecordingCopyExecutor();
+    PostgresBulkInserter<Row> inserter = PostgresBulkInserter.prepare(failingMetadata, executor);
+
+    IllegalStateException thrown =
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                inserter.insert(
+                    CONNECTION,
+                    List.of(new Row(1, "secret-one"), new Row(2, "secret-two")),
+                    BulkInsertOptions.ofBatchSize(2)));
+
+    assertSame(failure, thrown);
+    assertEquals(1, executor.calls);
+    assertTrue(!thrown.getMessage().contains("secret"));
+  }
+
+  @Test
+  void checkedCounterArithmeticRejectsEveryOverflowWithoutHugeDatasets() throws Exception {
+    assertCounterOverflow("incrementBatchNumber", new Class<?>[] {int.class}, Integer.MAX_VALUE);
+    assertCounterOverflow(
+        "addAffectedRows", new Class<?>[] {long.class, long.class}, Long.MAX_VALUE, 1L);
+    assertCounterOverflow(
+        "addProducedRows", new Class<?>[] {long.class, int.class}, Long.MAX_VALUE, 1);
+    assertCounterOverflow("nextPosition", new Class<?>[] {long.class}, Long.MAX_VALUE);
+    assertCounterOverflow(
+        "itemPosition", new Class<?>[] {long.class, int.class}, Long.MAX_VALUE, 1);
+  }
+
   private static Stream<Arguments> batchBoundaries() {
     int batchSize = 3;
     return Stream.of(
@@ -282,6 +427,44 @@ class PostgresBulkInserterTest {
 
   private static List<Row> rows(int count) {
     return IntStream.rangeClosed(1, count).mapToObj(id -> new Row(id, "value-" + id)).toList();
+  }
+
+  private static Iterable<Row> failingIterator(RuntimeException failure, boolean failOnNext) {
+    return () ->
+        new Iterator<>() {
+          private int hasNextCalls;
+          private int nextCalls;
+
+          @Override
+          public boolean hasNext() {
+            hasNextCalls++;
+            if (!failOnNext && hasNextCalls == 2) {
+              throw failure;
+            }
+            return true;
+          }
+
+          @Override
+          public Row next() {
+            nextCalls++;
+            if (failOnNext && nextCalls == 2) {
+              throw failure;
+            }
+            return new Row(nextCalls, "value-" + nextCalls);
+          }
+        };
+  }
+
+  private static void assertCounterOverflow(
+      String methodName, Class<?>[] parameterTypes, Object... arguments) throws Exception {
+    Method method = PostgresBulkInserter.class.getDeclaredMethod(methodName, parameterTypes);
+    method.setAccessible(true);
+
+    InvocationTargetException invocationFailure =
+        assertThrows(InvocationTargetException.class, () -> method.invoke(null, arguments));
+
+    assertTrue(invocationFailure.getCause() instanceof BulkException);
+    assertTrue(invocationFailure.getCause().getCause() instanceof ArithmeticException);
   }
 
   @SafeVarargs

@@ -95,3 +95,8 @@ y 20.000 filas en 26 batches sin materialización.
 Generated IDs, defaults omitidos, callbacks/listeners JPA, sincronización del persistence
 context, retries y lookup quedan fuera del contrato. COPY opera directamente contra la
 tabla: no gestiona entidades ORM ni devuelve IDs generados.
+
+Phase 11 añade fault injection de startup/write/end/cancel, iterators/accessors, overflow y
+SQLState de NOT NULL/CHECK/UNIQUE/FK. PostgreSQL real confirma `25P02` hasta rollback, tres batches
+con fallo final y la diferencia deliberada entre transacción manual y autocommit. No existe retry
+ni compensación.

@@ -1,9 +1,13 @@
 package io.github.postgresbulk.springdata.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.postgresbulk.core.BulkException;
 import io.github.postgresbulk.core.BulkInsertOptions;
 import io.github.postgresbulk.core.BulkWriteResult;
 import io.github.postgresbulk.core.metadata.BulkKeyMetadata;
@@ -11,13 +15,24 @@ import io.github.postgresbulk.core.metadata.ColumnMetadata;
 import io.github.postgresbulk.core.metadata.EntityMetadata;
 import io.github.postgresbulk.hibernate.HibernateEntityMetadataResolver;
 import io.github.postgresbulk.pgjdbc.copy.PostgresBulkJdbcOperations;
+import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Converter;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 import org.hibernate.Session;
 import org.junit.jupiter.api.AfterAll;
@@ -38,6 +53,7 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.NestedTransactionNotSupportedException;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
@@ -54,6 +70,7 @@ class PostgresBulkRepositoryIT {
   private static AnnotationConfigApplicationContext context;
   private static ProductRepository products;
   private static WarehouseRepository warehouses;
+  private static ConvertedProductRepository convertedProducts;
   private static PlatformTransactionManager transactionManager;
   private static EntityManagerFactory entityManagerFactory;
 
@@ -62,6 +79,7 @@ class PostgresBulkRepositoryIT {
     context = new AnnotationConfigApplicationContext(TestConfiguration.class);
     products = context.getBean(ProductRepository.class);
     warehouses = context.getBean(WarehouseRepository.class);
+    convertedProducts = context.getBean(ConvertedProductRepository.class);
     transactionManager = context.getBean(PlatformTransactionManager.class);
     entityManagerFactory = context.getBean(EntityManagerFactory.class);
   }
@@ -70,6 +88,7 @@ class PostgresBulkRepositoryIT {
   void cleanTables() {
     products.deleteAllInBatch();
     warehouses.deleteAllInBatch();
+    convertedProducts.deleteAllInBatch();
   }
 
   @AfterAll
@@ -127,11 +146,18 @@ class PostgresBulkRepositoryIT {
         () ->
             transaction.executeWithoutResult(
                 status -> {
-                  products.bulkInsert(List.of(new Product(id, "ROLLBACK", "rollback")));
+                  products.bulkInsert(
+                      List.of(
+                          new Product(id, "ROLLBACK-1", "rollback one"),
+                          new Product(id + 1, "ROLLBACK-2", "rollback two"),
+                          new Product(id + 2, "ROLLBACK-3", "rollback three")),
+                      BulkInsertOptions.ofBatchSize(1));
                   throw new DeliberateRollback();
                 }));
 
     assertTrue(products.findById(id).isEmpty());
+    assertTrue(products.findById(id + 1).isEmpty());
+    assertTrue(products.findById(id + 2).isEmpty());
   }
 
   @Test
@@ -148,6 +174,15 @@ class PostgresBulkRepositoryIT {
                         products.bulkInsert(List.of(new Product(501L, "READ-ONLY", "read-only")))));
 
     assertTrue(failure.getMessage().contains("read-only"));
+    BulkKeyMetadata<String> sku = skuMetadata();
+    InvalidDataAccessApiUsageException lookupFailure =
+        assertThrows(
+            InvalidDataAccessApiUsageException.class,
+            () ->
+                transaction.executeWithoutResult(
+                    status -> products.findAllByBulkKey(List.of("READ-ONLY"), sku)));
+    assertTrue(lookupFailure.getMessage().contains("read-only"));
+    assertEquals(0, products.count());
   }
 
   @Test
@@ -219,6 +254,166 @@ class PostgresBulkRepositoryIT {
   }
 
   @Test
+  void failedRequiresNewRollsBackInnerAndOuterCanCommit() {
+    TransactionTemplate outer = new TransactionTemplate(transactionManager);
+    TransactionTemplate inner = new TransactionTemplate(transactionManager);
+    inner.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+    outer.executeWithoutResult(
+        outerStatus -> {
+          products.saveAndFlush(new Product(610L, "OUTER-A", "outer before"));
+          BulkException failure =
+              assertThrows(
+                  BulkException.class,
+                  () ->
+                      inner.executeWithoutResult(
+                          innerStatus ->
+                              products.bulkInsert(
+                                  List.of(
+                                      new Product(611L, "INNER-DUP", "inner one"),
+                                      new Product(612L, "INNER-DUP", "inner two")))));
+          assertNotNull(findCause(failure, SQLException.class));
+          products.save(new Product(613L, "OUTER-B", "outer after"));
+        });
+
+    assertTrue(products.findById(610L).isPresent());
+    assertTrue(products.findById(613L).isPresent());
+    assertTrue(products.findById(611L).isEmpty());
+    assertTrue(products.findById(612L).isEmpty());
+  }
+
+  @Test
+  void caughtRequiredFailureMarksRollbackOnlyAndLeavesPostgresqlAborted() {
+    TransactionTemplate outer = new TransactionTemplate(transactionManager);
+    List<Throwable> observed = new ArrayList<>();
+
+    UnexpectedRollbackException completionFailure =
+        assertThrows(
+            UnexpectedRollbackException.class,
+            () ->
+                outer.executeWithoutResult(
+                    status -> {
+                      BulkException bulkFailure =
+                          assertThrows(
+                              BulkException.class,
+                              () ->
+                                  products.bulkInsert(
+                                      List.of(
+                                          new Product(620L, "ROLLBACK-ONLY", "one"),
+                                          new Product(621L, "ROLLBACK-ONLY", "two"))));
+                      observed.add(bulkFailure);
+                      assertTrue(status.isRollbackOnly());
+
+                      RuntimeException aborted =
+                          assertThrows(RuntimeException.class, () -> products.count());
+                      observed.add(aborted);
+                    }));
+
+    assertNotNull(completionFailure);
+    assertEquals("23505", findCause(observed.get(0), SQLException.class).getSQLState());
+    assertEquals("25P02", findCause(observed.get(1), SQLException.class).getSQLState());
+    assertTrue(products.findById(620L).isEmpty());
+  }
+
+  @Test
+  void iteratorFailureInsideSpringTransactionRemainsCauseAndRollsBackPriorBatch() {
+    IllegalStateException iteratorFailure = new IllegalStateException("source unavailable");
+    Iterable<Product> source =
+        () ->
+            new Iterator<>() {
+              private int hasNextCalls;
+
+              @Override
+              public boolean hasNext() {
+                if (++hasNextCalls == 4) {
+                  throw iteratorFailure;
+                }
+                return true;
+              }
+
+              @Override
+              public Product next() {
+                return new Product(
+                    630L + hasNextCalls, "ITERATOR-" + hasNextCalls, "iterator value");
+              }
+            };
+
+    InvalidDataAccessApiUsageException thrown =
+        assertThrows(
+            InvalidDataAccessApiUsageException.class,
+            () -> products.bulkInsert(source, BulkInsertOptions.ofBatchSize(2)));
+
+    assertSame(iteratorFailure, thrown.getCause());
+    assertEquals(0, products.count());
+  }
+
+  @Test
+  void attributeConverterFailureRemainsReachableAndRollsBackActiveCopy() {
+    ConverterFailure converterFailure = new ConverterFailure("converter unavailable");
+    ExplosiveValue failing = new ExplosiveValue("secret-converter-value", converterFailure);
+
+    RuntimeException thrown =
+        assertThrows(
+            RuntimeException.class,
+            () ->
+                convertedProducts.bulkInsert(
+                    List.of(
+                        new ConvertedProduct(640L, new ExplosiveValue("ok", null)),
+                        new ConvertedProduct(641L, failing)),
+                    BulkInsertOptions.ofBatchSize(2)));
+
+    assertTrue(hasCause(thrown, converterFailure));
+    assertFalse(String.valueOf(thrown.getMessage()).contains("secret-converter-value"));
+    assertEquals(0, convertedProducts.count());
+  }
+
+  @Test
+  void directFragmentDelegateWithoutRepositoryProxyIsRejected() {
+    DefaultPostgresBulkOperations<Product, Long> direct =
+        new DefaultPostgresBulkOperations<>(
+            context.getBean(org.springframework.data.jpa.repository.JpaContext.class),
+            context.getBean(JpaEntityMetadataResolver.class));
+
+    assertThrows(
+        IllegalStateException.class,
+        () -> direct.bulkInsert(List.of(new Product(650L, "DIRECT", "direct"))));
+    assertTrue(products.findById(650L).isEmpty());
+  }
+
+  @Test
+  void singletonRepositorySupportsEightIndependentConcurrentTransactions() throws Exception {
+    int threadCount = 8;
+    CountDownLatch ready = new CountDownLatch(threadCount);
+    CountDownLatch start = new CountDownLatch(1);
+    ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+    List<Future<String>> futures = new ArrayList<>();
+    try {
+      for (int index = 0; index < threadCount; index++) {
+        int current = index;
+        futures.add(
+            executor.submit(
+                () -> {
+                  ready.countDown();
+                  assertTrue(start.await(20, TimeUnit.SECONDS));
+                  long id = 700L + current;
+                  String sku = "CONCURRENT-" + current;
+                  products.bulkInsert(List.of(new Product(id, sku, "parallel")));
+                  return products.findAllByBulkKey(List.of(sku), skuMetadata()).get(0).sku;
+                }));
+      }
+      assertTrue(ready.await(20, TimeUnit.SECONDS));
+      start.countDown();
+      for (int index = 0; index < threadCount; index++) {
+        assertEquals("CONCURRENT-" + index, futures.get(index).get(30, TimeUnit.SECONDS));
+      }
+    } finally {
+      executor.shutdownNow();
+    }
+
+    assertEquals(threadCount, products.count());
+  }
+
+  @Test
   void nestedPropagationIsRejectedByJpaTransactionManagerDefault() {
     TransactionTemplate outer = new TransactionTemplate(transactionManager);
     TransactionTemplate nested = new TransactionTemplate(transactionManager);
@@ -237,11 +432,52 @@ class PostgresBulkRepositoryIT {
     assertTrue(products.findById(701L).isEmpty());
   }
 
+  @Test
+  void nestedRemainsUnsupportedWhenJpaManagerFlagIsEnabled() {
+    JpaTransactionManager manager = (JpaTransactionManager) transactionManager;
+    manager.setNestedTransactionAllowed(true);
+    try {
+      TransactionTemplate outer = new TransactionTemplate(manager);
+      TransactionTemplate nested = new TransactionTemplate(manager);
+      nested.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
+
+      outer.executeWithoutResult(
+          outerStatus -> {
+            products.saveAndFlush(new Product(710L, "NESTED-OUTER", "outer"));
+
+            assertThrows(
+                NestedTransactionNotSupportedException.class,
+                () ->
+                    nested.executeWithoutResult(
+                        nestedStatus ->
+                            products.bulkInsert(
+                                List.of(
+                                    new Product(711L, "NESTED-DUP", "one"),
+                                    new Product(712L, "NESTED-DUP", "two")))));
+
+            assertEquals(
+                1, products.findAllByBulkKey(List.of("NESTED-OUTER"), skuMetadata()).size());
+            products.save(new Product(713L, "NESTED-AFTER", "after savepoint rollbacks"));
+          });
+
+      assertTrue(products.findById(710L).isPresent());
+      assertTrue(products.findById(713L).isPresent());
+      assertTrue(products.findById(711L).isEmpty());
+      assertTrue(products.findById(712L).isEmpty());
+    } finally {
+      manager.setNestedTransactionAllowed(false);
+    }
+  }
+
   interface ProductRepository
       extends JpaRepository<Product, Long>, PostgresBulkRepository<Product, Long> {}
 
   interface WarehouseRepository
       extends JpaRepository<Warehouse, Long>, PostgresBulkRepository<Warehouse, Long> {}
+
+  interface ConvertedProductRepository
+      extends JpaRepository<ConvertedProduct, Long>,
+          PostgresBulkRepository<ConvertedProduct, Long> {}
 
   @Entity
   @Table(name = "phase9_product")
@@ -276,6 +512,43 @@ class PostgresBulkRepositoryIT {
     Warehouse(Long id, String name) {
       this.id = id;
       this.name = name;
+    }
+  }
+
+  @Entity
+  @Table(name = "phase11_converted_product")
+  static class ConvertedProduct {
+    @Id Long id;
+
+    @Convert(converter = ExplosiveValueConverter.class)
+    @Column(nullable = false)
+    ExplosiveValue code;
+
+    ConvertedProduct() {}
+
+    ConvertedProduct(Long id, ExplosiveValue code) {
+      this.id = id;
+      this.code = code;
+    }
+  }
+
+  record ExplosiveValue(String value, RuntimeException failure) {}
+
+  @Converter
+  public static class ExplosiveValueConverter
+      implements AttributeConverter<ExplosiveValue, String> {
+
+    @Override
+    public String convertToDatabaseColumn(ExplosiveValue attribute) {
+      if (attribute != null && attribute.failure() != null) {
+        throw attribute.failure();
+      }
+      return attribute == null ? null : attribute.value();
+    }
+
+    @Override
+    public ExplosiveValue convertToEntityAttribute(String value) {
+      return value == null ? null : new ExplosiveValue(value, null);
     }
   }
 
@@ -317,4 +590,33 @@ class PostgresBulkRepositoryIT {
   }
 
   private static final class DeliberateRollback extends RuntimeException {}
+
+  private static final class ConverterFailure extends RuntimeException {
+    private ConverterFailure(String message) {
+      super(message);
+    }
+  }
+
+  private static BulkKeyMetadata<String> skuMetadata() {
+    return BulkKeyMetadata.of(
+        String.class, List.of(ColumnMetadata.of("sku", String.class, value -> value)));
+  }
+
+  private static boolean hasCause(Throwable failure, Throwable expected) {
+    for (Throwable current = failure; current != null; current = current.getCause()) {
+      if (current == expected) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private static <T extends Throwable> T findCause(Throwable failure, Class<T> type) {
+    for (Throwable current = failure; current != null; current = current.getCause()) {
+      if (type.isInstance(current)) {
+        return type.cast(current);
+      }
+    }
+    return null;
+  }
 }

@@ -29,3 +29,19 @@ Escala: impacto y probabilidad `alta`, `media` o `baja`. Ningún workaround lega
 - Pretender soportar varias generaciones de Hibernate en un solo artefacto puede filtrar internals incompatibles. Mitigación: baseline única inicial y valorar adapters/versiones separados sólo con evidencia.
 - Añadir abstracciones para TEXT/BINARY prematuramente puede diluir el MVP. Mitigación: contrato interno de formato pequeño, CSV como única implementación inicial.
 - Mezclar observabilidad o Spring con el core rompería la portabilidad. Mitigación: reglas de dependencia ejecutables con ArchUnit/jdeps en fases posteriores.
+
+## Cierre verificado en Phase 11
+
+- `L-02`: cerrado; DDL, COPY, SELECT JPA y DROP comparten backend, con prueba de
+  `pg_backend_pid()` y transacciones reales.
+- `L-03`: cerrado; lookup exige `autoCommit=false`, Spring aporta REQUIRED y la librería nunca
+  reconfigura el recurso.
+- `L-08`: cerrado; rollback manual revierte tres batches y autocommit conserva sólo los COPY
+  completados antes del fallo.
+- `L-09`: cerrado; read-only se rechaza temprano y Hikari size 1 confirma que read-only,
+  autocommit e isolation no quedan contaminados.
+- `L-16`: cerrado; DROP explícito más rollback/`ON COMMIT DROP` deja cero temporales en la misma
+  sesión pooled después de éxito y fallo.
+
+El registro conserva los hallazgos legacy como trazabilidad; "cerrado" describe la nueva
+implementación, no una modificación del artefacto legacy.

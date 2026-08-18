@@ -157,3 +157,10 @@ pgJDBC pasa a ser dependencia runtime únicamente de `postgres-bulk-pgjdbc`; Tes
 permanece test-only en el mismo módulo. Core y el resto de adapters no cambian. Phase 6
 podrá coordinar un iterable/batches alrededor de este primitive sin duplicar SQL, encoding
 o lifecycle, pero esa coordinación no se implementa en Phase 5.
+
+## Resolución de robustez en Phase 11
+
+ADR-019 confirma con fault doubles que fallos de startup, write y `endCopy` conservan la
+`SQLException`; un fallo adicional de `cancelCopy` queda suppressed en el productor primario. La
+integración real prueba que una transacción manual queda `25P02` hasta rollback y que una pérdida
+de backend conserva causa/SQLState. El executor sigue sin poseer conexión, transacción ni retry.

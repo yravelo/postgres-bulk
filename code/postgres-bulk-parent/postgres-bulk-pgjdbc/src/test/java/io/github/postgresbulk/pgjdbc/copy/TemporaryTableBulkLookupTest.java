@@ -287,6 +287,85 @@ class TemporaryTableBulkLookupTest {
   }
 
   @Test
+  void createFailureIsPrimaryAndDoesNotAttemptDropOrCopy() {
+    RecordingConnection jdbc = new RecordingConnection(false);
+    jdbc.createFailure = new SQLException("create denied", "42501");
+    RecordingCopyExecutor copy = new RecordingCopyExecutor();
+
+    BulkException thrown =
+        assertThrows(
+            BulkException.class,
+            () -> lookup(copy).lookup(jdbc.connection, List.of(1), List.of(), unusedQuery()));
+
+    assertSame(jdbc.createFailure, thrown.getCause());
+    assertEquals(1, jdbc.executedSql.size());
+    assertTrue(jdbc.executedSql.get(0).startsWith("CREATE TEMP TABLE"));
+    assertEquals(0, copy.calls);
+  }
+
+  @Test
+  void iteratorFailuresBeforeAndDuringCopyPreserveIdentityAndCleanupBoundaries() {
+    IllegalStateException beforeFailure = new IllegalStateException("initial hasNext failed");
+    RecordingConnection beforeJdbc = new RecordingConnection(false);
+    RecordingCopyExecutor beforeCopy = new RecordingCopyExecutor();
+    Iterable<Integer> before =
+        () ->
+            new Iterator<>() {
+              @Override
+              public boolean hasNext() {
+                throw beforeFailure;
+              }
+
+              @Override
+              public Integer next() {
+                throw new AssertionError("next must not be called");
+              }
+            };
+
+    assertSame(
+        beforeFailure,
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                lookup(beforeCopy)
+                    .lookup(beforeJdbc.connection, before, List.of(), unusedQuery())));
+    assertEquals(0, beforeJdbc.statementCalls);
+    assertEquals(0, beforeCopy.calls);
+
+    IllegalArgumentException duringFailure = new IllegalArgumentException("next failed");
+    RecordingConnection duringJdbc = new RecordingConnection(false);
+    RecordingCopyExecutor duringCopy = new RecordingCopyExecutor();
+    Iterable<Integer> during =
+        () ->
+            new Iterator<>() {
+              private int nextCalls;
+
+              @Override
+              public boolean hasNext() {
+                return true;
+              }
+
+              @Override
+              public Integer next() {
+                if (++nextCalls == 2) {
+                  throw duringFailure;
+                }
+                return 1;
+              }
+            };
+
+    assertSame(
+        duringFailure,
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                lookup(duringCopy)
+                    .lookup(duringJdbc.connection, during, List.of(), unusedQuery())));
+    assertEquals(1, duringCopy.calls);
+    assertTrue(duringJdbc.executedSql.get(1).startsWith("DROP TABLE"));
+  }
+
+  @Test
   void rejectsNullArgumentsAndPreparationDependencies() {
     TemporaryTableBulkLookup<Integer> lookup = lookup(new RecordingCopyExecutor());
     RecordingConnection jdbc = new RecordingConnection(false);
@@ -413,6 +492,7 @@ class TemporaryTableBulkLookupTest {
     private final List<String> executedSql = new ArrayList<>();
     private final boolean autoCommit;
     private final Connection connection;
+    private SQLException createFailure;
     private SQLException dropFailure;
     private int autoCommitReads;
     private int statementCalls;
@@ -457,6 +537,9 @@ class TemporaryTableBulkLookupTest {
                   case "execute" -> {
                     String sql = (String) arguments[0];
                     executedSql.add(sql);
+                    if (sql.startsWith("CREATE TEMP TABLE") && createFailure != null) {
+                      throw createFailure;
+                    }
                     if (sql.startsWith("DROP TABLE") && dropFailure != null) {
                       throw dropFailure;
                     }

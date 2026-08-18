@@ -188,3 +188,9 @@ temporal a SPI o ejecuta una native query dentro de ese scope.
 ADR-017 publica el callback mínimo mediante `PostgresBulkJdbcOperations<T>` y el fragmento
 Spring Data ejecuta dentro de él una native query JPA que materializa entidades antes del
 cleanup. La coincidencia de sesión física se prueba con `pg_backend_pid()`.
+
+ADR-019 confirma que CREATE/COPY/SELECT/callback/DROP preservan el fallo primario y que DROP
+secundario queda suppressed. Hikari con una sola conexión no conserva temporales después de éxito
+ni de fallo seguido de rollback; 100 operaciones secuenciales no acumulan relaciones ni corrompen
+el protocolo. Una transacción SQL abortada no exige que DROP funcione: rollback/`ON COMMIT DROP`
+son la recuperación efectiva.

@@ -157,3 +157,9 @@ primitive de adapter, no una API JDBC pública provisional.
 Phase 9 cerró esa frontera en ADR-017: `PostgresBulkJdbcOperations<T>` expone el motor con
 conexión caller-owned y el fragmento Spring Data implementa `BulkOperations<T>` usando la
 conexión del `Session` transaccional.
+
+Phase 11 confirma ADR-019: con batch size 2, dos COPY exitosos y fallo del tercero, una
+transacción manual revierte las cinco filas y la conexión se reutiliza tras rollback; con
+autocommit, las cuatro filas de los dos COPY completados permanecen. También quedan probados
+`Integer.MAX_VALUE`, overflow checked sin datasets gigantes e identidad de fallos de iterator y
+accessor.
