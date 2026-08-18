@@ -5,7 +5,7 @@
 
 ## Contexto
 
-Bulk lookup es una capacidad del MVP, pero su contrato depende de como Phase 3 represente metadata, claves simples/compuestas y extraccion ordenada de componentes. Publicar ahora una firma obligaria a elegir esos elementos sin implementacion ni tests end-to-end. ADR-006 mantiene en estado PROPOSED la estrategia tecnica de tabla temporal + COPY + JOIN.
+Bulk lookup es una capacidad del MVP, pero su contrato depende de como Phase 3 represente metadata, claves simples/compuestas y extraccion ordenada de componentes. Publicar ahora una firma obligaria a elegir esos elementos sin implementacion ni tests end-to-end. Al aceptar este aplazamiento, ADR-006 mantenía en estado PROPOSED la estrategia tecnica de tabla temporal + COPY + JOIN; Phase 7 la aceptó después con ADR-015.
 
 ## Alternativas evaluadas
 
@@ -27,8 +27,15 @@ Los criterios que debe satisfacer la decision futura son:
 - no exponer tablas temporales, COPY, JDBC ni metadata Hibernate;
 - mantener la instancia de operaciones ligada al tipo de entidad si se extiende `BulkOperations<T>`, o justificar un contrato separado.
 
-El aplazamiento de la firma es una decision aceptada; la forma concreta del lookup y la estrategia de ADR-006 siguen PROPOSED.
+El aplazamiento de la firma es una decisión aceptada. Phase 7 ha aceptado la estrategia
+interna de ADR-006/015, pero no ha producido evidencia del consumidor Hibernate/Spring
+que permita elegir una firma pública sin acoplar lifecycle JDBC, mapping de resultado o
+adquisición transaccional. La API pública continúa diferida hasta Phase 9.
 
 ## Consecuencias
 
-Phase 2 no puede afirmar que el ejemplo de lookup compila, pero evita congelar una API especulativa. Phase 3 debe diseñar metadata sin presuponer una firma publica concreta, y Phase 7 debe actualizar ADR-006 o crear una decision de API respaldada por tests de claves simples y compuestas.
+Phase 7 valida keys simples/compuestas, políticas relacionales y un callback interno
+acotado, manteniendo ocho tipos públicos. Phase 8 puede producir metadata sin conocer el
+motor. Phase 9 debe probar la misma conexión física y decidir si el callback mínimo se
+eleva a SPI o si el adapter consume el resultado dentro de otro scope; sólo entonces se
+revisará la firma pública.

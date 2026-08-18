@@ -1,6 +1,6 @@
 # ADR-006: Lookup inicial con tabla temporal + COPY + JOIN
 
-- **Estado:** PROPOSED
+- **Estado:** ACCEPTED
 - **Fecha:** 2026-08-18
 
 ## Contexto
@@ -20,16 +20,32 @@ El lookup masivo es diferenciador, pero su rendimiento depende de cardinalidad, 
 3. **`CREATE TEMP TABLE ... (LIKE real)` completa:** PostgreSQL copia nombres/tipos de todas las columnas; puede añadir columnas/NOT NULL innecesarias y COPY sólo cargará keys.
 4. **Consulta a `pg_catalog` + DDL:** control máximo; complejidad y privilegios/versiones.
 
-## Propuesta
+## Decisión
 
-Adoptar una estrategia `TemporaryTableBulkLookup` en v1 y conservar una frontera para otras estrategias. Hacer un spike comparativo CTAS vs LIKE en PostgreSQL 15–18 para domains, collations, custom types, generated/identity, tablas particionadas y permisos. Elegir la menor DDL que preserve tipos sin heurística; no fijar todavía CTAS o LIKE.
+Adoptar `TemporaryTableBulkLookup` como estrategia inicial interna y conservar la libertad
+de comparar otras estrategias. La relación usa CTAS con proyección directa de las
+columnas ordenadas de `BulkKeyMetadata` y `WITH NO DATA`. PostgreSQL deriva los tipos
+físicos sin heurística Java → SQL.
 
-La API recibirá valores de clave, no entidades parciales. La clave compuesta será un tipo explícito con componentes ordenados por metadata. Por defecto se propone rechazar componentes null, deduplicar input conservando primer orden y no prometer orden de salida salvo reconstrucción explícita; estos tres puntos requieren tests de UX antes de aceptar.
+La API futura recibirá valores de clave, no entidades parciales. Las keys compuestas usan
+un tipo explícito y componentes ordenados. El input se conserva en COPY; el JOIN deduplica
+la relación de keys con `SELECT DISTINCT`, rechaza keys/componentes null y no promete
+orden. Keys sin match no producen fila y target duplicates producen todas sus filas.
 
-## Validación para aceptar
+Se requiere una única conexión con `autoCommit=false`. El lifecycle exacto, naming,
+callback de resultado y cleanup quedan fijados por ADR-015.
 
-Testcontainers PostgreSQL 15–18; 1/10k keys; clave simple/compuesta; duplicates/null; custom schema/quoted identifiers/domains; autocommit; commit/rollback/readOnly/REQUIRES_NEW; fallo COPY y cleanup en conexión reutilizada. Todas las sentencias deben usar la misma conexión.
+## Evidencia de aceptación
+
+PostgreSQL 15.18 verificó keys simples/compuestas, 20.000 keys one-shot, duplicates/null,
+schema/nombres quoted, domain/typmod/collation, autocommit, commit/rollback/read-only,
+fallos COPY/SELECT/callback, cleanup, reutilización, nesting y concurrencia en conexiones
+distintas. La matriz PostgreSQL 16–18, tablas particionadas y permisos específicos queda
+en Phase 13; no impide aceptar la estrategia v1 sobre la baseline probada.
 
 ## Consecuencias
 
-La estrategia tiene coste fijo y no será óptima para listas diminutas; no se introduce selección automática sin benchmark. El resultado puede requerir reorder en memoria si se promete orden. `ON COMMIT DROP` no sustituye cleanup ni una política transaccional clara.
+La estrategia tiene coste fijo y no será óptima para listas diminutas; no se introduce
+selección automática sin benchmark. Tampoco se crean índice ni estadísticas. Un futuro
+contrato que prometa orden deberá reconstruirlo explícitamente. `ON COMMIT DROP` complementa
+el DROP explícito y la política transaccional; no los sustituye.

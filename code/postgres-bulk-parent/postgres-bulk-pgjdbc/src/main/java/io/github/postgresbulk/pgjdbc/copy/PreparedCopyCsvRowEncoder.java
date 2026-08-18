@@ -1,5 +1,6 @@
 package io.github.postgresbulk.pgjdbc.copy;
 
+import io.github.postgresbulk.core.metadata.BulkKeyMetadata;
 import io.github.postgresbulk.core.metadata.ColumnMetadata;
 import io.github.postgresbulk.core.metadata.EntityMetadata;
 import java.io.IOException;
@@ -18,9 +19,18 @@ final class PreparedCopyCsvRowEncoder<T> {
 
   static <T> PreparedCopyCsvRowEncoder<T> prepare(EntityMetadata<T> metadata) {
     Objects.requireNonNull(metadata, "metadata must not be null");
+    return prepare(metadata.insertColumns());
+  }
+
+  static <T> PreparedCopyCsvRowEncoder<T> prepare(BulkKeyMetadata<T> metadata) {
+    Objects.requireNonNull(metadata, "metadata must not be null");
+    return prepare(metadata.components());
+  }
+
+  private static <T> PreparedCopyCsvRowEncoder<T> prepare(List<ColumnMetadata<T>> columns) {
     ValueEncoderRegistry registry = ValueEncoderRegistry.defaults();
-    List<PreparedColumn<T>> prepared = new ArrayList<>(metadata.insertColumns().size());
-    for (ColumnMetadata<T> column : metadata.insertColumns()) {
+    List<PreparedColumn<T>> prepared = new ArrayList<>(columns.size());
+    for (ColumnMetadata<T> column : columns) {
       prepared.add(
           new PreparedColumn<>(column, registry.resolve(column.javaType(), column.columnName())));
     }
@@ -28,6 +38,15 @@ final class PreparedCopyCsvRowEncoder<T> {
   }
 
   void writeRow(T source, Appendable destination) throws IOException {
+    writeRow(source, destination, false, 0);
+  }
+
+  void writeRowRejectingNulls(T source, Appendable destination, long position) throws IOException {
+    writeRow(source, destination, true, position);
+  }
+
+  private void writeRow(T source, Appendable destination, boolean rejectNulls, long position)
+      throws IOException {
     Objects.requireNonNull(source, "source must not be null");
     Objects.requireNonNull(destination, "destination must not be null");
 
@@ -35,7 +54,17 @@ final class PreparedCopyCsvRowEncoder<T> {
       if (index > 0) {
         destination.append(',');
       }
-      CopyCsvFieldWriter.write(columns.get(index).encode(source), destination);
+      PreparedColumn<T> column = columns.get(index);
+      EncodedValue encoded = column.encode(source);
+      if (rejectNulls && encoded.isNull()) {
+        throw new IllegalArgumentException(
+            "keys must not contain null components; null found at position "
+                + position
+                + " for column '"
+                + column.columnName()
+                + "'");
+      }
+      CopyCsvFieldWriter.write(encoded, destination);
     }
     destination.append('\n');
   }
@@ -65,6 +94,10 @@ final class PreparedCopyCsvRowEncoder<T> {
                 + metadata.javaType().getName());
       }
       return EncodedValue.text(encoder.encode(value));
+    }
+
+    private String columnName() {
+      return metadata.columnName();
     }
   }
 }
