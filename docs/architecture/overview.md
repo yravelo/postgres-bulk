@@ -71,13 +71,13 @@ typed keys → validate/deduplicate policy → resolve key metadata
 
 La estrategia inicial será tabla temporal + COPY + JOIN. `VALUES` y `UNNEST` se reservan para comparación futura, no para el MVP. La tabla temporal y el SELECT deben ejecutarse sobre la misma conexión; mezclar un statement JDBC con una consulta JPA sólo será válido si se demuestra esa identidad.
 
-## Decisiones de diseño de API pendientes
+## API core aceptada y lookup diferido
 
-La forma preferida de entrada es `Iterable<? extends T>` para insert: acepta `Collection` sin exigir acceso aleatorio y permite batching acotado; no promete streaming perezoso ni paralelismo. `Stream` se excluye del primer contrato por ownership/cierre y semántica transaccional.
+ADR-009 acepta un modelo operation-centric mediante `BulkOperations<T>`. Cada instancia queda ligada a un tipo lógico y publica `insert(Iterable<? extends T>)` más un overload con `BulkInsertOptions`. `Iterable` acepta `Collection` sin exigir acceso aleatorio, permite batching acotado y soporta productores de una pasada; no promete streaming perezoso ni paralelismo. `Stream` se excluye del primer contrato por ownership, cierre y semántica transaccional.
 
-Para lookup se separan claves de entidades. Una clave simple puede usar `Iterable<K>`; una compuesta debe ser un tipo de clave del consumidor y un extractor/definición validada, no `Collection<?>` ni varargs de nombres. Quedan por resolver orden, duplicados, nulls y tipado final en ADR-005/006 antes de crear código.
+`batchSize` es la única opción de core: describe particionado lógico y se valida al construir `BulkInsertOptions`. Un input vacío es un no-op con resultado `(0, 0)`; input/options null y elementos null se rechazan según el contrato público. `BulkWriteResult` contiene sólo `affectedRows` y `batches`; duración pertenece a observabilidad. El core publica una única raíz unchecked, `BulkException`, y difiere subtipos hasta que existan fallos implementados y probados.
 
-`BulkWriteResult` debería empezar con datos verificables del servidor (`affectedRows`, `batches`). Duración pertenece a observabilidad y no al resultado: incluirla dificultaría determinismo y compatibilidad. Un resultado lookup probablemente sea `List<T>` hasta que exista una necesidad demostrada de metadata adicional.
+ADR-010 acepta diferir la firma pública de lookup hasta Phase 7. La futura API recibirá valores de clave, no entidades parciales, y deberá preservar type safety para claves simples y compuestas después de validar el modelo neutral de metadata de Phase 3. Orden, duplicados, nulls y forma de resultado permanecen abiertos; no existe todavía ningún tipo público de lookup.
 
 ## Serialización COPY
 

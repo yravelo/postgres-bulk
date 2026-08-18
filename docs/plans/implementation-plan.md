@@ -22,7 +22,7 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 
 ## Phase 1 — Project foundation
 
-**Estado:** completada el 2026-08-18. Phase 2 no iniciada.
+**Estado:** completada el 2026-08-18.
 
 - **Goal:** disponer de un reactor reproducible y publicable sin lógica de negocio.
 - **Scope:** parent/modules, Maven Wrapper generado oficialmente, toolchains/compile, JUnit, Surefire/Failsafe, formato mínimo, CI de build y estructura de publicación.
@@ -53,6 +53,8 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 
 ## Phase 2 — Core domain and API
 
+**Estado:** completada el 2026-08-18.
+
 - **Goal:** definir el contrato mínimo independiente de framework para insert y lookup.
 - **Scope:** fachada/operaciones, options validadas, resultados, excepciones pequeñas, política de empty input y batches.
 - **Out of scope:** JDBC, CSV, metadata Hibernate, Spring, streaming y observabilidad.
@@ -64,6 +66,25 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 - **Risks:** congelar lookup antes de entender metadata; resultados con métricas innecesarias.
 - **Dependencies:** ADR-002 y feedback de API.
 - **Definition of Done:** Javadocs de tipos públicos, tests unitarios y ADRs actualizados; reactor verde.
+
+### Registro de cierre de Phase 2
+
+- [x] `BulkOperations<T>` define insert operation-centric para `Iterable<? extends T>` y liga una instancia al tipo lógico.
+- [x] Los overloads con defaults/options, nulls, elementos null y empty input tienen contrato público explícito.
+- [x] `BulkInsertOptions` es inmutable, valida `batchSize > 0` al construirse y no contiene opciones tecnológicas.
+- [x] `BulkWriteResult` contiene `affectedRows`/`batches`, valida sus conteos y omite duración, IDs y lifecycle ORM.
+- [x] `BulkException` establece una raíz unchecked y conserva causas; no se crean subtipos sin fallos concretos.
+- [x] La superficie pública queda inventariada en cuatro tipos con Javadocs y sin dependencias runtime.
+- [x] ADR-009 acepta la forma de API; ADR-010 acepta diferir lookup; ADR-006 y ADR-008 siguen PROPOSED.
+- [x] Tests Java puro cubren defaults, invariantes, value semantics, null del overload, delegación genérica y causas.
+- [x] Spotless, unit tests y reactor completo terminan correctamente.
+- [x] No se han creado metadata, codecs, executors ni código de Phase 3.
+
+**Decisiones diferidas:** firma y resultado de lookup; representación neutral de metadata/key; subtipos de excepción; semántica transaccional entre batches; streaming; generated IDs; tipos de encoding y puertos de ejecución.
+
+**Aprendizajes:** `Iterable` permite la ergonomía de `Collection` y consumo de una pasada sin adoptar el lifecycle de `Stream`. Una clase final con factories deja evolucionar options mejor que el constructor canónico de un record. Los tests de particionado real (batch 1, mayor que input y batch final incompleto) pertenecen a Phase 6, donde existirá una implementación de batching; Phase 2 fija y prueba únicamente los value objects y el contrato observable disponible.
+
+**Deuda explícita:** una interfaz no puede imponer por sí sola la validación del overload implementado; cada implementación debe cumplir sus Javadocs y Phase 6 añadirá contract tests reutilizables para empty input, null elements, one-shot iterables y conteos por batch.
 
 ## Phase 3 — Metadata abstraction
 
