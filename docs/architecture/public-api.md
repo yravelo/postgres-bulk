@@ -2,12 +2,12 @@
 
 ## Alcance
 
-Este documento enumera la superficie pública al cerrar Phase 10. Core añade el puerto
+Este documento enumera la superficie pública al cerrar Phase 12. Core añade el puerto
 `EntityMetadataResolver`; pgJDBC expone una fachada caller-owned y su callback anidado; Spring
 Data expone fragmento, resolver por persistence unit e implementación de infraestructura externa.
 Las coordenadas y el namespace siguen sujetos a ADR-008 mientras el proyecto permanezca en
-`0.1.0-SNAPSHOT`. Phase 10 no añade operaciones para invocación directa; añade dos tipos públicos
-de infraestructura requeridos por Spring Boot.
+`0.1.0-SNAPSHOT`. Phases 10–12 no añaden operaciones para invocación directa; Boot requiere dos
+tipos públicos de infraestructura.
 
 Los cuatro tipos de operacion son API, los cuatro descriptores de metadata son public SPI
 para productores/consumidores y el resolver Hibernate es API de adapter. No existe un SPI
@@ -195,8 +195,9 @@ public final class BulkKeyMetadata<K> {
 
 - `PostgresBulkAutoConfiguration`: clase de configuración descubierta por Spring Boot mediante
   `AutoConfiguration.imports`; no es una API de negocio ni debe importarse manualmente.
-- `PostgresBulkProperties`: record de binding para `postgres-bulk.enabled`; existe para el
-  contrato de configuración y metadata IDE, no para coordinar operaciones.
+- `PostgresBulkProperties`: record de binding para `postgres-bulk.enabled` y el grupo
+  `observability.enabled`; su record anidado `Observability` es infraestructura de configuration
+  properties, no API de operaciones.
 
 El número de nuevos tipos de API de operaciones es cero. La infraestructura pública crece en dos
 tipos porque Boot necesita cargar la clase y exponer el objeto de propiedades como bean. No se
@@ -204,8 +205,9 @@ publican conditions propias, failure analyzers, customizers, ejecutores o tuning
 
 ## Fuera de la API publica
 
-No se exponen `PGConnection`, `CopyIn`, CSV, nombres de temporales, internals Hibernate,
-observabilidad ni serialization. Tampoco existen command objects, metadata de
+No se exponen `PGConnection`, `CopyIn`, CSV, nombres de temporales, internals Hibernate ni
+serialization. `PostgresBulkObservability` permanece package-private y no existe API pública de
+custom tags/conventions. Tampoco existen command objects, metadata de
 ID/lifecycle/nullability ni una jerarquía genérica de resultados.
 
 Salvo la fachada `PostgresBulkJdbcOperations<T>`, el package

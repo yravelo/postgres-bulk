@@ -23,10 +23,18 @@
 
 ## Transacciones y robustez
 
-- DDL, COPY y JOIN de una operación usan una misma conexión física.
-- Commit, rollback, readOnly, autocommit, REQUIRES_NEW, nested/fallback y failure cleanup tienen comportamiento explícito.
-- La librería no confirma, revierte, cierra físicamente ni muta una conexión Spring prestada fuera de su contrato.
-- No quedan COPY streams ni temporales al reutilizar una conexión tras éxito o fallo.
+- [x] DDL, COPY y JOIN de una operación usan una misma conexión física.
+- [x] Commit, rollback, readOnly, autocommit, REQUIRED, REQUIRES_NEW, rollback-only y failure
+      cleanup tienen comportamiento explícito; NESTED queda UNSUPPORTED en la baseline con test.
+- [x] La librería no confirma, revierte, cierra físicamente ni muta una conexión Spring prestada
+      fuera de su contrato.
+- [x] No quedan COPY streams ni temporales al reutilizar una conexión tras éxito o fallo + rollback
+      en Hikari con `maximumPoolSize=1`.
+- [x] El fallo primario prevalece, cleanup queda suppressed y SQLState permanece accesible para
+      constraints, transacción abortada y pérdida de conexión.
+- [x] No existe retry automático; autocommit parcial e idempotencia pertenecen al caller.
+- [x] Reutilización repetida, ocho operaciones concurrentes independientes y terminación de
+      backend tienen evidencia PostgreSQL real.
 
 ## Calidad y compatibilidad
 
@@ -39,5 +47,15 @@
 ## Operación segura
 
 - Logs/metrics no incluyen filas, claves ni tags de alta cardinalidad.
+- Una observación por operación registra duración y error con tags cerrados; filas y batches son
+  totales monotónicos de éxito, sin instrumentación por fila/COPY.
+- La observabilidad es fail-open, se puede desactivar independientemente y no requiere Actuator,
+  exporter ni registry creado por la librería.
 - Excepciones conservan causa SQL y distinguen configuración/metadata/mapping/ejecución sin una clase por fallo.
 - Defaults funcionan sin configuración y cada property existente resuelve un caso demostrado.
+
+## Estado de release
+
+Phase 12 cierra los criterios de observabilidad, pero la release final **no está ready**. Aún
+faltan la matriz de compatibilidad completa, benchmarks/documentación de adopción y gates de
+release de las Phases 13–16.

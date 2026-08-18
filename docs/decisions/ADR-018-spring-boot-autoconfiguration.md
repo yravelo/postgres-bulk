@@ -38,6 +38,12 @@ El starter permanece sin código y agrega Data JPA más el artefacto de autoconf
 3.5.16 gobierna Spring Data 3.5.13, Spring Framework 6.2.19, Hibernate 6.6.53.Final y pgJDBC
 42.7.11 en la baseline integrada.
 
+Phase 12 añade `postgres-bulk.observability.enabled=true` como kill switch independiente. La
+librería sólo consume un `ObservationRegistry` existente y usa un `MeterRegistry` existente para
+los totales de filas/batches; no crea registries, exporters, tracing ni endpoints. Un `MeterFilter`
+acotado exclusivamente al timer de la librería normaliza el tag estándar `error` de Micrometer a
+`none|error`. Actuator sigue siendo opcional y sólo se incorpora en tests del starter.
+
 ## Consecuencias
 
 - Añadir starter y extender el fragmento basta para usar la librería con defaults.
@@ -47,5 +53,5 @@ El starter permanece sin código y agrega Data JPA más el artefacto de autoconf
 - Dos persistence units funcionan si cada dominio pertenece inequívocamente a una.
 - `PostgresBulkAutoConfiguration` y `PostgresBulkProperties` son infraestructura framework pública,
   no nueva API de operaciones para invocación directa.
-- Tuning global, observabilidad, failure analyzers y endurecimiento transaccional quedan fuera de
-  Phase 10.
+- Tuning global y failure analyzers siguen fuera del alcance. El endurecimiento transaccional y la
+  observabilidad se resolvieron posteriormente en ADR-019 y ADR-020.

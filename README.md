@@ -70,6 +70,20 @@ La autoconfiguración está habilitada por defecto y puede desactivarse así:
 postgres-bulk.enabled=false
 ```
 
+## Observability
+
+Cuando existe un `ObservationRegistry`, cada insert/lookup publica una única observación
+`postgres.bulk.operation`. Con un `MeterRegistry` también publica `postgres.bulk.rows` y
+`postgres.bulk.batches`, usando sólo tags bounded y sin entidades, keys ni SQL. Actuator se integra
+automáticamente, pero no es obligatorio. Para desactivar únicamente esta instrumentación:
+
+```properties
+postgres-bulk.observability.enabled=false
+```
+
+Consulta [Observability](docs/architecture/observability.md) para el boundary y la semántica de
+meters, errores y rollback.
+
 Consulta [Spring Boot auto-configuration](docs/architecture/spring-boot-autoconfiguration.md)
 para condiciones, back-off, varias persistence units y diagnóstico, y
 [Spring Data integration](docs/architecture/spring-data-integration.md) para transacciones y
@@ -77,9 +91,9 @@ persistence context.
 
 ## Estado
 
-Phase 10 completada: starter, autoconfiguración moderna, metadata de configuración, back-off y
-prueba end-to-end con una aplicación Boot real. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad
-de API. La siguiente fase es Phase 11 — Transactions and robustness.
+Phase 12 completada: observations operation-level, métricas de rows/batches, cardinalidad bounded y
+opt-out Boot sin alterar transacciones ni errores. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad
+de API ni está lista para release. La siguiente fase recomendada es Phase 13 — Compatibility tests.
 
 ## Navegación
 
@@ -94,6 +108,8 @@ de API. La siguiente fase es Phase 11 — Transactions and robustness.
 - [`docs/architecture/hibernate-metadata.md`](docs/architecture/hibernate-metadata.md): resolver, mappings soportados, conversiones y cache Hibernate.
 - [`docs/architecture/spring-data-integration.md`](docs/architecture/spring-data-integration.md): fragmento, transacciones, conexión y persistence context.
 - [`docs/architecture/spring-boot-autoconfiguration.md`](docs/architecture/spring-boot-autoconfiguration.md): activación, propiedades y back-off Boot.
+- [`docs/architecture/transactions-and-failures.md`](docs/architecture/transactions-and-failures.md): ownership, atomicidad, cleanup, propagaciones y pool reuse.
+- [`docs/architecture/observability.md`](docs/architecture/observability.md): observations, meters, tags, privacidad y boundary transaccional.
 - [`docs/legacy/current-behavior.md`](docs/legacy/current-behavior.md): caracterización del código existente.
 - [`docs/legacy/risk-register.md`](docs/legacy/risk-register.md): problemas y riesgos priorizados.
 - [`docs/decisions/`](docs/decisions/): decisiones arquitectónicas.

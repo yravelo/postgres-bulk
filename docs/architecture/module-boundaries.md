@@ -42,9 +42,15 @@ Paquete candidato: `metadata`. Si soportar dos majors de Hibernate exige interna
 
 ## `postgres-bulk-spring-data`
 
-**Puede conocer:** core, pgjdbc, Spring Framework, Spring JDBC, Spring TX, Spring Data JPA, JPA y la API pública `Session#doReturningWork` de Hibernate. Ofrece repository fragment opt-in y acceso a la conexión física del persistence context. Recibe el resolver de metadata como puerto, sin depender del adapter Hibernate concreto ni de sus internals.
+**Puede conocer:** core, pgjdbc, Spring Framework, Spring JDBC, Spring TX, Spring Data JPA, JPA,
+Micrometer Observation/Core y la API pública `Session#doReturningWork` de Hibernate. Ofrece
+repository fragment opt-in, acceso a la conexión física y observabilidad operation-level opcional.
+Recibe el resolver de metadata como puerto, sin depender del adapter Hibernate concreto ni de sus
+internals.
 
-**No puede conocer:** Spring Boot autoconfiguration, `@ConfigurationProperties` ni Micrometer obligatorio. No reemplaza globalmente `SimpleJpaRepository` salvo evidencia que descarte fragments.
+**No puede conocer:** Spring Boot autoconfiguration ni `@ConfigurationProperties`. Micrometer nunca
+entra en core/pgjdbc/hibernate y la ausencia de beans registry mantiene un camino NOOP. No reemplaza
+globalmente `SimpleJpaRepository`.
 
 Paquetes candidatos: `repository`, `factory` (sólo si finalmente hace falta), `configuration`. La experiencia objetivo es compatible con `JpaRepository<T, ID>, PostgresBulkRepository<T, ID>`; se decidirá si `PostgresBulkRepository` extiende algo o es un fragment puro.
 
@@ -53,7 +59,8 @@ Paquetes candidatos: `repository`, `factory` (sólo si finalmente hace falta), `
 **Puede conocer:** Spring Boot Autoconfigure, Spring Data, Hibernate y pgJDBC. Es el composition
 root que registra el bridge cacheado de metadata cuando el classpath, cualquier
 `EntityManagerFactory` y `postgres-bulk.enabled` lo permiten; hace back-off por tipo ante el bean
-del usuario. Micrometer/Observation sólo podrá añadirse como dependencia opcional.
+del usuario. Consume Micrometer para configuration metadata/cardinality sin crear registries ni
+exporters.
 
 **No puede conocer:** clases de aplicación ni activar repositorios globalmente de forma sorpresiva. No contiene lógica de COPY, metadata o mapping.
 

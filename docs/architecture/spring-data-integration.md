@@ -37,8 +37,15 @@ adapter obtiene la conexión subyacente del `Session` Hibernate mediante `doRetu
 COPY, JOIN y native query quedan dentro de ese mismo scope físico. La conexión permanece prestada.
 
 `REQUIRES_NEW` usa la conexión de la transacción interna. `NESTED` depende del transaction manager
-y no forma parte del contrato actual. Un iterable vacío se inspecciona una sola vez y no abre
+y es **UNSUPPORTED** en la baseline: tanto el default como `nestedTransactionAllowed=true` fallan
+porque `HibernateJpaDialect` no expone savepoints. Un iterable vacío se inspecciona una sola vez y no abre
 conexión, aunque el interceptor pueda haber creado una transacción lógica lazy.
+
+Si un participante REQUIRED falla y el outer captura la excepción, Spring lo deja rollback-only;
+un error SQL mantiene además PostgreSQL en `25P02` y la completion produce
+`UnexpectedRollbackException`. El interceptor estándar puede traducir fallos de argumento/estado
+a `InvalidDataAccessApiUsageException` manteniendo el runtime original como causa; no existe
+traducción manual de `BulkException`.
 
 ## Persistence context
 
@@ -47,6 +54,17 @@ checking y no convierte los objetos insertados en managed. La integración nunca
 `clear()`. El lookup usa native query con flush mode `COMMIT`, por lo que el caller debe hacer flush
 explícito si necesita que cambios JPA pendientes participen en la búsqueda. Los resultados del
 lookup sí se materializan como entidades mediante JPA/Hibernate.
+
+## Observabilidad de la llamada pública
+
+Phase 12 envuelve dentro de `DefaultPostgresBulkOperations` exactamente una llamada completa a
+insert/lookup mediante `ObservationRegistry`. El interceptor REQUIRED ya ha abierto la transacción
+cuando empieza la observación; ésta termina antes del completion Spring. Por ello mide trabajo bulk
+y no cambia el orden de proxies: success bulk puede preceder a un rollback exterior.
+
+El helper es package-private, stateless por llamada y fail-open. Consume registries opcionales,
+registra rows/batches únicamente desde el resultado exitoso y no toca conexión, metadata ni
+iterables. La especificación está en [`observability.md`](observability.md).
 
 ## Lookup
 

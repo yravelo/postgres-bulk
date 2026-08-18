@@ -381,7 +381,7 @@ completa (Phase 11), matriz mínimo/último Spring Data/Hibernate y varias PU re
 
 ## Phase 10 — Spring Boot auto-configuration
 
-**Estado:** completada el 2026-08-18. Phase 11 no iniciada.
+**Estado:** completada el 2026-08-18. El cierre posterior de Phase 11 se registra más abajo.
 
 - **Goal:** starter usable con defaults y back-off predecible.
 - **Scope:** conditions, properties mínimas, configuration metadata, starter POM y context tests.
@@ -430,6 +430,8 @@ transaccional. Respetar el BOM Boot evita una matriz de patches incoherente.
 
 ## Phase 11 — Transactions and robustness
 
+**Estado:** completada el 2026-08-18. Phase 12 completada posteriormente.
+
 - **Goal:** cerrar explícitamente ownership, atomicidad y recuperación.
 - **Scope:** commit/rollback/readOnly/autocommit/REQUIRES_NEW/nested, cancel COPY, partial batches, temp cleanup y connection pool reuse.
 - **Out of scope:** distributed transaction guarantees no soportadas.
@@ -442,7 +444,41 @@ transaccional. Respetar el BOM Boot evita una matriz de patches incoherente.
 - **Dependencies:** Phase 7/9.
 - **Definition of Done:** risk L-02/L-03/L-08/L-09/L-16 cerrados con tests.
 
+### Registro de cierre de Phase 11
+
+- [x] ADR-019 acepta ownership caller/framework, estado PostgreSQL abortado, primary/suppressed,
+      propagaciones Spring, pool reuse, pérdida de backend y ausencia de retry.
+- [x] La matriz por etapa se publica en `architecture/transactions-and-failures.md`; no se añade
+      capa genérica, flag de test, dependencia productiva ni tipo público.
+- [x] Insert prueba tres batches con fallo en el tercero: rollback manual deja cero filas y la
+      conexión reutilizable; autocommit conserva los dos COPY previos.
+- [x] PostgreSQL real conserva SQLState para NOT NULL/CHECK/UNIQUE/FK, missing table, `25P02` y
+      pérdida física; doubles deterministas cubren startup/write/end/cancel y cleanup suppressed.
+- [x] Lookup prueba CREATE/COPY/SELECT/callback/DROP. Hikari size 1 confirma cero temporales y
+      estado autocommit/readOnly/isolation/schema/search_path limpio tras éxito y rollback.
+- [x] Spring prueba REQUIRED sin/con outer, rollback-only + `UnexpectedRollbackException`,
+      REQUIRES_NEW éxito/fallo, read-only y delegate sin proxy. NESTED queda **UNSUPPORTED** tanto
+      por default como con `nestedTransactionAllowed=true` en HibernateJpaDialect.
+- [x] Fallos de iterator/accessor/converter mantienen identidad en el engine y causa en la
+      traducción Spring; ocho threads independientes y 100 operaciones secuenciales no comparten
+      ni acumulan estado.
+- [x] `pg_terminate_backend` demuestra que el owner ve el fallo, rollback atraviesa Hikari con
+      `08006`, la conexión muerta se descarta y la siguiente operación usa un backend saludable.
+- [x] No hay commit, rollback, close ni mutación de una conexión prestada desde producción; no hay
+      retry o compensación automática.
+
+**Decisiones diferidas:** transacciones distribuidas, idempotencia/retry de aplicación, soporte
+NESTED con otra combinación transaction-manager/dialect, timeouts/cancelación externa y matriz de
+versiones (Phase 13).
+
+**Aprendizajes:** conexión abierta no significa transacción usable: después de fallo SQL PostgreSQL
+exige rollback. El interceptor Spring puede traducir runtimes del productor conservándolos como
+causa. Un pool sólo puede descartar una conexión rota cuando el owner/framework observa el fallo a
+través de su proxy; no corresponde al executor cerrar el recurso prestado.
+
 ## Phase 12 — Observability
+
+**Estado:** completada el 2026-08-18. Phase 13 no iniciada.
 
 - **Goal:** observabilidad opcional sin contaminar core ni datos.
 - **Scope:** frontera de eventos/observer, Micrometer Observation en auto-config, métricas/logs acordados.
@@ -455,6 +491,31 @@ transaccional. Respetar el BOM Boot evita una matriz de patches incoherente.
 - **Risks:** doble conteo/retries y cardinalidad por exception/entity.
 - **Dependencies:** fronteras estables Phase 6/7/10.
 - **Definition of Done:** tests contractuales y guía de logging/metrics.
+
+### Registro de cierre de Phase 12
+
+- [x] ADR-020 fija una observación `postgres.bulk.operation` por llamada pública, con tags
+      `operation` y `outcome` de cardinalidad cerrada y sin entidad, tabla, SQL, fila o key.
+- [x] `ObservationRegistry` gobierna duración/error/tracing; `MeterRegistry` sólo añade los
+      contadores monotónicos `postgres.bulk.rows` y `postgres.bulk.batches`.
+- [x] Insert publica filas/batches únicamente al éxito y lookup publica el tamaño materializado;
+      empty input conserva una observación con totales sin incremento.
+- [x] Fallos de validación, read-only, productor, SQL y backend producen `outcome=error`, preservan
+      identidad/causas/suppressed y nunca convierten progreso parcial en métricas de éxito.
+- [x] Sin registry o con `postgres-bulk.observability.enabled=false`, la ruta es no-op; Actuator,
+      exporters y endpoints no son dependencias productivas del starter.
+- [x] Tests unitarios y de aplicación Boot real cubren éxito, error, rollback exterior, disabled,
+      ausencia de registry, cardinalidad, concurrencia y ausencia de doble conteo.
+- [x] Core, pgJDBC y Hibernate no dependen ni importan Micrometer; no se añade API pública de
+      operaciones y no existe instrumentación por fila, batch interno ni COPY anidado.
+
+**Decisiones diferidas:** histogramas/SLOs, exporters, dashboards, correlación de negocio y
+compatibilidad multi-versión (Phase 13). No se publican custom conventions ni tags extensibles.
+
+**Aprendizajes:** el resultado de una llamada bulk y el commit de una transacción exterior son
+límites distintos. Una única observación en el fragmento evita doble conteo y permite que tracing y
+timing compartan lifecycle; los contadores de progreso requieren el resultado autoritativo del
+motor y por eso sólo se actualizan después del éxito.
 
 ## Phase 13 — Compatibility tests
 

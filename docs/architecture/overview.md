@@ -42,6 +42,11 @@ repositories y hace back-off ante uno del usuario. Sólo se activa con las clase
 repository continúa siendo opt-in. El contrato completo está en
 [`spring-boot-autoconfiguration.md`](spring-boot-autoconfiguration.md).
 
+Phase 11 valida las fronteras bajo fallo sin introducir otra capa: caller/framework posee conexión
+y transacción; pgJDBC posee `CopyIn`; lookup posee la temporal. PostgreSQL `25P02`, rollback-only,
+REQUIRED/REQUIRES_NEW, NESTED unsupported, read-only, Hikari size 1 y pérdida de backend se fijan en
+[`transactions-and-failures.md`](transactions-and-failures.md) y ADR-019.
+
 ## Componentes conceptuales (no clases comprometidas)
 
 - Una fachada `BulkOperations<T>` expresa casos de uso y options/resultados estables.
@@ -193,4 +198,9 @@ conexión prestada del `Session` sin alterar su estado.
 
 ## Observabilidad y seguridad
 
-Un listener/observer de operación en la frontera de fachada permitirá integrar Micrometer en auto-configure sin que core dependa de él. Tags permitidos: operación, resultado y posiblemente tipo lógico acotado; nunca tabla arbitraria, ID, clave ni excepción completa. Logs no contienen filas ni valores. SQL dinámico sólo interpola identificadores producidos por metadata confiable y quoted por un componente central.
+Phase 12 integra Micrometer exclusivamente en Spring Data/autoconfigure. Una observación
+`postgres.bulk.operation` rodea cada llamada pública y puede producir duration/tracing; counters
+finales publican rows y batches sólo en success. Los únicos tags propios son operation/outcome y el
+tag estándar de error se normaliza a un conjunto bounded. No existen tags de entidad, repository,
+tabla, SQLState o excepción concreta, y nunca se copian filas, keys, SQL ni valores. El contrato
+completo vive en [`observability.md`](observability.md).

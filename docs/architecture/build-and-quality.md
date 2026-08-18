@@ -33,9 +33,9 @@ auto-configuration metadata. El starter agrega Data JPA y autoconfigure, sin có
 - JUnit Jupiter se declara con scope `test` en cada módulo con pruebas.
 - `./mvnw clean verify` ejecuta ambos carriles. Los integration tests pgJDBC requieren
   Docker y levantan `postgres:15.18-alpine`; no están ocultos tras un perfil.
-- `ApplicationContextRunner` prueba nueve escenarios de conditions/back-off sin Docker.
-- El starter contiene tres `*IT` que arrancan una aplicación Boot real y prueban insert, lookup,
-  rollback y read-only contra PostgreSQL 15.18 sin configuración manual de la librería.
+- `ApplicationContextRunner` prueba once escenarios de conditions/back-off/observability sin Docker.
+- El starter arranca una aplicación Boot real y prueba insert, lookup, rollback, read-only,
+  pérdida de backend y Micrometer/Actuator contra PostgreSQL 15.18 sin wiring manual.
 
 ## Formato
 

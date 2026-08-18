@@ -39,6 +39,23 @@ lookup aplazada por ADR-010 y la semántica del persistence context.
 
 Duplicados de input se deduplican, missing keys se omiten, null keys/componentes se rechazan y el
 orden no está definido, preservando ADR-015. `REQUIRES_NEW` funciona por suspensión normal del
-transaction manager. `NESTED` no se promete: `JpaTransactionManager` no ofrece savepoints nested
-por defecto y Phase 11 cerrará variantes. La implementación soporta varias persistence units
-si un domain type pertenece a una sola, limitación propia de `JpaContext`.
+transaction manager. La implementación soporta varias persistence units si un domain type
+pertenece a una sola, limitación propia de `JpaContext`.
+
+## Resolución de Phase 11
+
+ADR-019 cierra `NESTED` como **UNSUPPORTED** en la baseline: el default lo rechaza y habilitar
+`nestedTransactionAllowed` sigue produciendo `NestedTransactionNotSupportedException` porque
+`HibernateJpaDialect` no ofrece savepoints. REQUIRED, REQUIRES_NEW éxito/fallo, read-only,
+rollback-only y `UnexpectedRollbackException` quedan probados. La traducción estándar de Spring
+puede envolver `IllegalArgumentException`/`IllegalStateException` en
+`InvalidDataAccessApiUsageException`, preservando el original como causa; `BulkException` conserva
+su tipo y la cadena hasta SQLState.
+
+## Resolución de Phase 12
+
+La observación se abre dentro del fragmento, una vez que el interceptor `REQUIRED` ya ha creado o
+unido la transacción, y cubre exactamente una llamada pública `bulkInsert` o
+`findAllByBulkKey`. No se añade otro proxy ni se altera la propagación. El cierre ocurre al devolver
+o lanzar desde el fragmento, antes de que Spring complete una transacción exterior; por eso
+`outcome=success` describe la operación bulk, no el commit final del caller.

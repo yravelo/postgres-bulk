@@ -39,10 +39,16 @@ bulk; cada repository debe extender explícitamente `PostgresBulkRepository<T, I
 | Propiedad | Default | Efecto |
 |---|---:|---|
 | `postgres-bulk.enabled` | `true` | Habilita o deshabilita toda la autoconfiguración. |
+| `postgres-bulk.observability.enabled` | `true` | Emite observaciones si existe infraestructura; no cambia bulk. |
 
 No se exponen propiedades de batch, buffer o prefijo temporal: el batch ya es una opción por
 invocación y no existe evidencia para convertir detalles internos de COPY/temporales en contrato
 global. El annotation processor genera `META-INF/spring-configuration-metadata.json` para IDEs.
+
+La autoconfiguración no crea `ObservationRegistry` ni `MeterRegistry`. Aporta un `MeterFilter`
+limitado a `postgres.bulk.operation` que normaliza el tag estándar de error a `none|error`, evitando
+series por clases de excepción definidas por la aplicación. Con el opt-out, ni el fragmento emite
+instrumentación ni se registra ese filtro.
 
 ## PostgreSQL y coste de arranque
 
@@ -71,6 +77,10 @@ tiene selección automática y debe resolverse en la configuración de repositor
 y pgJDBC necesarios. El starter no contiene Java ni recursos propios; las versiones de Spring,
 Hibernate y pgJDBC las gobierna el BOM Spring Boot del consumidor.
 
+Micrometer Observation/Core llegan por el adapter Spring Data para el boundary operation-level.
+Actuator no es dependencia productiva; aparece sólo en tests y, cuando el consumidor lo incluye,
+aporta los registries/handlers que convierten observations en timers o spans.
+
 ## AOT y JPMS
 
 La composición no hace classpath scanning propio ni reflection dinámica: usa condiciones y
@@ -80,8 +90,9 @@ compatibilidad explícito. No se añaden descriptores JPMS en esta fase.
 
 ## Evidencia
 
-`ApplicationContextRunner` cubre activación default, disabled, falta de EMF, clases ausentes,
+`ApplicationContextRunner` cubre activación default, opt-out de observabilidad, disabled, falta de
+EMF, clases ausentes,
 varias factories, back-off ante bean propio y cero aperturas de conexión. Una aplicación
 `@SpringBootApplication` real, dependiente sólo del starter dentro del reactor, valida contra
 PostgreSQL 15.18 el descubrimiento del fragmento, insert con batching, lookup tipado, rollback
-exterior y rechazo read-only sin configuración manual de la librería.
+exterior, rechazo read-only y meters reales de insert/lookup/failure sin configuración manual.
