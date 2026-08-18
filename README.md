@@ -4,11 +4,11 @@ Workspace de diseño para una librería de operaciones bulk sobre PostgreSQL, co
 
 ## Estado
 
-Phase 6: motor bulk insert completado. Core conserva la API bulk mínima y el SPI neutral
-de metadata; `postgres-bulk-pgjdbc` compone batching single-pass, encoding CSV y ejecución
-COPY sobre una `Connection` prestada, verificados con PostgreSQL 15 real. El motor es aún
-interno: `BulkOperations<T>` y la adquisición transaction-aware se conectarán cuando
-Phase 9 pruebe el boundary Spring. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
+Phase 8: adapter de metadata Hibernate completado. `postgres-bulk-hibernate` resuelve tabla,
+columnas insertables, accessors y valores relacionales desde Hibernate 6.6, con cache por
+persistence unit y sin requerir una sesión abierta. La API pública suma un resolver a los
+ocho tipos core; ejecución y lookup permanecen internos hasta que Phase 9 pruebe el boundary
+Hibernate/Spring. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
 
 ## Navegación
 
@@ -19,6 +19,8 @@ Phase 9 pruebe el boundary Spring. La versión `0.1.0-SNAPSHOT` no ofrece estabi
 - [`docs/architecture/copy-encoding.md`](docs/architecture/copy-encoding.md): contrato tipado y framing COPY CSV.
 - [`docs/architecture/pgjdbc-copy-execution.md`](docs/architecture/pgjdbc-copy-execution.md): SQL, UTF-8, lifecycle y ownership JDBC.
 - [`docs/architecture/bulk-insert.md`](docs/architecture/bulk-insert.md): batching, conteos, fallos y semántica transaccional.
+- [`docs/architecture/bulk-lookup.md`](docs/architecture/bulk-lookup.md): keys, tabla temporal, COPY/JOIN, resultados y cleanup.
+- [`docs/architecture/hibernate-metadata.md`](docs/architecture/hibernate-metadata.md): resolver, mappings soportados, conversiones y cache Hibernate.
 - [`docs/legacy/current-behavior.md`](docs/legacy/current-behavior.md): caracterización del código existente.
 - [`docs/legacy/risk-register.md`](docs/legacy/risk-register.md): problemas y riesgos priorizados.
 - [`docs/decisions/`](docs/decisions/): decisiones y propuestas arquitectónicas.
@@ -56,4 +58,4 @@ Para aplicar el formato Java localmente:
 ./mvnw spotless:apply
 ```
 
-Phase 7 — Temporary-table bulk lookup es la siguiente fase prevista.
+Phase 9 — Spring Data integration es la siguiente fase prevista.

@@ -48,6 +48,24 @@ identificadores quoted, conteo, autocommit, commit/rollback y recuperación tras
 Esto confirma la baseline PostgreSQL 15, no la matriz propuesta 16–18; esa matriz sigue
 reservada para Phase 13.
 
+## Evidencia lookup de Phase 7
+
+PostgreSQL 15.18 y pgJDBC 42.7.13 validan CTAS/COPY/JOIN con claves simples y compuestas,
+schema e identificadores quoted, domain, typmod y collation, 20.000 keys one-shot,
+duplicados/missing/nulls, commit/rollback, cleanup, nesting y dos conexiones concurrentes.
+Autocommit se rechaza antes de DDL porque `ON COMMIT DROP` eliminaría la temporal al
+terminar CREATE; CTAS en transacción read-only se rechaza por PostgreSQL con `25006`.
+Esto añade evidencia para la baseline 15, no amplía todavía la matriz 16–18.
+
+## Evidencia Hibernate de Phase 8
+
+Hibernate ORM 6.6.55.Final compila con bytecode Java 17 y el suite runtime pasa contra
+PostgreSQL 15.18. Se validan mapping físico, accessors, IDs/embeddables/asociaciones,
+converters/enums, proxies y cache con múltiples `SessionFactory`. El adapter usa un único
+tipo `internal`, `ToOneAttributeMapping`, además de SPI runtime; por ello esta evidencia
+acredita exactamente 6.6.55.Final. El job mínimo/último 6.6 continúa pendiente de Phase 13
+y no se afirma todavía compatibilidad con Hibernate 7.
+
 ## Decisiones aún abiertas
 
 - Coordenadas definitivas (`groupId` actual es provisional).

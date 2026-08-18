@@ -207,7 +207,7 @@ executor en propietario de la conexión.
 
 ## Phase 6 — Bulk insert
 
-**Estado:** completada el 2026-08-18. Phase 7 no iniciada.
+**Estado:** completada el 2026-08-18. Phase 7 completada posteriormente.
 
 - **Goal:** entregar insert end-to-end programático sobre core + pgjdbc.
 - **Scope:** validación, batching iterativo, un connection scope, progreso interno, resultado agregado y semántica de fallo.
@@ -242,7 +242,7 @@ executor en propietario de la conexión.
       sería incompatible con ownership Spring aún no validado; el motor completo queda
       interno y reutilizable por el futuro wiring.
 - [x] La superficie pública permanece en ocho tipos core; no hay cambios tecnológicos en
-      core, Hibernate o módulos Spring y Phase 7 no se inicia.
+      core, Hibernate o módulos Spring; Phase 7 reutiliza después este motor.
 - [x] La guía `architecture/bulk-insert.md`, ADR-013, overview, inventario público y README
       reflejan batching, conteos, fallos, ownership, transacciones y caveats ORM.
 
@@ -258,6 +258,8 @@ parcial no revierte COPY ya confirmados con autocommit.
 
 ## Phase 7 — Temporary-table bulk lookup
 
+**Estado:** completada el 2026-08-18. Phase 8 no iniciada.
+
 - **Goal:** lookup escalable por clave simple/compuesta sobre una conexión.
 - **Scope:** strategy interface justificada, temp relation, COPY keys, JOIN, cleanup, duplicate/null/order policy.
 - **Out of scope:** VALUES/UNNEST y selección adaptativa.
@@ -270,7 +272,44 @@ parcial no revierte COPY ya confirmados con autocommit.
 - **Dependencies:** Phase 3–5; no requiere Hibernate con fixtures.
 - **Definition of Done:** ADR-006 aceptado o fase detenida con evidencia reproducible.
 
+### Registro de cierre de Phase 7
+
+- [x] ADR-006 queda ACCEPTED y ADR-015 fija CTAS/COPY/JOIN, naming, transacción,
+      duplicados/null/orden, resultado acotado y cleanup. ADR-010 mantiene la API pública
+      diferida hasta probar el consumidor de Phase 9.
+- [x] `TemporaryTableBulkLookup<K>` consume exactamente un `Iterable` one-shot, retorna
+      empty sin JDBC y transmite inputs no vacíos mediante un solo COPY con memoria Java
+      `O(1)` respecto al dataset.
+- [x] CTAS proyecta únicamente key columns y PostgreSQL deriva domain, typmod y collation;
+      no existe inferencia Java → SQL ni se copian NOT NULL/default/identity/generated.
+- [x] CREATE, COPY, callback y DROP usan exactamente la misma conexión caller-owned. El
+      motor exige `autoCommit=false`, no cambia estado y nunca hace close/commit/rollback.
+- [x] DROP explícito y `ON COMMIT DROP` cubren éxito/commit/rollback; fallos en transacción
+      abortada preservan la causa primaria y añaden cleanup como suppressed.
+- [x] El JOIN deduplica input con `SELECT DISTINCT`, devuelve todos los target duplicates,
+      omite missing keys y no promete orden. Keys/componentes null se rechazan con contexto
+      no sensible.
+- [x] Tests reales PostgreSQL 15.18 cubren los 20 escenarios obligatorios mediante 15
+      tests de lookup: simple/composite, custom/quoted, empty/one-shot/20.000, missing,
+      duplicates/null, commit/rollback/read-only, cleanup/fallos, misma conexión,
+      secuencial, nested y concurrencia.
+- [x] La superficie pública permanece en ocho tipos core y cero tipos pgJDBC; Hibernate y
+      Spring no cambian. La guía `architecture/bulk-lookup.md` documenta el contrato.
+
+**Decisiones diferidas:** API pública y forma de resultado, elevación o no del callback a
+SPI y adquisición Spring (Phase 9); metadata Hibernate (Phase 8); índice/`ANALYZE`,
+VALUES/UNNEST y selección adaptativa (Phase 14); PostgreSQL 16–18, particiones y permisos
+especiales (Phase 13).
+
+**Aprendizajes:** `ON COMMIT DROP` exige una transacción que abarque todo el workflow;
+autocommit elimina la temporal tras CREATE. CTAS directo preserva los tipos físicos que
+COPY necesita sin arrastrar constraints. Un null descubierto dentro del COPY obliga a
+cancelarlo y deja la transacción abortada; sólo el caller puede hacer rollback. PostgreSQL
+también rechaza CTAS en una transacción read-only.
+
 ## Phase 8 — Hibernate metadata adapter
+
+**Estado:** completada el 2026-08-18. Phase 9 no iniciada.
 
 - **Goal:** resolver entidades reales al descriptor core.
 - **Scope:** Hibernate 6.6 baseline, metadata física, accessors, IDs/embeddables/associations/converters y caching seguro.
@@ -283,6 +322,28 @@ parcial no revierte COPY ya confirmados con autocommit.
 - **Risks:** APIs internas cambian por patch; associations multi-column.
 - **Dependencies:** Phase 3 y matriz de compatibilidad.
 - **Definition of Done:** ADR-004 aceptado y insert/lookup funcionan con entidades fixture.
+
+### Registro de cierre de Phase 8
+
+- `HibernateEntityMetadataResolver` es la única API nueva; recibe `EntityManagerFactory`,
+  resuelve `EntityMetadata<T>` y cachea por resolver con `ConcurrentHashMap`.
+- ADR-004 queda ACCEPTED y ADR-016 documenta el subset single-table, selectables,
+  generación, conversiones, asociaciones, fallos y riesgo SPI/internal.
+- Hibernate 6.6.55.Final + PostgreSQL 15.18 validan la matriz de 28 casos, incluido un
+  insert JDBC real de valores convertidos y resolución concurrente/múltiples EMF.
+- La API pública pasa de ocho a nueve tipos. No se publican exception/configuración/key
+  extras y el DAG no cambia: Hibernate depende sólo de core y Hibernate/JPA.
+
+**Decisiones diferidas:** `BulkKeyMetadata` derivada de entidad, override programático,
+connection access, facade/repository y composición con COPY/lookup (Phase 9); matriz
+mínimo/último Hibernate 6.6 y Hibernate 7 (Phase 13); natural-key associations, `IdClass`,
+custom user types, herencia y mappings multi-table.
+
+**Aprendizajes:** `JdbcType.getPreferredJavaTypeClass` refleja mejor el valor de binding
+que `JdbcMapping.getJdbcJavaType`; enum ordinal se normaliza a `Integer` por contrato core.
+Un `@Version` insertable usa el valor actual de la entidad porque bulk no ejecuta callbacks
+ORM. `@ColumnDefault` por sí solo no omite la columna. Los proxies clásicos exponen su ID
+sin inicialización.
 
 ## Phase 9 — Spring Data integration
 

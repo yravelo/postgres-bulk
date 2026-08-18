@@ -1,6 +1,6 @@
 # ADR-004: Hibernate como proveedor de metadata física
 
-- **Estado:** PROPOSED
+- **Estado:** ACCEPTED
 - **Fecha:** 2026-08-18
 
 ## Contexto
@@ -25,3 +25,15 @@ Spikes y tests para `@Table`/schema/quoted names, FIELD/PROPERTY, inherited `@Id
 ## Consecuencias
 
 El adapter será la pieza más sensible a upgrades. Los consumers sin Hibernate podrán construir metadata programáticamente, pero esa API no se diseñará hasta validar el modelo. No se infiere tipo PostgreSQL desde el nombre Java.
+
+## Evidencia de aceptación en Phase 8
+
+`HibernateEntityMetadataResolver` prueba el adapter contra Hibernate 6.6.55.Final y
+PostgreSQL 15.18. Los tests cubren nombres físicos/naming strategies/quotes, FIELD y
+PROPERTY, mapped superclasses, embeddables, `@EmbeddedId`, IDs asignados y generados,
+selectables insertables, asociaciones y proxies, converters/enums, fórmulas, defaults,
+tablas secundarias, herencia y cache concurrente aislado por persistence unit.
+
+ADR-016 fija el subset exacto, la política de conversiones y las dependencias SPI que
+concretan esta decisión. La definición de bulk key y cualquier override programático
+continúan diferidos hasta que Phase 9 tenga un consumidor real.

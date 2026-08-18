@@ -39,7 +39,7 @@ En dependencias Maven: `pgjdbc → core`, `hibernate → core`, `spring-data →
 
 - Una fachada `BulkOperations<T>` expresa casos de uso y options/resultados estables.
 - Descriptores inmutables expresan tabla, columnas insertables y claves ordenadas sin importar tipos Hibernate.
-- El adapter Hibernate producira el SPI neutral; resolver, wiring y cache se materializaran solo cuando exista ese adapter.
+- `HibernateEntityMetadataResolver` produce el SPI neutral desde el mapping runtime y mantiene cache por persistence unit.
 - Encoders convierten valores Java a una representación escalar definida; el escritor CSV aplica reglas de framing, quoting, NULL y UTF-8.
 - Un acceso a conexión entrega una conexión física durante toda la operación; la integración Spring participa en la transacción actual.
 - El executor pgJDBC posee COPY, SQL PostgreSQL, identificadores y tablas temporales.
@@ -76,7 +76,18 @@ typed keys → validate/deduplicate policy → resolve key metadata
            → map rows through JPA/Hibernate boundary → cleanup/result
 ```
 
-La estrategia inicial será tabla temporal + COPY + JOIN. `VALUES` y `UNNEST` se reservan para comparación futura, no para el MVP. La tabla temporal y el SELECT deben ejecutarse sobre la misma conexión; mezclar un statement JDBC con una consulta JPA sólo será válido si se demuestra esa identidad.
+Phase 7 materializa este flujo como `TemporaryTableBulkLookup<K>`, un motor package-private.
+Recibe valores de key descritos por `BulkKeyMetadata<K>` y un callback de consumo acotado;
+no devuelve recursos JDBC vivos. CTAS proyecta sólo las key columns y deja que PostgreSQL
+derive domain, typmod y collation; un único COPY consume el iterable directamente. El JOIN
+deduplica input mediante `SELECT DISTINCT`, omite missing keys, conserva todas las filas
+target duplicadas y no promete orden.
+
+Para input no vacío exige `autoCommit=false`. CREATE, COPY, SELECT/callback y DROP usan la
+misma conexión prestada; el motor no modifica estado, commit/rollback ni close. El DROP
+explícito se complementa con `ON COMMIT DROP`; tras un fallo que aborte la transacción el
+caller debe hacer rollback. `VALUES`, `UNNEST`, índice y `ANALYZE` quedan para comparación
+futura. El contrato completo está en [`bulk-lookup.md`](bulk-lookup.md).
 
 ## API core aceptada y lookup diferido
 
@@ -84,7 +95,11 @@ ADR-009 acepta un modelo operation-centric mediante `BulkOperations<T>`. Cada in
 
 `batchSize` es la única opción de core: describe particionado lógico y se valida al construir `BulkInsertOptions`. Un input vacío es un no-op con resultado `(0, 0)`; input/options null y elementos null se rechazan según el contrato público. `BulkWriteResult` contiene sólo `affectedRows` y `batches`; duración pertenece a observabilidad. El core publica una única raíz unchecked, `BulkException`, y difiere subtipos hasta que existan fallos implementados y probados.
 
-ADR-010 acepta diferir la firma pública de lookup hasta Phase 7. La futura API recibirá valores de clave, no entidades parciales, y deberá preservar type safety para claves simples y compuestas después de validar el modelo neutral de metadata de Phase 3. Orden, duplicados, nulls y forma de resultado permanecen abiertos; no existe todavía ningún tipo público de lookup.
+ADR-010 mantiene diferida la firma pública de lookup hasta probar el consumidor de Phase 9.
+Phase 7 confirma que la futura API recibirá valores de clave, no entidades parciales, y
+preservará type safety para claves simples y compuestas. Duplicados, nulls, missing keys y
+orden ya tienen semántica interna; la forma pública del resultado y su integración ORM
+siguen abiertas. No existe todavía ningún tipo público de lookup.
 
 ## Serialización COPY
 
@@ -144,17 +159,31 @@ javaType + pre-resolved Function<T, ?>
 
 `EntityMetadata<T>` contiene solamente la lista final ordenada de columnas insertables. Cada `ColumnMetadata<T>` conserva el nombre físico exacto, el tipo Java declarado —también cuando el valor es null— y un accessor prerresuelto. Una asociación o componente embedded puede producir varias columnas porque core nunca asume `field == column`. Las colecciones se copian defensivamente, son no modificables y rechazan nombres físicos duplicados exactos.
 
-`BulkKeyMetadata<K>` usa el mismo modelo de columna para una key object independiente de la entidad: un componente representa una key simple y varios componentes ordenados una compuesta. Es metadata SPI, no una operación lookup; duplicates, nulls, selección de key y orden de resultados siguen diferidos por ADR-010.
+`BulkKeyMetadata<K>` usa el mismo modelo de columna para una key object independiente de la entidad: un componente representa una key simple y varios componentes ordenados una compuesta. Es metadata SPI, no una operación lookup. Phase 7 rechaza nulls, deduplica relacionalmente antes del JOIN y no promete orden; esos contratos todavía no amplían la API pública.
 
-El adapter Hibernate debe entregar posteriormente nombres físicos ya resueltos, acceso FIELD/PROPERTY, converters, columnas de asociaciones e IDs embebidos. Reflection, si hace falta, se resuelve al producir el accessor y no se repite por consumidor/fila. Core no crea todavía resolver ni cache, no almacena nombres de propiedad y no modela nullability, IDs, generated flags o catalog.
+Phase 8 materializa `HibernateEntityMetadataResolver`: entrega nombres físicos ya
+resueltos, acceso FIELD/PROPERTY, converters, foreign keys de asociaciones e IDs embebidos.
+Usa accessors del metamodelo, sin reflection por fila, y cache concurrente por
+`EntityManagerFactory`. Sólo el módulo Hibernate conoce sus SPI/internals. Core no almacena
+nombres de propiedad ni modela nullability, IDs, generated flags o catalog. El subset y
+los fallos están en [`hibernate-metadata.md`](hibernate-metadata.md).
 
-No se generarán tipos a partir de clases Java. PostgreSQL `CREATE TABLE ... (LIKE source)` copia nombres y tipos físicos ([documentación CREATE TABLE](https://www.postgresql.org/docs/current/sql-createtable.html)); `CREATE TABLE AS ... WITH NO DATA` crea estructura a partir del resultado ([documentación CTAS](https://www.postgresql.org/docs/current/sql-createtableas.html)). ADR-006 mantiene `PROPOSED` cuál usar: un spike debe verificar domains, collations, generated/identity, columnas no-key, particiones y permisos. Todos los identificadores se modelan por partes y se citan; no se “sanitizan” perdiendo nombres válidos. PostgreSQL diferencia quoted case y limita identificadores a 63 bytes por defecto ([sintaxis léxica](https://www.postgresql.org/docs/current/sql-syntax-lexical.html)).
+No se generan tipos a partir de clases Java. ADR-006/015 aceptan `CREATE TEMP TABLE AS
+SELECT key_columns ... WITH NO DATA`: PostgreSQL 15.18 preservó domain, typmod y collation
+en referencias directas y no copió propiedades innecesarias. `LIKE` se descartó porque
+incluye todas las columnas y NOT NULL. Todos los identificadores se modelan por partes y
+se citan; no se “sanitizan” perdiendo nombres válidos. PostgreSQL diferencia quoted case y
+limita identificadores a 63 bytes por defecto
+([sintaxis léxica](https://www.postgresql.org/docs/current/sql-syntax-lexical.html)).
 
 ## Transacciones
 
 El core recibe un scope de conexión, no conoce `@Transactional`. Spring Data usa acceso compatible con la transacción actual; Spring documenta que `DataSourceUtils` devuelve la conexión vinculada cuando existe ([resource synchronization](https://docs.spring.io/spring-framework/reference/data-access/transaction/tx-resource-synchronization.html)). Nunca se llama `commit`, `rollback`, `close` físico ni se cambia `readOnly` sobre una conexión prestada.
 
-Antes del lookup se definirá qué ocurre sin transacción: (a) requerir transacción, (b) crear un scope JDBC local, o (c) usar una temporal con `ON COMMIT PRESERVE ROWS` y cleanup. La opción debe asegurar una conexión única y cleanup; no se inferirá de autocommit accidentalmente.
+Lookup exige una transacción manual ya iniciable por el caller (`autoCommit=false`) y falla
+antes de DDL si no existe ese scope. También falla en transacciones PostgreSQL read-only
+porque CTAS no está permitido. No crea una transacción o savepoint interno. Phase 9 debe
+mapear estas reglas al transaction manager Spring sin alterar la conexión prestada.
 
 ## Observabilidad y seguridad
 

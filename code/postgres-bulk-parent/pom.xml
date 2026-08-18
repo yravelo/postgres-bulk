@@ -39,6 +39,8 @@
     <project.build.outputTimestamp>2026-08-18T00:00:00Z</project.build.outputTimestamp>
 
     <junit.version>5.12.2</junit.version>
+    <hibernate.version>6.6.55.Final</hibernate.version>
+    <jakarta-activation.version>2.1.1</jakarta-activation.version>
     <postgresql.version>42.7.13</postgresql.version>
     <testcontainers.version>2.0.5</testcontainers.version>
 
@@ -58,6 +60,12 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>jakarta.activation</groupId>
+        <artifactId>jakarta.activation-api</artifactId>
+        <version>${jakarta-activation.version}</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
         <version>${junit.version}</version>
@@ -71,6 +79,12 @@
         <version>${testcontainers.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.hibernate.orm</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>${hibernate.version}</version>
       </dependency>
 
       <dependency>

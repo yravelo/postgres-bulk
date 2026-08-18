@@ -1,15 +1,19 @@
-# Inventario de API publica de core
+# Inventario de API publica
 
 ## Alcance
 
-Este documento enumera toda la superficie publica del proyecto al cerrar Phase 6. Existen
-exactamente **ocho tipos publicos**, todos en `postgres-bulk-core` y en los packages
+Este documento enumera toda la superficie publica del proyecto al cerrar Phase 8. Existen
+exactamente **nueve tipos publicos**: ocho en `postgres-bulk-core` y uno en
+`postgres-bulk-hibernate`, en los packages
 provisionales `io.github.postgresbulk.core` y `io.github.postgresbulk.core.metadata`.
-Phases 4–6 no añaden tipos públicos en `postgres-bulk-pgjdbc`. La forma conceptual de la API
+Phases 4–7 no añaden tipos públicos en `postgres-bulk-pgjdbc`. La forma conceptual de la API
 core esta ACCEPTED por ADR-009/011, pero las coordenadas y el namespace siguen sujetos a
 ADR-008 (PROPOSED) mientras el proyecto permanezca en `0.1.0-SNAPSHOT`.
 
-Los cuatro tipos de operacion son API y los cuatro descriptores de metadata son public SPI para productores/consumidores de adapters. No existe un SPI de ejecucion. Los archivos `package-info.java` documentan packages y no constituyen tipos publicos.
+Los cuatro tipos de operacion son API, los cuatro descriptores de metadata son public SPI
+para productores/consumidores y el resolver Hibernate es API de adapter. No existe un SPI
+de ejecucion. Los archivos `package-info.java` documentan packages y no constituyen tipos
+publicos.
 
 ## `BulkOperations<T>`
 
@@ -177,15 +181,40 @@ public final class BulkKeyMetadata<K> {
 
 ## Fuera de la API publica
 
-Phase 6 no crea una operacion publica de lookup, resolver/cache de metadata, encoding,
-CSV, COPY, execution, JDBC, ORM, observabilidad o serialization. Tampoco crea command
+Phase 8 no crea una operacion publica de lookup, encoding, CSV, COPY, execution, JDBC,
+observabilidad o serialization. El resolver/cache Hibernate descrito abajo es la única
+adición pública. Tampoco crea command
 objects, builders, repositories, metadata de ID/lifecycle/nullability ni una jerarquia
 generica de resultados.
 
 El package `io.github.postgresbulk.pgjdbc.copy` contiene exclusivamente detalles
 package-private: registro de encoders, representación NULL/texto, framing CSV, encoder de
-fila, quoting, builder SQL, callback, executor pgJDBC y coordinador bulk insert.
+fila/key, quoting, builders SQL, callbacks, executor pgJDBC y coordinadores bulk insert y
+temporary-table lookup.
 `PostgresBulkInserter<T>` recibe una conexión caller-owned; no implementa aún la fachada
-pública porque el boundary de adquisición se probará en Phase 9. `BulkEncodingException` y
+porque la adquisición transaction-aware se probará en Phase 9.
+El lookup recibe `BulkKeyMetadata<K>`, una conexión prestada y un callback interno; no
+expone recursos JDBC y permanece interno porque el boundary de consumo/adquisición se
+probará en Phase 9. `BulkEncodingException` y
 `CopyExecutionException` son subtipos internos de la raíz pública `BulkException`; no se
 compromete una API de transporte antes de tener una operación pública que la necesite.
+
+## `HibernateEntityMetadataResolver`
+
+- **Purpose:** traducir una clase entidad del metamodelo runtime Hibernate 6.6 al descriptor neutral `EntityMetadata<T>`.
+- **Visibility:** public adapter API en `postgres-bulk-hibernate`.
+- **Stability:** ACCEPTED por ADR-004/016 para Hibernate 6.6; namespace provisional por ADR-008.
+- **Important invariants:** constructor ligado a un `EntityManagerFactory`; cache concurrente por instancia; no abre sesión; no filtra internals Hibernate; mappings unsupported fallan con `BulkException`.
+
+API exacta:
+
+```java
+public final class HibernateEntityMetadataResolver {
+    public HibernateEntityMetadataResolver(EntityManagerFactory entityManagerFactory);
+
+    public <T> EntityMetadata<T> resolve(Class<T> entityType);
+}
+```
+
+No se publica `BulkMetadataException`, configuración/override, key resolver ni tipos
+Hibernate. El detalle completo está en `hibernate-metadata.md`.
