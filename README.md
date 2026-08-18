@@ -4,7 +4,10 @@ Workspace de diseño para una librería de operaciones bulk sobre PostgreSQL, co
 
 ## Estado
 
-Phase 3: metadata abstraction completada. Core contiene la API bulk mínima y un SPI neutral de metadata con tests y quality gates; todavía no existe encoding ni ejecución PostgreSQL. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
+Phase 4: COPY encoding completada. Core conserva la API bulk mínima y el SPI neutral de
+metadata; `postgres-bulk-pgjdbc` ya contiene encoding tipado y framing COPY CSV internos,
+deterministas y cubiertos por tests. Todavía no existe conexión ni ejecución COPY contra
+PostgreSQL. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
 
 ## Navegación
 
@@ -12,6 +15,7 @@ Phase 3: metadata abstraction completada. Core contiene la API bulk mínima y un
 - [`docs/architecture/module-boundaries.md`](docs/architecture/module-boundaries.md): dependencias permitidas y prohibidas.
 - [`docs/architecture/compatibility.md`](docs/architecture/compatibility.md): matriz inicial de compatibilidad.
 - [`docs/architecture/build-and-quality.md`](docs/architecture/build-and-quality.md): Wrapper, tests, formato y quality gates.
+- [`docs/architecture/copy-encoding.md`](docs/architecture/copy-encoding.md): contrato tipado y framing COPY CSV.
 - [`docs/legacy/current-behavior.md`](docs/legacy/current-behavior.md): caracterización del código existente.
 - [`docs/legacy/risk-register.md`](docs/legacy/risk-register.md): problemas y riesgos priorizados.
 - [`docs/decisions/`](docs/decisions/): decisiones y propuestas arquitectónicas.
@@ -49,4 +53,4 @@ Para aplicar el formato Java localmente:
 ./mvnw spotless:apply
 ```
 
-Phase 4 — COPY encoding es la siguiente fase prevista; no ha comenzado.
+Phase 5 — pgJDBC COPY executor es la siguiente fase prevista.

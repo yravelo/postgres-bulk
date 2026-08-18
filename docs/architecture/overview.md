@@ -81,7 +81,26 @@ ADR-010 acepta diferir la firma pública de lookup hasta Phase 7. La futura API 
 
 ## Serialización COPY
 
-CSV es la única implementación inicial. Se conservará una frontera interna entre encoding de valor y framing de registro para poder añadir TEXT/BINARY sin exponer un enum de formato prematuramente. En CSV PostgreSQL distingue `NULL` de empty string mediante quoting: con defaults, NULL es un campo vacío no citado y el string vacío es `""`. CR, LF, delimitador, quote y el token NULL requieren quoting/escape correcto ([documentación COPY](https://www.postgresql.org/docs/current/sql-copy.html)).
+Phase 4 materializa CSV como única implementación inicial dentro de
+`postgres-bulk-pgjdbc`. La cadena interna separa encoder tipado, representación explícita
+NULL/texto, framing de campo y escritura de fila. Los encoders se resuelven una sola vez
+por columna a partir de `ColumnMetadata.javaType()`; nunca por el valor runtime. El writer
+escribe incrementalmente a un `Appendable` sin poseerlo ni construir obligatoriamente la
+fila completa.
+
+El dialecto seleccionado usa delimiter `,`, quote/escape `"`, NULL `\N`, UTF-8 y `\n`
+como terminador. Por tanto NULL se emite `\N`, empty se emite `""` y el texto literal
+`\N` se emite `"\N"`. CR, LF, delimiter y quote fuerzan quoting, y una quote interna se
+duplica. Las reglas provienen del contrato oficial de
+[COPY](https://www.postgresql.org/docs/current/sql-copy.html) y se detallan en
+[`copy-encoding.md`](copy-encoding.md). Phase 5 deberá reflejar exactamente estas opciones
+en la sentencia y convertir los caracteres a bytes UTF-8.
+
+Los built-ins cubren strings/caracteres, numéricos integrales y arbitrarios, floating
+point incluidos los valores especiales de PostgreSQL, boolean, UUID, temporales ISO,
+enum por `name()` y `byte[]` hexadecimal. No existe fallback a `Object.toString()` ni SPI
+pública de custom encoders. TEXT/BINARY, JSON/JSONB, arrays y custom types continúan
+diferidos.
 
 ## Metadata y tablas temporales
 

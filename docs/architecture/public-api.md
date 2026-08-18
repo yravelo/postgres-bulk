@@ -2,7 +2,12 @@
 
 ## Alcance
 
-Este documento enumera toda la superficie publica creada en `postgres-bulk-core` al cerrar Phase 3. Existen exactamente **ocho tipos publicos** en los packages provisionales `io.github.postgresbulk.core` y `io.github.postgresbulk.core.metadata`. Su forma conceptual esta ACCEPTED por ADR-009/011, pero las coordenadas y el namespace siguen sujetos a ADR-008 (PROPOSED) mientras el proyecto permanezca en `0.1.0-SNAPSHOT`.
+Este documento enumera toda la superficie publica del proyecto al cerrar Phase 4. Existen
+exactamente **ocho tipos publicos**, todos en `postgres-bulk-core` y en los packages
+provisionales `io.github.postgresbulk.core` y `io.github.postgresbulk.core.metadata`.
+Phase 4 no añade tipos públicos en `postgres-bulk-pgjdbc`. La forma conceptual de la API
+core esta ACCEPTED por ADR-009/011, pero las coordenadas y el namespace siguen sujetos a
+ADR-008 (PROPOSED) mientras el proyecto permanezca en `0.1.0-SNAPSHOT`.
 
 Los cuatro tipos de operacion son API y los cuatro descriptores de metadata son public SPI para productores/consumidores de adapters. No existe un SPI de ejecucion. Los archivos `package-info.java` documentan packages y no constituyen tipos publicos.
 
@@ -172,4 +177,13 @@ public final class BulkKeyMetadata<K> {
 
 ## Fuera de la API publica
 
-Phase 3 no crea una operacion publica de lookup, resolver/cache de metadata, encoding, CSV, COPY, execution, JDBC, ORM, observabilidad o serialization. Tampoco crea command objects, builders, repositories, metadata de ID/lifecycle/nullability ni una jerarquia generica de resultados.
+Phase 4 no crea una operacion publica de lookup, resolver/cache de metadata, encoding,
+CSV, COPY, execution, JDBC, ORM, observabilidad o serialization. Tampoco crea command
+objects, builders, repositories, metadata de ID/lifecycle/nullability ni una jerarquia
+generica de resultados.
+
+El package `io.github.postgresbulk.pgjdbc.encoding` contiene exclusivamente detalles
+package-private: registro de encoders, representación NULL/texto, framing CSV, encoder de
+fila preparado y `BulkEncodingException`. Esta última es un subtipo interno de la raíz
+pública `BulkException`; permite categorizar el fallo sin comprometer un subtipo público
+antes de tener una operación pública que lo exponga.

@@ -88,7 +88,7 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 
 ## Phase 3 — Metadata abstraction
 
-**Estado:** completada el 2026-08-18. Phase 4 no iniciada.
+**Estado:** completada el 2026-08-18. Phase 4 completada posteriormente.
 
 - **Goal:** representar mapping físico suficiente sin tipos JPA/Hibernate.
 - **Scope:** entidad/tabla/columnas/keys/extractores, nombres qualified/quoted, orden y validación/cache contract.
@@ -123,17 +123,39 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 
 ## Phase 4 — COPY encoding
 
+**Estado:** completada el 2026-08-18. Phase 5 no iniciada.
+
 - **Goal:** producir registros CSV correctos y extensibles para COPY.
-- **Scope:** encoder registry, built-ins acordados, writer CSV UTF-8, NULL/empty y límites de buffer.
+- **Scope:** encoder registry, built-ins acordados, writer CSV, contrato UTF-8, NULL/empty y escritura incremental.
 - **Out of scope:** conexión o ejecución COPY, TEXT/BINARY, JSON/arrays incluidos por defecto.
 - **Architecture changes:** encoding escalar agnóstico en core sólo si es realmente reusable; framing COPY en pgjdbc.
-- **Files/modules affected:** core `codec` si procede, pgjdbc `copy`, ADR-003.
+- **Files/modules affected:** pgjdbc `encoding`, ADR-003/012 y documentación de arquitectura; core permanece intacto.
 - **Implementation tasks:** resolver encoder determinísticamente; aplicar tipo relacional/converter contract; escribir a `Writer`/sink sin línea completa obligatoria; error por tipo desconocido.
-- **Tests:** matriz NULL, empty, comma, quotes, CR/LF/CRLF, unicode/emoji, temporal/UUID/decimal/boolean/enum/bytes; round-trip PostgreSQL pequeño.
-- **Acceptance criteria:** round-trip distingue todos los casos; sin fallback `toString`; mensajes no incluyen valores sensibles.
+- **Tests:** matriz unit NULL, empty, comma, quotes, CR/LF/CRLF, unicode/emoji, temporal/UUID/decimal/boolean/enum/bytes; round-trip PostgreSQL pequeño trasladado al primer executor capaz de consumir el stream.
+- **Acceptance criteria:** unit contract distingue todos los casos; sin fallback `toString`; mensajes no incluyen valores sensibles. El round-trip integrado es gate conjunto de Phase 4/5 antes de aceptar ADR-003.
 - **Risks:** formatos temporales y `bytea`; allocations ocultas.
-- **Dependencies:** Phase 3 y PostgreSQL Testcontainers inicial.
-- **Definition of Done:** ADR-003 aceptable con evidencia y suite rápida/integradora separada.
+- **Dependencies:** Phase 3; PostgreSQL Testcontainers se materializa con el executor de Phase 5.
+- **Definition of Done:** ADR-012 aceptado con suite rápida; ADR-003 permanece PROPOSED hasta la prueba integradora de Phase 5.
+
+### Registro de cierre de Phase 4
+
+- [x] Encoding lógico, framing CSV y composición ordenada de fila son componentes separados.
+- [x] El registry se resuelve por `ColumnMetadata.javaType()` una vez por columna y no usa el tipo runtime para seleccionar formato.
+- [x] NULL `\N`, empty `""` y el texto literal `"\N"` son representaciones distintas.
+- [x] Quoting/escape cubre delimiter, quote, LF, CR y CRLF; espacios, Unicode, emoji y backslash se conservan.
+- [x] Built-ins cubren String/Character, numéricos, Boolean, UUID, temporales ISO, enum por `name()` y `byte[]` hexadecimal.
+- [x] No existe fallback `Object.toString()`, locale/timezone/charset por defecto ni registro público especulativo.
+- [x] El encoder preparado escribe a `Appendable`, usa LF estable y no construye ni posee el stream completo.
+- [x] Tipos no soportados y mismatch fallan sin incluir valores; accessor e `IOException` conservan su identidad.
+- [x] Todo el mecanismo vive package-private en pgjdbc; core permanece sin cambios y el total público sigue en ocho tipos.
+- [x] Tests unitarios rápidos cubren 26 casos/matrices del módulo pgjdbc; Spotless, Javadocs y reactor completo quedan como gates de cierre.
+- [x] ADR-012 queda ACCEPTED y el contrato exacto que debe consumir Phase 5 está documentado.
+
+**Decisiones diferidas:** registro/API de custom encoders; JSON/JSONB y arrays; COPY TEXT/BINARY; optimización para eliminar la `String` lógica por campo; configuración de dialecto; precisión/rounding observado tras persistir temporales; soporte parametrizado más allá de `Class<?>`.
+
+**Aprendizajes:** un marcador NULL visible sólo es seguro si el mismo texto no-null se cita; por eso `\N`, empty y literal `\N` requieren tres ramas contractuales. Resolver antes de leer filas hace determinista el formato y detecta metadata no soportada sin acceder a datos. `Appendable` desacopla framing de charset y lifecycle, que pertenecen al executor.
+
+**Deuda explícita:** Phase 5 debe construir COPY con delimiter/quote/escape/NULL/ENCODING idénticos, adaptar a bytes UTF-8, cancelar tras una escritura parcial y verificar round-trip real —incluidos `bytea`, especiales floating point y temporales— antes de aceptar ADR-003.
 
 ## Phase 5 — pgJDBC COPY executor
 

@@ -27,3 +27,7 @@ Tests unitarios y contra PostgreSQL real para NULL, empty, coma, quote, CR, LF, 
 ## Consecuencias
 
 El registry y política de selección forman parte sensible de compatibilidad. Los `AttributeConverter` deben aplicarse antes de escoger encoder o entregar el tipo relacional correcto desde metadata. No habrá fallback global a `toString()`.
+
+ADR-012 acepta el contrato interno y unit-testable de Phase 4. Este ADR permanece
+`PROPOSED` porque su criterio de aceptación incluye todavía verificar el round-trip real
+contra PostgreSQL; esa integración pertenece al executor de Phase 5.
