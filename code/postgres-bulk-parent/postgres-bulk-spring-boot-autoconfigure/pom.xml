@@ -15,17 +15,14 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>postgres-bulk-spring-data</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>postgres-bulk-pgjdbc</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>postgres-bulk-hibernate</artifactId>
-      <version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>

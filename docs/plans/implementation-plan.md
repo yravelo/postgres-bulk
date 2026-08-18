@@ -22,6 +22,8 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 
 ## Phase 1 — Project foundation
 
+**Estado:** completada el 2026-08-18. Phase 2 no iniciada.
+
 - **Goal:** disponer de un reactor reproducible y publicable sin lógica de negocio.
 - **Scope:** parent/modules, Maven Wrapper generado oficialmente, toolchains/compile, JUnit, Surefire/Failsafe, formato mínimo, CI de build y estructura de publicación.
 - **Out of scope:** APIs bulk, Testcontainers, release a Central.
@@ -33,6 +35,21 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 - **Risks:** exceso de plugins y tiempos de CI.
 - **Dependencies:** ADR-001/002 y decisión de coordenadas/licencia.
 - **Definition of Done:** build verde en Linux, comandos documentados, versiones centralizadas y sólo tooling justificado.
+
+### Registro de cierre de Phase 1
+
+- [x] Parent y seis módulos construyen como un único reactor acíclico.
+- [x] Maven Wrapper oficial 3.3.4 `only-script` fija Maven 3.9.16 y valida SHA-256.
+- [x] Java 17/UTF-8 son explícitos; Enforcer exige Java 17+ y Maven 3.6.3–3.x.
+- [x] Dependency/plugin management, plugins de lifecycle y output timestamp están centralizados.
+- [x] JUnit BOM, Surefire `*Test` y Failsafe `*IT` quedan preparados sin tests placeholder.
+- [x] Spotless verifica formato Java; Enforcer verifica convergence y la frontera de dependencias de core.
+- [x] Git hygiene, Apache-2.0 y CI Java 17/21 con cache Maven están presentes.
+- [x] README, compatibilidad, estrategia de calidad y ADRs reflejan las decisiones reales.
+- [x] `./mvnw --version`, `./mvnw validate` y `./mvnw clean verify` terminan correctamente.
+- [x] No existen fuentes Java ni se ha comenzado Phase 2.
+
+**Aprendizajes:** Toolchains se difiere porque `release=17` satisface el objetivo sin exigir otro JDK local. Testcontainers/ArchUnit se añadirán sólo en el primer módulo que los consuma. Surefire/Failsafe se fijaron en 3.5.4 porque Failsafe 3.6.0 aparecía en documentación adelantada pero no estaba publicado en Maven Central durante la validación. `io.github.postgresbulk` sigue provisional hasta verificar ownership; Apache-2.0 sí queda adoptada.
 
 ## Phase 2 — Core domain and API
 

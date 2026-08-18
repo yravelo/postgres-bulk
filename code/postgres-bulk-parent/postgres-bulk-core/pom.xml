@@ -10,4 +10,38 @@
   </parent>
   <artifactId>postgres-bulk-core</artifactId>
   <name>PostgreSQL Bulk Core</name>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-core-dependency-boundary</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <bannedDependencies>
+                  <excludes>
+                    <exclude>org.springframework:*</exclude>
+                    <exclude>org.springframework.boot:*</exclude>
+                    <exclude>org.springframework.data:*</exclude>
+                    <exclude>org.hibernate*:*</exclude>
+                    <exclude>jakarta.persistence:*</exclude>
+                    <exclude>org.postgresql:*</exclude>
+                    <exclude>io.micrometer:*</exclude>
+                  </excludes>
+                  <searchTransitive>true</searchTransitive>
+                  <message>postgres-bulk-core must remain independent of frameworks and infrastructure.</message>
+                </bannedDependencies>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

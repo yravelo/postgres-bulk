@@ -15,12 +15,10 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>postgres-bulk-core</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>postgres-bulk-pgjdbc</artifactId>
-      <version>${project.version}</version>
     </dependency>
   </dependencies>
 </project>

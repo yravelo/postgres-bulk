@@ -13,7 +13,7 @@
 | Hibernate ORM | 6.6.x, gobernado por Boot | mínimo y último 6.6 soportado por Boot | Adapter dedicado; Hibernate 6.6 declara compatibilidad Boot 3.4–3.5 |
 | PostgreSQL | 15 | 15, 16, 17, 18 | Versiones con soporte suficiente; PostgreSQL 14 termina soporte en 2026-11 |
 | pgJDBC | 42.7.x | versión gestionada por Boot y último 42.7.x | COPY API estable; el consumidor mantiene BOM |
-| Maven | 3.6.3 | wrapper fijado en Phase 1 | Mínimo documentado por Boot 3.5 |
+| Maven | 3.6.3 mínimo | Wrapper 3.9.16; CI con JDK 17/21 | Release Maven 3 estable y mínimo documentado por Boot 3.5 |
 
 Spring Boot 3.5.16 requiere Java 17 y Spring Framework 6.2.19 o superior ([requisitos oficiales](https://docs.spring.io/spring-boot/3.5/system-requirements.html)); su BOM gestiona Spring Data JPA 3.5.13 ([coordenadas gestionadas](https://docs.spring.io/spring-boot/3.5/appendix/dependency-versions/coordinates.html)). Hibernate 6.6 declara Java 11/17/21/25 y compatibilidad con Boot 3.4–3.5, aunque ya está en soporte limitado ([matriz Hibernate 6.6](https://hibernate.org/orm/releases/6.6/)). pgJDBC publica actualmente 42.7.13 para Java 8+ ([descargas oficiales](https://jdbc.postgresql.org/download/)). PostgreSQL mantiene hoy 14–18, pero 14 llega a EOL el 2026-11-12 ([política oficial](https://www.postgresql.org/support/versioning/)).
 
@@ -35,6 +35,10 @@ No se afirmará soporte dual hasta que el mismo suite de integración pase. Dado
 - El starter respeta dependency management del consumidor y documenta la matriz probada.
 - Se prueban sólo minors PostgreSQL soportados por la comunidad; se elimina una major después de su EOL en el siguiente minor de la librería, avisado en CHANGELOG.
 - “Compatible” significa build, unit tests y suite Testcontainers completa; no sólo resolución Maven.
+
+## Baseline de build fijada en Phase 1
+
+Java 17 y Maven Wrapper 3.9.16 quedan fijados por ADR-007. El build puede ejecutarse con JDK superior, pero `maven.compiler.release=17` evita adoptar accidentalmente APIs de ese JDK. Maven 4 no se usa mientras sea preview. Esto fija infraestructura de build, no convierte todavía la matriz Spring/Hibernate/PostgreSQL en promesa de soporte.
 
 ## Decisiones aún abiertas
 

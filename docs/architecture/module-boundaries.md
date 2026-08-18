@@ -69,4 +69,4 @@ Paquetes candidatos: `repository`, `factory` (sólo si finalmente hace falta), `
 
 ## Reglas verificables futuras
 
-Phase 1/2 añadirá comprobaciones para: imports prohibidos en core; ausencia de ciclos Maven; starter sin `src/main/java`; API pública sin `org.postgresql.*`/Hibernate internals; y tests de compatibilidad separados de unit tests.
+Phase 1 codifica el DAG en dependencias Maven y Enforcer prohíbe dependencias framework/infraestructura en core. Cuando Phase 2 introduzca clases, ArchUnit comprobará imports prohibidos en core, pgjdbc/hibernate sin dependencias cruzadas, starter sin lógica y API pública sin `org.postgresql.*`/internals Hibernate. Los compatibility tests permanecerán separados de unit tests.
