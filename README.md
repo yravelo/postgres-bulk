@@ -4,7 +4,7 @@ Workspace de diseño para una librería de operaciones bulk sobre PostgreSQL, co
 
 ## Estado
 
-Phase 1: foundation completada. Existe un reactor Maven reproducible con quality gates, pero todavía no hay implementación productiva ni clases placeholder. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
+Phase 3: metadata abstraction completada. Core contiene la API bulk mínima y un SPI neutral de metadata con tests y quality gates; todavía no existe encoding ni ejecución PostgreSQL. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
 
 ## Navegación
 
@@ -21,7 +21,7 @@ Phase 1: foundation completada. Existe un reactor Maven reproducible con quality
 
 ```text
 repo/
-├── code/postgres-bulk-parent/   # reactor Maven, todavía sin código Java
+├── code/postgres-bulk-parent/   # reactor Maven y módulos de la librería
 ├── docs/
 │   ├── architecture/
 │   ├── decisions/
@@ -49,4 +49,4 @@ Para aplicar el formato Java localmente:
 ./mvnw spotless:apply
 ```
 
-Phase 2 — Core domain/API es la siguiente fase prevista; no ha comenzado.
+Phase 4 — COPY encoding es la siguiente fase prevista; no ha comenzado.

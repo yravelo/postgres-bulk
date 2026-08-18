@@ -2,9 +2,9 @@
 
 ## Alcance
 
-Este documento enumera toda la superficie publica creada en `postgres-bulk-core` al cerrar Phase 2. Existen exactamente **cuatro tipos publicos**, todos en el package provisional `io.github.postgresbulk.core`. Su forma conceptual esta ACCEPTED por ADR-009, pero las coordenadas y el namespace siguen sujetos a ADR-008 (PROPOSED) mientras el proyecto permanezca en `0.1.0-SNAPSHOT`.
+Este documento enumera toda la superficie publica creada en `postgres-bulk-core` al cerrar Phase 3. Existen exactamente **ocho tipos publicos** en los packages provisionales `io.github.postgresbulk.core` y `io.github.postgresbulk.core.metadata`. Su forma conceptual esta ACCEPTED por ADR-009/011, pero las coordenadas y el namespace siguen sujetos a ADR-008 (PROPOSED) mientras el proyecto permanezca en `0.1.0-SNAPSHOT`.
 
-No existe un SPI interno de ejecucion en esta fase. `package-info.java` documenta el package y no constituye un tipo publico.
+Los cuatro tipos de operacion son API y los cuatro descriptores de metadata son public SPI para productores/consumidores de adapters. No existe un SPI de ejecucion. Los archivos `package-info.java` documentan packages y no constituyen tipos publicos.
 
 ## `BulkOperations<T>`
 
@@ -77,6 +77,99 @@ public class BulkException extends RuntimeException {
 }
 ```
 
+## `TableName`
+
+- **Purpose:** identidad fisica neutral con schema opcional y tabla como componentes separados.
+- **Visibility:** public SPI value.
+- **Stability:** ACCEPTED por ADR-011; el namespace sigue provisional.
+- **Important invariants:** componentes non-null/non-blank; ausencia de schema no usa string vacio; conserva texto exacto; no parsea, normaliza ni aplica quoting/reglas PostgreSQL; inmutable, thread-safe y con value semantics.
+
+API exacta:
+
+```java
+public final class TableName {
+    public static TableName of(String table);
+
+    public static TableName of(String schema, String table);
+
+    public Optional<String> schema();
+
+    public String table();
+}
+```
+
+## `ColumnMetadata<T>`
+
+- **Purpose:** columna fisica y accessor prerresuelto que proyecta un valor logico desde `T`.
+- **Visibility:** public SPI.
+- **Stability:** ACCEPTED por ADR-011.
+- **Important invariants:** nombre non-null/non-blank y exacto; tipo Java non-null, no `void` y primitivos normalizados a wrappers; accessor non-null, stateless/thread-safe y capaz de devolver null; source de lectura non-null. Tiene identity semantics porque contiene una function.
+
+API exacta:
+
+```java
+public final class ColumnMetadata<T> {
+    public static <T, V> ColumnMetadata<T> of(
+        String columnName,
+        Class<V> javaType,
+        Function<? super T, ? extends V> accessor
+    );
+
+    public String columnName();
+
+    public Class<?> javaType();
+
+    public Object read(T source);
+}
+```
+
+## `EntityMetadata<T>`
+
+- **Purpose:** mapping final de un tipo logico a una tabla y sus columnas bulk-insertables ordenadas.
+- **Visibility:** public SPI.
+- **Stability:** ACCEPTED por ADR-011.
+- **Important invariants:** tipo/tabla non-null; lista non-null, no vacia, sin nulls ni nombres fisicos duplicados exactos; defensive copy no modificable; el encounter order es el orden de fila. Puede proyectar varias columnas desde una propiedad/asociacion/valor logico y tiene identity semantics.
+
+API exacta:
+
+```java
+public final class EntityMetadata<T> {
+    public static <T> EntityMetadata<T> of(
+        Class<T> javaType,
+        TableName table,
+        List<? extends ColumnMetadata<T>> insertColumns
+    );
+
+    public Class<T> javaType();
+
+    public TableName table();
+
+    public List<ColumnMetadata<T>> insertColumns();
+}
+```
+
+## `BulkKeyMetadata<K>`
+
+- **Purpose:** componentes ordenados que proyectan una key simple/compuesta a columnas fisicas de lookup futuro.
+- **Visibility:** public SPI; no constituye API de operacion lookup.
+- **Stability:** descriptor ACCEPTED por ADR-011; politicas y firma lookup siguen diferidas por ADR-010.
+- **Important invariants:** tipo non-null; componentes non-null, no vacios, sin nulls ni nombres fisicos duplicados exactos; defensive copy no modificable y orden explicito. No implica constraint UNIQUE ni define duplicates/null/result ordering.
+
+API exacta:
+
+```java
+public final class BulkKeyMetadata<K> {
+    public static <K> BulkKeyMetadata<K> of(
+        Class<K> javaType,
+        List<? extends ColumnMetadata<K>> components
+    );
+
+    public Class<K> javaType();
+
+    public List<ColumnMetadata<K>> components();
+}
+```
+
 ## Fuera de la API publica
 
-Phase 2 no crea tipos publicos de lookup, metadata, keys, encoding, CSV, COPY, execution, JDBC, ORM, observabilidad o serialization. Tampoco crea command objects, builders, repositories ni una jerarquia generica de resultados.
+Phase 3 no crea una operacion publica de lookup, resolver/cache de metadata, encoding, CSV, COPY, execution, JDBC, ORM, observabilidad o serialization. Tampoco crea command objects, builders, repositories, metadata de ID/lifecycle/nullability ni una jerarquia generica de resultados.

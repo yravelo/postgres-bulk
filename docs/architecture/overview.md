@@ -38,8 +38,8 @@ En dependencias Maven: `pgjdbc → core`, `hibernate → core`, `spring-data →
 ## Componentes conceptuales (no clases comprometidas)
 
 - Una fachada `BulkOperations<T>` expresa casos de uso y options/resultados estables.
-- Un descriptor inmutable de entidad expresa tabla, columnas, extractores y claves sin importar tipos Hibernate.
-- Un resolver de metadata es un puerto; el adapter Hibernate produce el descriptor.
+- Descriptores inmutables expresan tabla, columnas insertables y claves ordenadas sin importar tipos Hibernate.
+- El adapter Hibernate producira el SPI neutral; resolver, wiring y cache se materializaran solo cuando exista ese adapter.
 - Encoders convierten valores Java a una representación escalar definida; el escritor CSV aplica reglas de framing, quoting, NULL y UTF-8.
 - Un acceso a conexión entrega una conexión física durante toda la operación; la integración Spring participa en la transacción actual.
 - El executor pgJDBC posee COPY, SQL PostgreSQL, identificadores y tablas temporales.
@@ -51,7 +51,7 @@ En dependencias Maven: `pgjdbc → core`, `hibernate → core`, `spring-data →
 ## Flujo bulk insert
 
 ```text
-caller → facade → validate options/input → resolve cached metadata
+caller → facade → validate options/input → obtain entity metadata
        → partition iterator → acquire transaction-aware connection once
        → build quoted COPY SQL once → encode + frame CSV rows
        → pgJDBC COPY per batch → accumulate server row counts → result
@@ -85,7 +85,23 @@ CSV es la única implementación inicial. Se conservará una frontera interna en
 
 ## Metadata y tablas temporales
 
-El adapter Hibernate debe entregar nombres físicos ya resueltos, acceso FIELD/PROPERTY, converters, columnas de asociaciones e IDs embebidos. El core sólo ve descriptores propios.
+ADR-011 acepta metadata neutral y ejecutable:
+
+```text
+T
+↓
+EntityMetadata<T> → TableName(schema?, table)
+↓
+ordered ColumnMetadata<T>
+↓
+javaType + pre-resolved Function<T, ?>
+```
+
+`EntityMetadata<T>` contiene solamente la lista final ordenada de columnas insertables. Cada `ColumnMetadata<T>` conserva el nombre físico exacto, el tipo Java declarado —también cuando el valor es null— y un accessor prerresuelto. Una asociación o componente embedded puede producir varias columnas porque core nunca asume `field == column`. Las colecciones se copian defensivamente, son no modificables y rechazan nombres físicos duplicados exactos.
+
+`BulkKeyMetadata<K>` usa el mismo modelo de columna para una key object independiente de la entidad: un componente representa una key simple y varios componentes ordenados una compuesta. Es metadata SPI, no una operación lookup; duplicates, nulls, selección de key y orden de resultados siguen diferidos por ADR-010.
+
+El adapter Hibernate debe entregar posteriormente nombres físicos ya resueltos, acceso FIELD/PROPERTY, converters, columnas de asociaciones e IDs embebidos. Reflection, si hace falta, se resuelve al producir el accessor y no se repite por consumidor/fila. Core no crea todavía resolver ni cache, no almacena nombres de propiedad y no modela nullability, IDs, generated flags o catalog.
 
 No se generarán tipos a partir de clases Java. PostgreSQL `CREATE TABLE ... (LIKE source)` copia nombres y tipos físicos ([documentación CREATE TABLE](https://www.postgresql.org/docs/current/sql-createtable.html)); `CREATE TABLE AS ... WITH NO DATA` crea estructura a partir del resultado ([documentación CTAS](https://www.postgresql.org/docs/current/sql-createtableas.html)). ADR-006 mantiene `PROPOSED` cuál usar: un spike debe verificar domains, collations, generated/identity, columnas no-key, particiones y permisos. Todos los identificadores se modelan por partes y se citan; no se “sanitizan” perdiendo nombres válidos. PostgreSQL diferencia quoted case y limita identificadores a 63 bytes por defecto ([sintaxis léxica](https://www.postgresql.org/docs/current/sql-syntax-lexical.html)).
 

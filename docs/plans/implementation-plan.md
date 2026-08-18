@@ -88,6 +88,8 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 
 ## Phase 3 — Metadata abstraction
 
+**Estado:** completada el 2026-08-18. Phase 4 no iniciada.
+
 - **Goal:** representar mapping físico suficiente sin tipos JPA/Hibernate.
 - **Scope:** entidad/tabla/columnas/keys/extractores, nombres qualified/quoted, orden y validación/cache contract.
 - **Out of scope:** resolver Hibernate y consultar catálogo PostgreSQL.
@@ -99,6 +101,25 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 - **Risks:** duplicar el metamodelo ORM; exponer detalles Hibernate accidentalmente.
 - **Dependencies:** contratos Phase 2; ADR-004 sigue propuesta.
 - **Definition of Done:** modelo justificado por flows/tests y documentación de invariantes.
+
+### Registro de cierre de Phase 3
+
+- [x] `TableName` representa schema opcional y tabla como componentes exactos, sin parsing/quoting/reglas PostgreSQL.
+- [x] `ColumnMetadata<T>` conserva nombre fisico, `Class<?>` normalizada y accessor `Function` prerresuelto capaz de devolver null.
+- [x] `EntityMetadata<T>` fija tipo, tabla y columnas insertables en orden explicito, con defensive copy y rechazo de duplicados.
+- [x] `BulkKeyMetadata<K>` prepara key simple/compuesta ordenada sin publicar una operacion lookup ni semantica UNIQUE.
+- [x] Una propiedad, asociacion o valor embedded puede proyectarse a varias columnas; core no asume `field == column`.
+- [x] Los cuatro descriptors son public SPI inmutables; no se crea resolver, cache, reflection tardia ni metadata ORM general.
+- [x] ADR-011 queda ACCEPTED; ADR-004/006/008 permanecen PROPOSED y ADR-010 sigue difiriendo la API lookup.
+- [x] Tests Java puro cubren schema/table, accessors/null/tipos, orden, duplicados, simple/composite keys e inmutabilidad.
+- [x] Spotless, unit tests, Javadocs y reactor completo terminan correctamente.
+- [x] No existen encoding, CSV, COPY, SQL ni codigo de Phase 4.
+
+**Decisiones diferidas:** resolver/cache por persistence unit; validacion key/tabla; API y politicas lookup; tipos parametrizados/custom bindings; excepciones runtime de metadata; nullability, IDs, generated flags, catalogs, quoting y tipos fisicos de base de datos.
+
+**Aprendizajes:** una factory generica puede comprobar el emparejamiento comun de source/value al construir `ColumnMetadata`, mientras `Object read(T)` permite consumir listas heterogeneas sin propagar wildcards/casts. `Class<?>` es suficiente para seleccionar encoding ante null y los primitivos se normalizan a wrappers. Separar `BulkKeyMetadata<K>` evita inflar `EntityMetadata<T>` y permite que la key object no sea una entidad.
+
+**Deuda explicita:** el producer SPI debe suministrar accessors stateless/thread-safe y valores compatibles con `javaType`; Phase 8 validara estas obligaciones con Hibernate y decidira el scope correcto de cache. Phase 7 debe validar que las columnas de key corresponden a la tabla destino y cerrar duplicates/null/order.
 
 ## Phase 4 — COPY encoding
 
