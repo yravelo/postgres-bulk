@@ -1,6 +1,6 @@
 # ADR-005: Integración Spring Data mediante repository fragments
 
-- **Estado:** PROPOSED
+- **Estado:** ACCEPTED
 - **Fecha:** 2026-08-18
 
 ## Contexto
@@ -14,14 +14,29 @@ Se busca `repository.bulkInsert(products)` sin heredar infraestructura corporati
 3. **Bean `BulkOperations<T>` separado únicamente:** mínimo acoplamiento; peor descubribilidad e inyección genérica.
 4. **Fragment + bean separado:** mejor flexibilidad; riesgo de dos APIs divergentes.
 
-## Propuesta
+## Decisión
 
-Definir una única abstracción `BulkOperations<T>` y adaptarla como fragment `PostgresBulkRepository<T, ID>` opt-in. El repository del usuario podrá extender `JpaRepository` y el fragment. La fachada programática reutiliza el mismo motor; no duplica semántica. Explorar registro externo de fragments/metadata soportado por Spring Data antes de una factory custom.
+Definir `PostgresBulkRepository<T, ID>` como fragment puro opt-in que extiende la capacidad
+core `BulkOperations<T>`. El repositorio del usuario compone explícitamente
+`JpaRepository<T, ID>` y el fragment. Su implementación se aporta desde el artefacto mediante
+`META-INF/spring.factories`, mecanismo oficial de Spring Data 3.5 para fragments externos.
 
-## Validación para aceptar
+La implementación usa `RepositoryMethodContext` únicamente para conocer el domain type y
+`JpaContext` para seleccionar el `EntityManager` de la persistence unit propietaria. Se descartan
+base repository y factory custom: afectan globalmente, exigen configuración propia y no aportan
+ninguna capacidad necesaria.
 
-Proof-of-concept con dos entidades, múltiples persistence units, repositorio sólo fragment y repositorio `JpaRepository + fragment`; contexto Boot con back-off; upgrade entre mínimo/último Spring Data 3.5. Debe funcionar sin `@Enable...` propietario en el caso starter común.
+## Validación
+
+El test Spring sin Boot prueba dos entidades/repositorios, registro externo, insert, lookup,
+rollback, readOnly y `REQUIRES_NEW` sobre PostgreSQL 15.18. `JpaEntityMetadataResolver` selecciona
+y cachea el resolver por identidad de `EntityManagerFactory`, evitando metadata cruzada entre
+persistence units. La matriz mínimo/último Spring Data y el contexto Boot con back-off permanecen
+en Phase 10/13.
 
 ## Consecuencias
 
-La sintaxis final podría ser `extends JpaRepository<Product, Long>, PostgresBulkRepository<Product, Long>` en vez de que el fragment extienda JPA. Es una línea extra que preserva separación. Una factory custom queda como fallback documentado, no como punto de partida.
+La sintaxis final es `extends JpaRepository<Product, Long>, PostgresBulkRepository<Product,
+Long>`. Es una interfaz extra que hace visible el opt-in y conserva separación. No se sobrecarga
+`save` ni se reemplaza `SimpleJpaRepository`. Una factory custom deja de ser fallback previsto y
+sólo se reconsiderará ante una necesidad nueva demostrable.

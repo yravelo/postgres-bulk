@@ -151,3 +151,9 @@ pública permanece en ocho tipos core. Phase 7 reutilizará el executor COPY, no
 coordinador de entidades; Phase 8 entregará metadata real y Phase 9 cerrará connection
 access y `BulkOperations<T>` con evidencia Spring. Hasta entonces el engine es una
 primitive de adapter, no una API JDBC pública provisional.
+
+## Resolución posterior
+
+Phase 9 cerró esa frontera en ADR-017: `PostgresBulkJdbcOperations<T>` expone el motor con
+conexión caller-owned y el fragmento Spring Data implementa `BulkOperations<T>` usando la
+conexión del `Session` transaccional.

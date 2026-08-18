@@ -347,6 +347,8 @@ sin inicialización.
 
 ## Phase 9 — Spring Data integration
 
+**Estado:** completada el 2026-08-18.
+
 - **Goal:** ofrecer DX repository y fachada programática participando en transacciones Spring.
 - **Scope:** fragment, domain metadata, connection accessor Spring, exceptions translation policy y múltiples persistence units.
 - **Out of scope:** Boot auto-config y custom global base repository salvo spike concluyente.
@@ -358,6 +360,24 @@ sin inicialización.
 - **Risks:** metadata de invocación costosa y fragment registration entre patches.
 - **Dependencies:** Phase 6–8.
 - **Definition of Done:** snippet objetivo compila y pasa Testcontainers con Spring sin Boot.
+
+### Registro de cierre de Phase 9
+
+- [x] ADR-005 queda ACCEPTED: fragmento puro opt-in registrado desde el JAR; no hay base/factory
+      global ni implementación por repositorio.
+- [x] `JpaRepository<T, ID> + PostgresBulkRepository<T, ID>` compila y ejecuta dos repositorios.
+- [x] Core, fragmento y fachada usan el nombre coherente `bulkInsert`; no se sobrecarga `save`.
+- [x] Lookup público acepta keys tipadas + `BulkKeyMetadata<K>` y materializa `List<T>` por JPA.
+- [x] `Session#doReturningWork` mantiene DDL/COPY/JOIN/JPA en el mismo scope; `pg_backend_pid()`
+      verifica la identidad física.
+- [x] `REQUIRED`, rollback, readOnly y `REQUIRES_NEW` se prueban con Spring y PostgreSQL 15.18.
+- [x] No hay flush/clear implícitos; el native query usa flush mode `COMMIT`.
+- [x] Empty input conserva single-pass y evita metadata/conexión.
+- [x] El resolver se cachea por identidad de persistence unit y no depende del adapter Hibernate
+      concreto; Phase 10 realizará el wiring automático.
+
+**Decisiones diferidas:** Boot auto-configuration/back-off (Phase 10), `NESTED` y fault injection
+completa (Phase 11), matriz mínimo/último Spring Data/Hibernate y varias PU reales (Phase 13).
 
 ## Phase 10 — Spring Boot auto-configuration
 

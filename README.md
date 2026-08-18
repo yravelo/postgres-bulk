@@ -4,11 +4,10 @@ Workspace de diseño para una librería de operaciones bulk sobre PostgreSQL, co
 
 ## Estado
 
-Phase 8: adapter de metadata Hibernate completado. `postgres-bulk-hibernate` resuelve tabla,
-columnas insertables, accessors y valores relacionales desde Hibernate 6.6, con cache por
-persistence unit y sin requerir una sesión abierta. La API pública suma un resolver a los
-ocho tipos core; ejecución y lookup permanecen internos hasta que Phase 9 pruebe el boundary
-Hibernate/Spring. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
+Phase 9: integración Spring Data JPA completada. El fragmento opt-in compone metadata Hibernate,
+COPY/lookup pgJDBC y la transacción Spring sobre una única conexión física. Incluye insert,
+lookup tipado, varias entidades, rollback, readOnly y `REQUIRES_NEW`; Boot auto-configuration
+permanece para Phase 10. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
 
 ## Navegación
 
@@ -21,6 +20,7 @@ Hibernate/Spring. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API.
 - [`docs/architecture/bulk-insert.md`](docs/architecture/bulk-insert.md): batching, conteos, fallos y semántica transaccional.
 - [`docs/architecture/bulk-lookup.md`](docs/architecture/bulk-lookup.md): keys, tabla temporal, COPY/JOIN, resultados y cleanup.
 - [`docs/architecture/hibernate-metadata.md`](docs/architecture/hibernate-metadata.md): resolver, mappings soportados, conversiones y cache Hibernate.
+- [`docs/architecture/spring-data-integration.md`](docs/architecture/spring-data-integration.md): fragmento, transacciones, conexión y persistence context.
 - [`docs/legacy/current-behavior.md`](docs/legacy/current-behavior.md): caracterización del código existente.
 - [`docs/legacy/risk-register.md`](docs/legacy/risk-register.md): problemas y riesgos priorizados.
 - [`docs/decisions/`](docs/decisions/): decisiones y propuestas arquitectónicas.
@@ -58,4 +58,4 @@ Para aplicar el formato Java localmente:
 ./mvnw spotless:apply
 ```
 
-Phase 9 — Spring Data integration es la siguiente fase prevista.
+Phase 10 — Spring Boot auto-configuration es la siguiente fase prevista.

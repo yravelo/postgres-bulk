@@ -28,9 +28,9 @@ public interface BulkOperations<T> {
    * @throws IllegalArgumentException if a produced element is {@code null}
    * @throws BulkException if the operation cannot be completed
    */
-  default BulkWriteResult insert(Iterable<? extends T> items) {
+  default BulkWriteResult bulkInsert(Iterable<? extends T> items) {
     Objects.requireNonNull(items, "items must not be null");
-    return insert(items, BulkInsertOptions.defaults());
+    return bulkInsert(items, BulkInsertOptions.defaults());
   }
 
   /**
@@ -53,5 +53,5 @@ public interface BulkOperations<T> {
    * @throws IllegalArgumentException if a produced element is {@code null}
    * @throws BulkException if the operation cannot be completed
    */
-  BulkWriteResult insert(Iterable<? extends T> items, BulkInsertOptions options);
+  BulkWriteResult bulkInsert(Iterable<? extends T> items, BulkInsertOptions options);
 }

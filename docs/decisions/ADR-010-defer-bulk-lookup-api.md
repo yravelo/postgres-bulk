@@ -1,6 +1,6 @@
 # ADR-010: Diferir la API publica de bulk lookup
 
-- **Estado:** ACCEPTED
+- **Estado:** SUPERSEDED por ADR-017
 - **Fecha:** 2026-08-18
 
 ## Contexto
@@ -39,3 +39,9 @@ acotado, manteniendo ocho tipos públicos. Phase 8 puede producir metadata sin c
 motor. Phase 9 debe probar la misma conexión física y decidir si el callback mínimo se
 eleva a SPI o si el adapter consume el resultado dentro de otro scope; sólo entonces se
 revisará la firma pública.
+
+## Resolución posterior
+
+ADR-017 reemplaza este aplazamiento: Phase 9 publica lookup tipado en el fragmento Spring
+Data y el callback acotado en la fachada pgJDBC. La materialización JPA ocurre dentro del
+scope de la tabla temporal y un test compara la sesión física con `pg_backend_pid()`.

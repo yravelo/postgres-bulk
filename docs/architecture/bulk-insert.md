@@ -2,11 +2,10 @@
 
 ## Alcance
 
-Phase 6 compone metadata neutral, SQL COPY, encoding CSV preparado y ejecución pgJDBC en
-un motor end-to-end interno. No implementa todavía la fachada pública `BulkOperations<T>`:
-esa fachada necesita una política de adquisición/liberación que funcione tanto con JDBC
-plano como con una conexión ligada a una transacción Spring. Publicar esa SPI sin probar
-el adapter Spring fijaría prematuramente ownership y lifecycle.
+Phase 6 compuso metadata neutral, SQL COPY, encoding CSV preparado y ejecución pgJDBC en
+un motor end-to-end interno. Phase 9 publica ese motor mediante
+`PostgresBulkJdbcOperations<T>` y lo conecta con `BulkOperations<T>` desde el fragmento
+Spring Data, sin cambiar el ownership caller-owned de la conexión.
 
 `PostgresBulkInserter<T>` es package-private y se prepara desde `EntityMetadata<T>`. Su
 operación recibe una `Connection` ya abierta, un `Iterable<? extends T>` y
@@ -36,10 +35,10 @@ Un batch es una frontera de COPY, no una frontera transaccional impuesta por la 
 - un fallo nunca devuelve un `BulkWriteResult` parcial, pero esto no implica que una
   transacción externa haya revertido trabajo ya confirmado.
 
-Para Spring se prevé un wrapper transaction-aware que entregue la conexión asociada al
-scope completo de la operación. Se evaluará en Phase 9 si ese wrapper justifica un callback
-público mínimo en `postgres-bulk-pgjdbc`. No se usa `DataSource`, Spring ni Hibernate en
-Phase 6.
+Spring Data entrega la conexión asociada al `EntityManager` mediante
+`Session.doReturningWork`. La fachada pública pgJDBC recibe esa conexión prestada y no
+conoce Spring, JPA ni Hibernate. La decisión y su evidencia están en ADR-017 y
+[`spring-data-integration.md`](spring-data-integration.md).
 
 ## Preparación y concurrencia
 

@@ -14,7 +14,7 @@ class BulkOperationsTest {
     RecordingOperations<Number> operations = new RecordingOperations<>();
     List<Integer> items = List.of(10, 20);
 
-    BulkWriteResult result = operations.insert(items);
+    BulkWriteResult result = operations.bulkInsert(items);
 
     assertSame(items, operations.items);
     assertEquals(BulkInsertOptions.defaults(), operations.options);
@@ -26,7 +26,7 @@ class BulkOperationsTest {
     RecordingOperations<String> operations = new RecordingOperations<>();
 
     NullPointerException exception =
-        assertThrows(NullPointerException.class, () -> operations.insert(null));
+        assertThrows(NullPointerException.class, () -> operations.bulkInsert(null));
 
     assertEquals("items must not be null", exception.getMessage());
     assertEquals(0, operations.invocations);
@@ -39,7 +39,7 @@ class BulkOperationsTest {
     private int invocations;
 
     @Override
-    public BulkWriteResult insert(Iterable<? extends T> items, BulkInsertOptions options) {
+    public BulkWriteResult bulkInsert(Iterable<? extends T> items, BulkInsertOptions options) {
       this.items = items;
       this.options = options;
       invocations++;

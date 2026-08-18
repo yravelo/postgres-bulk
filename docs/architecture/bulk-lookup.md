@@ -124,13 +124,14 @@ Fallos JDBC/COPY se exponen mediante `BulkException` conservando causa, SQLState
 del driver. Fallos runtime de accessor/callback preservan identidad. El cleanup secundario
 nunca reemplaza el fallo principal y no se devuelve un resultado parcial.
 
-## Frontera futura Hibernate/Spring
+## Frontera Hibernate/Spring
 
-Phase 8 sólo debe producir `TableName` y `BulkKeyMetadata<K>` desde metadata Hibernate; no
-necesita conocer pgJDBC. Phase 9 debe obtener una conexión transaction-aware idéntica para
-todo el scope y decidir, con el consumidor real, si eleva el callback mínimo a SPI o
-ejecuta/mapea la consulta dentro de otro boundary. La operación pública, forma del
-resultado y semántica ORM permanecen diferidas.
+Phase 9 elevó el callback mínimo mediante `PostgresBulkJdbcOperations.findAllByBulkKey`.
+El fragmento Spring Data obtiene la conexión del `Session` actual y ejecuta una native
+query JPA dentro del callback, antes del cleanup de la temporal. La API recibe
+`BulkKeyMetadata<K>` explícita y devuelve entidades materializadas; no interpreta nombres
+de métodos ni crea entidades parciales. La librería no hace `flush()` ni `clear()` y usa
+flush mode `COMMIT`. ADR-017 contiene la decisión transaccional completa.
 
 ## Fuentes PostgreSQL
 

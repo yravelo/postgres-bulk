@@ -91,15 +91,13 @@ futura. El contrato completo está en [`bulk-lookup.md`](bulk-lookup.md).
 
 ## API core aceptada y lookup diferido
 
-ADR-009 acepta un modelo operation-centric mediante `BulkOperations<T>`. Cada instancia queda ligada a un tipo lógico y publica `insert(Iterable<? extends T>)` más un overload con `BulkInsertOptions`. `Iterable` acepta `Collection` sin exigir acceso aleatorio, permite batching acotado y soporta productores de una pasada; no promete streaming perezoso ni paralelismo. `Stream` se excluye del primer contrato por ownership, cierre y semántica transaccional.
+ADR-009 acepta un modelo operation-centric mediante `BulkOperations<T>`. Cada instancia queda ligada a un tipo lógico y publica `bulkInsert(Iterable<? extends T>)` más un overload con `BulkInsertOptions`. `Iterable` acepta `Collection` sin exigir acceso aleatorio, permite batching acotado y soporta productores de una pasada; no promete streaming perezoso ni paralelismo. `Stream` se excluye del primer contrato por ownership, cierre y semántica transaccional.
 
 `batchSize` es la única opción de core: describe particionado lógico y se valida al construir `BulkInsertOptions`. Un input vacío es un no-op con resultado `(0, 0)`; input/options null y elementos null se rechazan según el contrato público. `BulkWriteResult` contiene sólo `affectedRows` y `batches`; duración pertenece a observabilidad. El core publica una única raíz unchecked, `BulkException`, y difiere subtipos hasta que existan fallos implementados y probados.
 
-ADR-010 mantiene diferida la firma pública de lookup hasta probar el consumidor de Phase 9.
-Phase 7 confirma que la futura API recibirá valores de clave, no entidades parciales, y
-preservará type safety para claves simples y compuestas. Duplicados, nulls, missing keys y
-orden ya tienen semántica interna; la forma pública del resultado y su integración ORM
-siguen abiertas. No existe todavía ningún tipo público de lookup.
+ADR-017 cierra la firma pública de lookup en el fragmento Spring Data: recibe valores de clave y
+`BulkKeyMetadata<K>`, no entidades parciales, y devuelve `List<T>` materializada por JPA mientras
+la temporal sigue visible. Duplicados, nulls, missing keys y orden conservan ADR-015.
 
 ## Serialización COPY
 
@@ -159,7 +157,7 @@ javaType + pre-resolved Function<T, ?>
 
 `EntityMetadata<T>` contiene solamente la lista final ordenada de columnas insertables. Cada `ColumnMetadata<T>` conserva el nombre físico exacto, el tipo Java declarado —también cuando el valor es null— y un accessor prerresuelto. Una asociación o componente embedded puede producir varias columnas porque core nunca asume `field == column`. Las colecciones se copian defensivamente, son no modificables y rechazan nombres físicos duplicados exactos.
 
-`BulkKeyMetadata<K>` usa el mismo modelo de columna para una key object independiente de la entidad: un componente representa una key simple y varios componentes ordenados una compuesta. Es metadata SPI, no una operación lookup. Phase 7 rechaza nulls, deduplica relacionalmente antes del JOIN y no promete orden; esos contratos todavía no amplían la API pública.
+`BulkKeyMetadata<K>` usa el mismo modelo de columna para una key object independiente de la entidad: un componente representa una key simple y varios componentes ordenados una compuesta. Es metadata SPI y Phase 9 la consume desde la operación pública del fragmento Spring Data. El lookup rechaza nulls, deduplica relacionalmente antes del JOIN, omite missing keys y no promete orden.
 
 Phase 8 materializa `HibernateEntityMetadataResolver`: entrega nombres físicos ya
 resueltos, acceso FIELD/PROPERTY, converters, foreign keys de asociaciones e IDs embebidos.
@@ -180,10 +178,11 @@ limita identificadores a 63 bytes por defecto
 
 El core recibe un scope de conexión, no conoce `@Transactional`. Spring Data usa acceso compatible con la transacción actual; Spring documenta que `DataSourceUtils` devuelve la conexión vinculada cuando existe ([resource synchronization](https://docs.spring.io/spring-framework/reference/data-access/transaction/tx-resource-synchronization.html)). Nunca se llama `commit`, `rollback`, `close` físico ni se cambia `readOnly` sobre una conexión prestada.
 
-Lookup exige una transacción manual ya iniciable por el caller (`autoCommit=false`) y falla
+Lookup exige una transacción manual ya iniciada por el caller (`autoCommit=false`) y falla
 antes de DDL si no existe ese scope. También falla en transacciones PostgreSQL read-only
-porque CTAS no está permitido. No crea una transacción o savepoint interno. Phase 9 debe
-mapear estas reglas al transaction manager Spring sin alterar la conexión prestada.
+porque CTAS no está permitido. No crea una transacción o savepoint interno. El adapter de
+Phase 9 declara `REQUIRED`, rechaza explícitamente scopes Spring read-only y obtiene la
+conexión prestada del `Session` sin alterar su estado.
 
 ## Observabilidad y seguridad
 

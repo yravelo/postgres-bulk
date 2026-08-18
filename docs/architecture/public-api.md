@@ -2,13 +2,11 @@
 
 ## Alcance
 
-Este documento enumera toda la superficie publica del proyecto al cerrar Phase 8. Existen
-exactamente **nueve tipos publicos**: ocho en `postgres-bulk-core` y uno en
-`postgres-bulk-hibernate`, en los packages
-provisionales `io.github.postgresbulk.core` y `io.github.postgresbulk.core.metadata`.
-Phases 4–7 no añaden tipos públicos en `postgres-bulk-pgjdbc`. La forma conceptual de la API
-core esta ACCEPTED por ADR-009/011, pero las coordenadas y el namespace siguen sujetos a
-ADR-008 (PROPOSED) mientras el proyecto permanezca en `0.1.0-SNAPSHOT`.
+Este documento enumera la superficie pública al cerrar Phase 9. Core añade el puerto
+`EntityMetadataResolver`; pgJDBC expone una fachada caller-owned y su callback anidado; Spring
+Data expone fragmento, resolver por persistence unit e implementación de infraestructura externa.
+Las coordenadas y el namespace siguen sujetos a ADR-008 mientras el proyecto permanezca en
+`0.1.0-SNAPSHOT`.
 
 Los cuatro tipos de operacion son API, los cuatro descriptores de metadata son public SPI
 para productores/consumidores y el resolver Hibernate es API de adapter. No existe un SPI
@@ -26,9 +24,9 @@ API exacta:
 
 ```java
 public interface BulkOperations<T> {
-    default BulkWriteResult insert(Iterable<? extends T> items);
+    default BulkWriteResult bulkInsert(Iterable<? extends T> items);
 
-    BulkWriteResult insert(
+    BulkWriteResult bulkInsert(
         Iterable<? extends T> items,
         BulkInsertOptions options
     );
@@ -159,9 +157,9 @@ public final class EntityMetadata<T> {
 
 ## `BulkKeyMetadata<K>`
 
-- **Purpose:** componentes ordenados que proyectan una key simple/compuesta a columnas fisicas de lookup futuro.
-- **Visibility:** public SPI; no constituye API de operacion lookup.
-- **Stability:** descriptor ACCEPTED por ADR-011; politicas y firma lookup siguen diferidas por ADR-010.
+- **Purpose:** componentes ordenados que proyectan una key simple/compuesta a columnas físicas de lookup.
+- **Visibility:** public SPI consumida por la fachada pgJDBC y el fragmento Spring Data.
+- **Stability:** descriptor ACCEPTED por ADR-011; política y firma lookup cerradas por ADR-017.
 - **Important invariants:** tipo non-null; componentes non-null, no vacios, sin nulls ni nombres fisicos duplicados exactos; defensive copy no modificable y orden explicito. No implica constraint UNIQUE ni define duplicates/null/result ordering.
 
 API exacta:
@@ -179,23 +177,31 @@ public final class BulkKeyMetadata<K> {
 }
 ```
 
+## API añadida en Phase 9
+
+- `EntityMetadataResolver`: puerto core para resolver `EntityMetadata<T>` por clase.
+- `PostgresBulkJdbcOperations<T>`: fachada pgJDBC preparada sobre `Connection` caller-owned;
+  publica `bulkInsert` y `findAllByBulkKey`, más `LookupResultMapper<R>` anidado para consumir el
+  JOIN dentro del scope temporal.
+- `PostgresBulkRepository<T, ID>`: fragmento opt-in con los dos overloads `bulkInsert` y lookup
+  `<K> List<T> findAllByBulkKey(Iterable<? extends K>, BulkKeyMetadata<K>)`.
+- `JpaEntityMetadataResolver`: puerto Spring/JPA que resuelve por `EntityManagerFactory`; su
+  factory `caching` adapta resolvers core ligados a una persistence unit.
+- `DefaultPostgresBulkOperations<T, ID>`: implementación pública por requisito de carga externa
+  de Spring Data; es infraestructura y no se instancia directamente.
+
 ## Fuera de la API publica
 
-Phase 8 no crea una operacion publica de lookup, encoding, CSV, COPY, execution, JDBC,
-observabilidad o serialization. El resolver/cache Hibernate descrito abajo es la única
-adición pública. Tampoco crea command
-objects, builders, repositories, metadata de ID/lifecycle/nullability ni una jerarquia
-generica de resultados.
+No se exponen `PGConnection`, `CopyIn`, CSV, nombres de temporales, internals Hibernate,
+observabilidad ni serialization. Tampoco existen command objects, metadata de
+ID/lifecycle/nullability ni una jerarquía genérica de resultados.
 
-El package `io.github.postgresbulk.pgjdbc.copy` contiene exclusivamente detalles
-package-private: registro de encoders, representación NULL/texto, framing CSV, encoder de
-fila/key, quoting, builders SQL, callbacks, executor pgJDBC y coordinadores bulk insert y
-temporary-table lookup.
-`PostgresBulkInserter<T>` recibe una conexión caller-owned; no implementa aún la fachada
-porque la adquisición transaction-aware se probará en Phase 9.
-El lookup recibe `BulkKeyMetadata<K>`, una conexión prestada y un callback interno; no
-expone recursos JDBC y permanece interno porque el boundary de consumo/adquisición se
-probará en Phase 9. `BulkEncodingException` y
+Salvo la fachada `PostgresBulkJdbcOperations<T>`, el package
+`io.github.postgresbulk.pgjdbc.copy` contiene detalles package-private: registro de encoders,
+representación NULL/texto, framing CSV, encoder de fila/key, quoting, builders SQL, callbacks,
+executor pgJDBC y coordinadores bulk insert y temporary-table lookup.
+`PostgresBulkInserter<T>` y `TemporaryTableBulkLookup<K>` permanecen internos detrás de
+`PostgresBulkJdbcOperations<T>`. `BulkEncodingException` y
 `CopyExecutionException` son subtipos internos de la raíz pública `BulkException`; no se
 compromete una API de transporte antes de tener una operación pública que la necesite.
 

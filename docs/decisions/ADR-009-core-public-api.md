@@ -38,8 +38,8 @@ Phase 2 debe materializar un contrato pequeno para bulk insert sin filtrar conce
 
 ## Decision
 
-- El core es **operation-centric** y publica `BulkOperations<T>`. La instancia queda ligada a un tipo logico; `insert` acepta `Iterable<? extends T>`.
-- Se ofrecen `insert(items)` y `insert(items, options)`. El overload corto usa `BulkInsertOptions.defaults()`; no se introduce command object.
+- El core es **operation-centric** y publica `BulkOperations<T>`. La instancia queda ligada a un tipo logico; `bulkInsert` acepta `Iterable<? extends T>`.
+- Se ofrecen `bulkInsert(items)` y `bulkInsert(items, options)`. El overload corto usa `BulkInsertOptions.defaults()`; no se introduce command object. Phase 9 renombra el `insert` provisional para que core, fragment Spring Data y documentación usen el mismo verbo inequívoco antes de 1.0.
 - `Iterable` se consume secuencialmente y no promete reutilizacion, streaming, paralelismo ni tamano conocido. `Stream` queda fuera de la API inicial.
 - El contrato rechaza el iterable, options y elementos null con un error descriptivo. Un iterable vacio es un no-op y devuelve `BulkWriteResult.empty()` sin ejecutar batches.
 - `batchSize` es una politica conceptual de particionado independiente del transporte y vive en `BulkInsertOptions`. Debe ser mayor que cero. Opciones tecnologicas (buffer, CSV, SQL o temporales) pertenecen a adapters.

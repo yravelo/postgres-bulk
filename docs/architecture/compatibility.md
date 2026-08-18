@@ -66,6 +66,16 @@ tipo `internal`, `ToOneAttributeMapping`, además de SPI runtime; por ello esta 
 acredita exactamente 6.6.55.Final. El job mínimo/último 6.6 continúa pendiente de Phase 13
 y no se afirma todavía compatibilidad con Hibernate 7.
 
+## Evidencia Spring Data de Phase 9
+
+Spring Data JPA 3.5.13, Spring Framework 6.2.19 y Hibernate ORM 6.6.55.Final pasan la suite
+sin Spring Boot sobre PostgreSQL 15.18. Se validan carga del fragmento externo, dos tipos de
+repositorio, batching, lookup materializado por JPA mientras vive la temporal, input vacío,
+rollback exterior, rechazo read-only, `REQUIRES_NEW`, rechazo `NESTED` por el
+`JpaTransactionManager` por defecto y coincidencia de `pg_backend_pid()` entre JDBC y JPA.
+El cache de metadata por identidad de `EntityManagerFactory` se valida con dos factories.
+Esta evidencia no afirma todavía compatibilidad con Spring Data 4 ni Hibernate 7.
+
 ## Decisiones aún abiertas
 
 - Coordenadas definitivas (`groupId` actual es provisional).

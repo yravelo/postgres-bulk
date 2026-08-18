@@ -42,7 +42,7 @@ Paquete candidato: `metadata`. Si soportar dos majors de Hibernate exige interna
 
 ## `postgres-bulk-spring-data`
 
-**Puede conocer:** core, pgjdbc, Spring Framework, Spring JDBC, Spring TX, Spring Data JPA y JPA. Ofrece repository fragment opt-in y el acceso JDBC compatible con transacciones Spring. Recibe el resolver de metadata como puerto, sin depender del adapter Hibernate concreto.
+**Puede conocer:** core, pgjdbc, Spring Framework, Spring JDBC, Spring TX, Spring Data JPA, JPA y la API pública `Session#doReturningWork` de Hibernate. Ofrece repository fragment opt-in y acceso a la conexión física del persistence context. Recibe el resolver de metadata como puerto, sin depender del adapter Hibernate concreto ni de sus internals.
 
 **No puede conocer:** Spring Boot autoconfiguration, `@ConfigurationProperties` ni Micrometer obligatorio. No reemplaza globalmente `SimpleJpaRepository` salvo evidencia que descarte fragments.
 

@@ -182,3 +182,9 @@ evidencia PostgreSQL; ADR-010 permanece ACCEPTED como decisión de diferir la fi
 Phase 8 puede producir metadata Hibernate sin conocer pgJDBC. Phase 9 deberá componer ambos,
 garantizar la misma conexión física y decidir si usa el callback JDBC, eleva el scope de
 temporal a SPI o ejecuta una native query dentro de ese scope.
+
+## Resolución posterior
+
+ADR-017 publica el callback mínimo mediante `PostgresBulkJdbcOperations<T>` y el fragmento
+Spring Data ejecuta dentro de él una native query JPA que materializa entidades antes del
+cleanup. La coincidencia de sesión física se prueba con `pg_backend_pid()`.

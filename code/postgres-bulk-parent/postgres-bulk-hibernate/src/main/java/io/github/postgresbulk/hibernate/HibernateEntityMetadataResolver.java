@@ -3,6 +3,7 @@ package io.github.postgresbulk.hibernate;
 import io.github.postgresbulk.core.BulkException;
 import io.github.postgresbulk.core.metadata.ColumnMetadata;
 import io.github.postgresbulk.core.metadata.EntityMetadata;
+import io.github.postgresbulk.core.metadata.EntityMetadataResolver;
 import io.github.postgresbulk.core.metadata.TableName;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ import org.hibernate.type.descriptor.java.JavaType;
  * selectables are omitted. Inheritance, secondary tables, non-primary-key to-one joins, and other
  * mappings that cannot be represented by one ordered row fail during resolution.
  */
-public final class HibernateEntityMetadataResolver {
+public final class HibernateEntityMetadataResolver implements EntityMetadataResolver {
 
   private final SessionFactoryImplementor sessionFactory;
   private final WrapperOptions wrapperOptions;
@@ -77,6 +78,7 @@ public final class HibernateEntityMetadataResolver {
    * @throws NullPointerException if {@code entityType} is {@code null}
    * @throws BulkException if the class is not an entity or its mapping is unsupported
    */
+  @Override
   public <T> EntityMetadata<T> resolve(Class<T> entityType) {
     Objects.requireNonNull(entityType, "entityType must not be null");
     try {
