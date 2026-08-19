@@ -1,6 +1,26 @@
 # Maven build output
 target/
 .flattened-pom.xml
+.m2/
+maven-repository/
+release-staging/
+release-consumer-m2/
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+.secrets/
+secrets/
+*.secret
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.gpg
+*.pgp
 
 # IntelliJ IDEA
 .idea/
@@ -24,3 +44,8 @@ Thumbs.db
 hs_err_pid*
 replay_pid*
 *.log
+
+# Local temporary files
+.tmp/
+tmp/
+*.tmp
