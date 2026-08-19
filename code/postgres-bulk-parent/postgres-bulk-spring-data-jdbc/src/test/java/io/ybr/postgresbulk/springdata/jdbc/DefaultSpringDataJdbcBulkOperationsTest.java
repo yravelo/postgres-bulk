@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.ybr.postgresbulk.core.BulkInsertOptions;
 import io.ybr.postgresbulk.core.BulkWriteResult;
+import io.ybr.postgresbulk.core.metadata.BulkKeyMetadata;
+import io.ybr.postgresbulk.core.metadata.ColumnMetadata;
 import io.ybr.postgresbulk.core.metadata.EntityMetadata;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
@@ -279,6 +281,126 @@ class DefaultSpringDataJdbcBulkOperationsTest {
     assertEquals(0, engineCalls.get());
   }
 
+  @Test
+  void emptyLookupUsesOneIteratorWithoutTransactionMetadataFactoryOrConnection() {
+    AtomicInteger iterators = new AtomicInteger();
+    Iterable<String> empty = oneShot(List.of(), iterators);
+    AtomicBoolean lookupFactoryCalled = new AtomicBoolean();
+    DefaultSpringDataJdbcBulkOperations<GeneratedRow> operations =
+        lookupOperations(
+            failingJdbcOperations(),
+            new DefaultSpringDataJdbcBulkOperations.LookupOperationFactory() {
+              @Override
+              public <E> DefaultSpringDataJdbcBulkOperations.PreparedLookupOperation<E> prepare(
+                  EntityMetadata<E> metadata) {
+                lookupFactoryCalled.set(true);
+                throw new AssertionError("lookup factory must not be called");
+              }
+            });
+
+    assertEquals(
+        List.of(), operations.findAllByBulkKey(GeneratedRow.class, empty, simpleKeyMetadata()));
+    assertEquals(1, iterators.get());
+    assertFalse(lookupFactoryCalled.get());
+  }
+
+  @Test
+  void lookupDelegatesExplicitMetadataOneShotKeysAndSameConnection() {
+    inWritableTransaction();
+    ConnectionState connectionState = new ConnectionState(false, false);
+    Connection connection = connectionState.proxy();
+    AtomicInteger callbacks = new AtomicInteger();
+    AtomicInteger iterators = new AtomicInteger();
+    List<String> keys = List.of("a", "b", "a");
+    List<GeneratedRow> expected = List.of(new GeneratedRow(7L, "a"));
+    BulkKeyMetadata<String> keyMetadata = simpleKeyMetadata();
+
+    DefaultSpringDataJdbcBulkOperations<GeneratedRow> operations =
+        lookupOperations(
+            jdbcOperations(connection, callbacks),
+            new DefaultSpringDataJdbcBulkOperations.LookupOperationFactory() {
+              @Override
+              public <E> DefaultSpringDataJdbcBulkOperations.PreparedLookupOperation<E> prepare(
+                  EntityMetadata<E> metadata) {
+                assertEquals("generated_row", metadata.table().table());
+                return new DefaultSpringDataJdbcBulkOperations.PreparedLookupOperation<>() {
+                  @SuppressWarnings("unchecked")
+                  @Override
+                  public <K> List<E> findAllByBulkKey(
+                      Connection actualConnection,
+                      Iterable<? extends K> actualKeys,
+                      BulkKeyMetadata<K> actualMetadata,
+                      DefaultSpringDataJdbcBulkOperations.LookupResultMaterializer<E>
+                          materializer) {
+                    assertSame(connection, actualConnection);
+                    assertSame(keyMetadata, actualMetadata);
+                    assertEquals(keys, consume(actualKeys));
+                    return (List<E>) expected;
+                  }
+                };
+              }
+            });
+
+    assertSame(
+        expected,
+        operations.findAllByBulkKey(GeneratedRow.class, oneShot(keys, iterators), keyMetadata));
+    assertEquals(1, iterators.get());
+    assertEquals(1, callbacks.get());
+    assertEquals(0, connectionState.forbiddenCalls.get());
+  }
+
+  @Test
+  void lookupRejectsLogicalAndPhysicalTransactionViolations() {
+    DefaultSpringDataJdbcBulkOperations<GeneratedRow> missing =
+        lookupOperations(failingJdbcOperations(), unusedLookupFactory());
+    InvalidDataAccessApiUsageException missingFailure =
+        assertThrows(
+            InvalidDataAccessApiUsageException.class,
+            () -> missing.findAllByBulkKey(GeneratedRow.class, List.of("x"), simpleKeyMetadata()));
+    assertTrue(missingFailure.getMessage().contains("bulk lookup"));
+    assertTrue(missingFailure.getMessage().contains("active JDBC transaction"));
+
+    inWritableTransaction();
+    DefaultSpringDataJdbcBulkOperations<GeneratedRow> autocommit =
+        lookupOperations(
+            jdbcOperations(connection(true, false), new AtomicInteger()), consumingLookupFactory());
+    InvalidDataAccessApiUsageException physicalFailure =
+        assertThrows(
+            InvalidDataAccessApiUsageException.class,
+            () ->
+                autocommit.findAllByBulkKey(GeneratedRow.class, List.of("x"), simpleKeyMetadata()));
+    assertTrue(physicalFailure.getMessage().contains("autoCommit disabled"));
+  }
+
+  @Test
+  void lookupReportsNullKeyPositionWithoutPreScanning() {
+    DefaultSpringDataJdbcBulkOperations<GeneratedRow> before =
+        lookupOperations(failingJdbcOperations(), unusedLookupFactory());
+    IllegalArgumentException first =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                before.findAllByBulkKey(
+                    GeneratedRow.class,
+                    java.util.Collections.singletonList(null),
+                    simpleKeyMetadata()));
+    assertTrue(first.getMessage().contains("position 1"));
+
+    inWritableTransaction();
+    List<String> keys = new ArrayList<>();
+    keys.add("first");
+    keys.add(null);
+    DefaultSpringDataJdbcBulkOperations<GeneratedRow> during =
+        lookupOperations(
+            jdbcOperations(connection(false, false), new AtomicInteger()),
+            consumingLookupFactory());
+    IllegalArgumentException second =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> during.findAllByBulkKey(GeneratedRow.class, keys, simpleKeyMetadata()));
+    assertTrue(second.getMessage().contains("position 2"));
+  }
+
   private void assertMixedIds(List<GeneratedRow> rows) {
     DefaultSpringDataJdbcBulkOperations<GeneratedRow> operations =
         consumingOperations(connection(false, false));
@@ -310,6 +432,62 @@ class DefaultSpringDataJdbcBulkOperationsTest {
       JdbcOperations jdbcOperations,
       DefaultSpringDataJdbcBulkOperations.BulkOperationFactory factory) {
     return new DefaultSpringDataJdbcBulkOperations<>(jdbcOperations, resolver(), factory);
+  }
+
+  private DefaultSpringDataJdbcBulkOperations<GeneratedRow> lookupOperations(
+      JdbcOperations jdbcOperations,
+      DefaultSpringDataJdbcBulkOperations.LookupOperationFactory lookupFactory) {
+    return new DefaultSpringDataJdbcBulkOperations<>(
+        jdbcOperations,
+        resolver(),
+        unusedFactory(),
+        lookupFactory,
+        new DefaultSpringDataJdbcBulkOperations.ResultMaterializerFactory() {
+          @Override
+          public <E> DefaultSpringDataJdbcBulkOperations.LookupResultMaterializer<E> prepare(
+              org.springframework.data.relational.core.mapping.RelationalPersistentEntity<E> entity,
+              org.springframework.data.jdbc.core.convert.JdbcConverter converter) {
+            return (connection, sql, copiedKeys) -> {
+              throw new AssertionError("materializer must not be called by the fake lookup");
+            };
+          }
+        });
+  }
+
+  private static DefaultSpringDataJdbcBulkOperations.LookupOperationFactory
+      consumingLookupFactory() {
+    return new DefaultSpringDataJdbcBulkOperations.LookupOperationFactory() {
+      @Override
+      public <E> DefaultSpringDataJdbcBulkOperations.PreparedLookupOperation<E> prepare(
+          EntityMetadata<E> metadata) {
+        return new DefaultSpringDataJdbcBulkOperations.PreparedLookupOperation<>() {
+          @Override
+          public <K> List<E> findAllByBulkKey(
+              Connection connection,
+              Iterable<? extends K> keys,
+              BulkKeyMetadata<K> keyMetadata,
+              DefaultSpringDataJdbcBulkOperations.LookupResultMaterializer<E> materializer) {
+            consume(keys);
+            return List.of();
+          }
+        };
+      }
+    };
+  }
+
+  private static DefaultSpringDataJdbcBulkOperations.LookupOperationFactory unusedLookupFactory() {
+    return new DefaultSpringDataJdbcBulkOperations.LookupOperationFactory() {
+      @Override
+      public <E> DefaultSpringDataJdbcBulkOperations.PreparedLookupOperation<E> prepare(
+          EntityMetadata<E> metadata) {
+        throw new AssertionError("lookup factory must not be called");
+      }
+    };
+  }
+
+  private static BulkKeyMetadata<String> simpleKeyMetadata() {
+    return BulkKeyMetadata.of(
+        String.class, List.of(ColumnMetadata.of("value", String.class, value -> value)));
   }
 
   private static DefaultSpringDataJdbcBulkOperations.BulkOperationFactory unusedFactory() {

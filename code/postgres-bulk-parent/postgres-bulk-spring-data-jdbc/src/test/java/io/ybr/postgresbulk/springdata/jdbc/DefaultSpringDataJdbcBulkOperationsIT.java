@@ -12,13 +12,19 @@ import com.zaxxer.hikari.HikariDataSource;
 import io.ybr.postgresbulk.core.BulkException;
 import io.ybr.postgresbulk.core.BulkInsertOptions;
 import io.ybr.postgresbulk.core.BulkWriteResult;
+import io.ybr.postgresbulk.core.metadata.BulkKeyMetadata;
+import io.ybr.postgresbulk.core.metadata.ColumnMetadata;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -30,6 +36,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.annotation.AccessType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.convert.ReadingConverter;
 import org.springframework.data.convert.WritingConverter;
 import org.springframework.data.jdbc.core.convert.JdbcCustomConversions;
 import org.springframework.data.jdbc.core.convert.JdbcTypeFactory;
@@ -451,6 +458,325 @@ class DefaultSpringDataJdbcBulkOperationsIT {
     assertEquals(0, dataSource.getHikariPoolMXBean().getActiveConnections());
   }
 
+  @Test
+  void lookupMaterializesRootRowsWithSimpleCompositeAndConvertedKeysInOneSelect() {
+    RichRow alpha =
+        new RichRow(
+            801L,
+            "alpha",
+            Status.ACTIVE,
+            Priority.HIGH,
+            new Money(new BigDecimal("12.50")),
+            new Address("Madrid", new GeoPoint(40.4, -3.7)),
+            AggregateReference.to(PARENT_ID));
+    RichRow beta =
+        new RichRow(
+            802L,
+            "beta",
+            Status.DISABLED,
+            Priority.LOW,
+            new Money(new BigDecimal("7.25")),
+            null,
+            AggregateReference.to(PARENT_ID));
+    RichRow activeDuplicate =
+        new RichRow(
+            803L,
+            "active-duplicate",
+            Status.ACTIVE,
+            Priority.HIGH,
+            new Money(new BigDecimal("12.50")),
+            null,
+            AggregateReference.to(PARENT_ID));
+    AtomicInteger selects = new AtomicInteger();
+
+    transaction()
+        .executeWithoutResult(
+            status -> {
+              DefaultSpringDataJdbcBulkOperations<RichRow> operations = operations();
+              operations.bulkInsert(List.of(alpha, beta, activeDuplicate));
+
+              List<RichRow> simple =
+                  countingOperations(selects)
+                      .findAllByBulkKey(
+                          RichRow.class,
+                          List.of("beta", "missing", "alpha", "alpha"),
+                          stringKey("value"));
+              assertEquals(1, selects.get());
+              assertEquals(List.of(801L, 802L), sortedIds(simple));
+              RichRow mapped =
+                  simple.stream().filter(row -> row.id.equals(801L)).findFirst().orElseThrow();
+              assertEquals(Status.ACTIVE, mapped.status);
+              assertEquals(Priority.HIGH, mapped.priority);
+              assertEquals(new Money(new BigDecimal("12.50")), mapped.amount);
+              assertEquals("Madrid", mapped.address.city);
+              assertEquals(PARENT_ID, mapped.parent.getId());
+
+              List<RichRow> composite =
+                  operations.findAllByBulkKey(
+                      RichRow.class,
+                      List.of(
+                          new ValueStatusKey("alpha", "ACTIVE"),
+                          new ValueStatusKey("beta", "ACTIVE")),
+                      compositeKey());
+              assertEquals(List.of(801L), sortedIds(composite));
+
+              List<RichRow> converted =
+                  operations.findAllByBulkKey(
+                      RichRow.class, List.of(new MoneyKey(new BigDecimal("12.50"))), moneyKey());
+              assertEquals(List.of(801L, 803L), sortedIds(converted));
+              assertEquals(0L, currentSessionTemporaryTables());
+            });
+  }
+
+  @Test
+  void lookupSupportsQuotedRecordMappingOneShotDuplicatesMissingAndLargeInput() {
+    AtomicInteger iterators = new AtomicInteger();
+    List<String> keys = new ArrayList<>();
+    keys.add("quoted");
+    keys.add("quoted");
+    keys.add("missing");
+    for (int index = 0; index < 2_500; index++) {
+      keys.add("absent-" + index);
+    }
+    Iterable<String> oneShot =
+        () -> {
+          if (iterators.incrementAndGet() != 1) {
+            throw new IllegalStateException("iterator requested more than once");
+          }
+          return keys.iterator();
+        };
+
+    transaction()
+        .executeWithoutResult(
+            status -> {
+              DefaultSpringDataJdbcBulkOperations<QuotedRow> operations = operations();
+              operations.bulkInsert(List.of(new QuotedRow(91L, "quoted")));
+              List<QuotedRow> rows =
+                  operations.findAllByBulkKey(QuotedRow.class, oneShot, stringKey("Value"));
+              assertEquals(List.of(new QuotedRow(91L, "quoted")), rows);
+              assertEquals(1, iterators.get());
+              assertEquals(0L, currentSessionTemporaryTables());
+            });
+
+    assertEquals(
+        List.of(),
+        DefaultSpringDataJdbcBulkOperationsIT.<QuotedRow>operations()
+            .findAllByBulkKey(QuotedRow.class, List.<String>of(), stringKey("Value")));
+  }
+
+  @Test
+  void lookupInteroperatesInBothDirectionsAndConcurrentCallsKeepTemporaryStateIsolated() {
+    transaction()
+        .executeWithoutResult(
+            status -> {
+              DefaultSpringDataJdbcBulkOperations<RichRow> operations = operations();
+              operations.bulkInsert(List.of(simpleRichRow(871L, "insert-then-lookup")));
+              assertEquals(
+                  List.of(871L),
+                  sortedIds(
+                      operations.findAllByBulkKey(
+                          RichRow.class, List.of("insert-then-lookup"), stringKey("value"))));
+              operations.bulkInsert(List.of(simpleRichRow(872L, "lookup-then-insert")));
+              assertEquals(
+                  List.of(872L),
+                  sortedIds(
+                      operations.findAllByBulkKey(
+                          RichRow.class, List.of("lookup-then-insert"), stringKey("value"))));
+            });
+
+    List<CompletableFuture<List<Long>>> lookups =
+        List.of(concurrentLookup("insert-then-lookup"), concurrentLookup("lookup-then-insert"));
+    assertEquals(List.of(871L), lookups.get(0).join());
+    assertEquals(List.of(872L), lookups.get(1).join());
+    assertEquals(0, dataSource.getHikariPoolMXBean().getActiveConnections());
+  }
+
+  @Test
+  void lookupEnforcesWritableTransactionsAndCharacterizesRequiresNewAndNested() {
+    InvalidDataAccessApiUsageException missing =
+        assertThrows(
+            InvalidDataAccessApiUsageException.class,
+            () ->
+                DefaultSpringDataJdbcBulkOperationsIT.<RichRow>operations()
+                    .findAllByBulkKey(RichRow.class, List.of("x"), stringKey("value")));
+    assertTrue(missing.getMessage().contains("active JDBC transaction"));
+
+    TransactionTemplate readOnly = transaction();
+    readOnly.setReadOnly(true);
+    InvalidDataAccessApiUsageException readOnlyFailure =
+        assertThrows(
+            InvalidDataAccessApiUsageException.class,
+            () ->
+                readOnly.execute(
+                    status ->
+                        DefaultSpringDataJdbcBulkOperationsIT.<RichRow>operations()
+                            .findAllByBulkKey(RichRow.class, List.of("x"), stringKey("value"))));
+    assertTrue(readOnlyFailure.getMessage().contains("read-only"));
+
+    TransactionTemplate outer = transaction();
+    TransactionTemplate requiresNew = transaction();
+    requiresNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    List<Integer> pids = new ArrayList<>();
+    outer.executeWithoutResult(
+        outerStatus -> {
+          Integer outerPid = jdbc.queryForObject("SELECT pg_backend_pid()", Integer.class);
+          pids.add(outerPid);
+          operations().bulkInsert(List.of(simpleRichRow(901L, "outer")));
+          assertEquals(
+              List.of(901L),
+              sortedIds(
+                  DefaultSpringDataJdbcBulkOperationsIT.<RichRow>operations()
+                      .findAllByBulkKey(RichRow.class, List.of("outer"), stringKey("value"))));
+          List<PidRow> pidRows =
+              DefaultSpringDataJdbcBulkOperationsIT.<PidRow>operations()
+                  .findAllByBulkKey(PidRow.class, List.of("outer"), stringKey("value"));
+          assertEquals(outerPid, pidRows.get(0).backendPid);
+          requiresNew.executeWithoutResult(
+              innerStatus -> {
+                pids.add(jdbc.queryForObject("SELECT pg_backend_pid()", Integer.class));
+                operations().bulkInsert(List.of(simpleRichRow(902L, "inner")));
+                assertEquals(
+                    List.of(902L),
+                    sortedIds(
+                        DefaultSpringDataJdbcBulkOperationsIT.<RichRow>operations()
+                            .findAllByBulkKey(
+                                RichRow.class, List.of("inner"), stringKey("value"))));
+              });
+          outerStatus.setRollbackOnly();
+        });
+    assertFalse(pids.get(0).equals(pids.get(1)));
+    assertEquals(1, countWhere("root_rows", "id = 902"));
+    assertEquals(0, countWhere("root_rows", "id = 901"));
+
+    TransactionTemplate nested = transaction();
+    nested.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
+    outer.executeWithoutResult(
+        outerStatus -> {
+          operations().bulkInsert(List.of(simpleRichRow(903L, "nested-root")));
+          assertThrows(
+              DeliberateFailure.class,
+              () ->
+                  nested.executeWithoutResult(
+                      nestedStatus -> {
+                        assertEquals(
+                            List.of(903L),
+                            sortedIds(
+                                DefaultSpringDataJdbcBulkOperationsIT.<RichRow>operations()
+                                    .findAllByBulkKey(
+                                        RichRow.class,
+                                        List.of("nested-root"),
+                                        stringKey("value"))));
+                        throw new DeliberateFailure();
+                      }));
+        });
+    assertEquals(1, countWhere("root_rows", "id = 903"));
+  }
+
+  @Test
+  void lookupNullAndMaterializationFailuresRollbackPreserveCausesAndPoolReuse() {
+    List<String> nullKeys = new ArrayList<>();
+    nullKeys.add("present");
+    nullKeys.add(null);
+    transaction()
+        .executeWithoutResult(
+            status -> operations().bulkInsert(List.of(simpleRichRow(951L, "present"))));
+    IllegalArgumentException nullFailure =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                transaction()
+                    .execute(
+                        status ->
+                            DefaultSpringDataJdbcBulkOperationsIT.<RichRow>operations()
+                                .findAllByBulkKey(RichRow.class, nullKeys, stringKey("value"))));
+    assertTrue(nullFailure.getMessage().contains("position 2"));
+
+    IllegalArgumentException nullComponent =
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                transaction()
+                    .execute(
+                        status ->
+                            DefaultSpringDataJdbcBulkOperationsIT.<RichRow>operations()
+                                .findAllByBulkKey(
+                                    RichRow.class,
+                                    java.util.Collections.singletonList(
+                                        new ValueStatusKey("present", null)),
+                                    compositeKey())));
+    assertTrue(nullComponent.getMessage().contains("column 'status'"));
+    assertTrue(nullComponent.getMessage().contains("position 1"));
+
+    RuntimeException mapperFailure = new IllegalStateException("intentional mapper failure");
+    DefaultSpringDataJdbcBulkOperations.ResultMaterializerFactory runtimeMaterializer =
+        new DefaultSpringDataJdbcBulkOperations.ResultMaterializerFactory() {
+          @Override
+          public <E> DefaultSpringDataJdbcBulkOperations.LookupResultMaterializer<E> prepare(
+              org.springframework.data.relational.core.mapping.RelationalPersistentEntity<E> entity,
+              org.springframework.data.jdbc.core.convert.JdbcConverter converter) {
+            return (connection, sql, copiedKeys) -> {
+              throw mapperFailure;
+            };
+          }
+        };
+    RuntimeException observed =
+        assertThrows(
+            RuntimeException.class,
+            () ->
+                transaction()
+                    .execute(
+                        status ->
+                            new DefaultSpringDataJdbcBulkOperations<RichRow>(
+                                    jdbc, metadataResolver, runtimeMaterializer)
+                                .findAllByBulkKey(
+                                    RichRow.class, List.of("present"), stringKey("value"))));
+    assertSame(mapperFailure, observed);
+
+    DefaultSpringDataJdbcBulkOperations.ResultMaterializerFactory sqlMaterializer =
+        new DefaultSpringDataJdbcBulkOperations.ResultMaterializerFactory() {
+          @Override
+          public <E> DefaultSpringDataJdbcBulkOperations.LookupResultMaterializer<E> prepare(
+              org.springframework.data.relational.core.mapping.RelationalPersistentEntity<E> entity,
+              org.springframework.data.jdbc.core.convert.JdbcConverter converter) {
+            return (connection, sql, copiedKeys) -> {
+              try (java.sql.PreparedStatement statement =
+                  connection.prepareStatement("SELECT * FROM missing_lookup_relation")) {
+                statement.executeQuery();
+              }
+              return List.of();
+            };
+          }
+        };
+    BulkException sqlFailure =
+        assertThrows(
+            BulkException.class,
+            () ->
+                transaction()
+                    .execute(
+                        status ->
+                            new DefaultSpringDataJdbcBulkOperations<RichRow>(
+                                    jdbc, metadataResolver, sqlMaterializer)
+                                .findAllByBulkKey(
+                                    RichRow.class, List.of("present"), stringKey("value"))));
+    assertEquals("42P01", sqlState(sqlFailure));
+    assertTrue(
+        java.util.Arrays.stream(sqlFailure.getSuppressed())
+            .anyMatch(failure -> "25P02".equals(sqlStateOrNull(failure))));
+
+    transaction()
+        .executeWithoutResult(
+            status -> {
+              assertEquals(
+                  List.of(951L),
+                  sortedIds(
+                      DefaultSpringDataJdbcBulkOperationsIT.<RichRow>operations()
+                          .findAllByBulkKey(
+                              RichRow.class, List.of("present"), stringKey("value"))));
+              assertEquals(0L, currentSessionTemporaryTables());
+            });
+    assertEquals(0, dataSource.getHikariPoolMXBean().getActiveConnections());
+  }
+
   private void assertBatch(int size, long affectedRows, int batches, long offset) {
     BulkWriteResult result =
         transaction()
@@ -509,6 +835,114 @@ class DefaultSpringDataJdbcBulkOperationsIT {
     throw new AssertionError("SQLException not found", failure);
   }
 
+  private static String sqlStateOrNull(Throwable failure) {
+    Throwable current = failure;
+    while (current != null) {
+      if (current instanceof SQLException sqlException) {
+        return sqlException.getSQLState();
+      }
+      current = current.getCause();
+    }
+    return null;
+  }
+
+  private static List<Long> sortedIds(List<RichRow> rows) {
+    return rows.stream().map(row -> row.id).sorted().toList();
+  }
+
+  private static BulkKeyMetadata<String> stringKey(String column) {
+    return BulkKeyMetadata.of(
+        String.class, List.of(ColumnMetadata.of(column, String.class, value -> value)));
+  }
+
+  private static BulkKeyMetadata<ValueStatusKey> compositeKey() {
+    return BulkKeyMetadata.of(
+        ValueStatusKey.class,
+        List.of(
+            ColumnMetadata.of("value", String.class, ValueStatusKey::value),
+            ColumnMetadata.of("status", String.class, ValueStatusKey::status)));
+  }
+
+  private static BulkKeyMetadata<MoneyKey> moneyKey() {
+    return BulkKeyMetadata.of(
+        MoneyKey.class,
+        List.of(ColumnMetadata.of("amount", BigDecimal.class, MoneyKey::relationalValue)));
+  }
+
+  private static long currentSessionTemporaryTables() {
+    return jdbc.queryForObject(
+        "SELECT count(*) FROM pg_class WHERE relnamespace = pg_my_temp_schema()", Long.class);
+  }
+
+  private static CompletableFuture<List<Long>> concurrentLookup(String key) {
+    return CompletableFuture.supplyAsync(
+        () ->
+            transaction()
+                .execute(
+                    status -> {
+                      List<Long> result =
+                          sortedIds(
+                              DefaultSpringDataJdbcBulkOperationsIT.<RichRow>operations()
+                                  .findAllByBulkKey(
+                                      RichRow.class, List.of(key), stringKey("value")));
+                      assertEquals(0L, currentSessionTemporaryTables());
+                      return result;
+                    }));
+  }
+
+  @SuppressWarnings("unchecked")
+  private static DefaultSpringDataJdbcBulkOperations<RichRow> countingOperations(
+      AtomicInteger selectStatements) {
+    org.springframework.jdbc.core.JdbcOperations countingJdbc =
+        (org.springframework.jdbc.core.JdbcOperations)
+            Proxy.newProxyInstance(
+                org.springframework.jdbc.core.JdbcOperations.class.getClassLoader(),
+                new Class<?>[] {org.springframework.jdbc.core.JdbcOperations.class},
+                (proxy, method, arguments) -> {
+                  if (method.getName().equals("execute")
+                      && arguments != null
+                      && arguments.length == 1
+                      && arguments[0]
+                          instanceof org.springframework.jdbc.core.ConnectionCallback<?> callback) {
+                    return jdbc.execute(
+                        (org.springframework.jdbc.core.ConnectionCallback<Object>)
+                            connection ->
+                                ((org.springframework.jdbc.core.ConnectionCallback<Object>)
+                                        callback)
+                                    .doInConnection(
+                                        countingConnection(connection, selectStatements)));
+                  }
+                  try {
+                    return method.invoke(jdbc, arguments);
+                  } catch (InvocationTargetException failure) {
+                    throw failure.getCause();
+                  }
+                });
+    return new DefaultSpringDataJdbcBulkOperations<>(countingJdbc, metadataResolver);
+  }
+
+  private static Connection countingConnection(
+      Connection delegate, AtomicInteger selectStatements) {
+    return (Connection)
+        Proxy.newProxyInstance(
+            Connection.class.getClassLoader(),
+            new Class<?>[] {Connection.class},
+            (proxy, method, arguments) -> {
+              if (method.getName().equals("prepareStatement")
+                  && arguments != null
+                  && arguments.length > 0
+                  && arguments[0] instanceof String sql
+                  && sql.stripLeading().regionMatches(true, 0, "SELECT", 0, 6)) {
+                selectStatements.incrementAndGet();
+              }
+              try {
+                return method.invoke(delegate, arguments);
+              } catch (InvocationTargetException failure) {
+                throw failure.getCause();
+              }
+            });
+  }
+
   private static Throwable rootCause(Throwable failure) {
     Throwable current = failure;
     while (current.getCause() != null) {
@@ -531,6 +965,8 @@ class DefaultSpringDataJdbcBulkOperationsIT {
             List.of(
                 MoneyConverter.INSTANCE,
                 PriorityConverter.INSTANCE,
+                MoneyReadingConverter.INSTANCE,
+                PriorityReadingConverter.INSTANCE,
                 FailingValueConverter.INSTANCE));
     JdbcMappingContext context = new JdbcMappingContext(DefaultNamingStrategy.INSTANCE);
     context.setForceQuote(true);
@@ -553,6 +989,10 @@ class DefaultSpringDataJdbcBulkOperationsIT {
   }
 
   record Money(BigDecimal value) {}
+
+  record MoneyKey(BigDecimal relationalValue) {}
+
+  record ValueStatusKey(String value, String status) {}
 
   record GeoPoint(Double latitude, Double longitude) {}
 
@@ -599,6 +1039,21 @@ class DefaultSpringDataJdbcBulkOperationsIT {
       this.amount = amount;
       this.address = address;
       this.parent = parent;
+    }
+  }
+
+  @Table("root_rows")
+  static class PidRow {
+    @Id Long id;
+    String value;
+
+    @Column("backend_pid")
+    Integer backendPid;
+
+    PidRow(Long id, String value, Integer backendPid) {
+      this.id = id;
+      this.value = value;
+      this.backendPid = backendPid;
     }
   }
 
@@ -670,6 +1125,26 @@ class DefaultSpringDataJdbcBulkOperationsIT {
     @Override
     public Integer convert(Priority source) {
       return source == Priority.HIGH ? 9 : 1;
+    }
+  }
+
+  @ReadingConverter
+  enum MoneyReadingConverter implements Converter<BigDecimal, Money> {
+    INSTANCE;
+
+    @Override
+    public Money convert(BigDecimal source) {
+      return new Money(source);
+    }
+  }
+
+  @ReadingConverter
+  enum PriorityReadingConverter implements Converter<Integer, Priority> {
+    INSTANCE;
+
+    @Override
+    public Priority convert(Integer source) {
+      return source == 9 ? Priority.HIGH : Priority.LOW;
     }
   }
 

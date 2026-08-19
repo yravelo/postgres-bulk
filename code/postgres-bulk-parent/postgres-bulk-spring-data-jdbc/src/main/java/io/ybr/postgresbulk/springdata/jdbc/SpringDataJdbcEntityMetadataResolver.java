@@ -102,6 +102,15 @@ public final class SpringDataJdbcEntityMetadataResolver implements EntityMetadat
         : resolved.assignedIdMetadata();
   }
 
+  JdbcConverter jdbcConverter() {
+    return converter;
+  }
+
+  <T> RelationalPersistentEntity<T> persistentEntity(Class<T> entityType) {
+    Objects.requireNonNull(entityType, "entityType must not be null");
+    return mapping(entityType).persistentEntity();
+  }
+
   private <T> ResolvedMapping<T> mapping(Class<T> entityType) {
     try {
       return cast(cache.computeIfAbsent(entityType, this::resolveUncached));
