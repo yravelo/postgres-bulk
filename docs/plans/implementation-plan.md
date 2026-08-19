@@ -648,8 +648,8 @@ Phase 16.
 
 ## Phase 16 — Release readiness
 
-**Estado:** `PARTIALLY DONE` el 2026-08-19; ingeniería local completada y activación externa
-pendiente.
+**Estado:** `PARTIALLY DONE` el 2026-08-19; ingeniería local y CI remoto completados, publicación
+externa pendiente.
 
 - **Goal:** producir artefactos firmables y gobernables para publicación independiente.
 - **Scope:** licencia, notices, SCM/developer metadata, sources/Javadocs, signing, Central, semantic versioning, changelog, security/support policy y release automation.
@@ -676,6 +676,8 @@ pendiente.
 - [x] Phase 16B fija `yravelo`, el repository privado previsto, `io.github.yravelo` para Maven e
       `io.ybr.postgresbulk` para Java; ADR-008 queda `ACCEPTED` y la metadata anticipa la URL
       aprobada sin afirmar que el repository exista.
+- [x] Phase 16C crea el repository PRIVATE, configura `origin`, publica `main` y valida Build más
+      los 10 jobs de Compatibility en GitHub sin ejecutar Benchmarks ni Release candidate.
 - [ ] Aprobar una release candidate y ejecutar signing/upload sólo después de configurar identidad,
       namespace, repositorio remoto, credenciales y clave GPG fuera del repositorio.
 
@@ -691,8 +693,25 @@ la Definition of Done. No se publicó, no se creó tag y no se inicia ninguna fa
       migran antes de la primera publicación.
 - [x] Registrar build baseline, staging final, consumer externo y comparación reproducible con la
       identidad definitiva.
-- [ ] Crear repository/remote, verificar Central, habilitar security reporting y configurar
-      environment, secrets, signing y tag mediante acciones externas autorizadas.
+- [ ] Verificar Central, resolver security reporting y configurar environment, secrets, signing y
+      tag mediante acciones externas autorizadas.
+
+### Phase 16C — repository privado y CI remoto
+
+**Estado:** `DONE` el 2026-08-19; no se inició Phase 17.
+
+- [x] `yravelo/postgres-bulk` existe con visibilidad PRIVATE, default branch `main`, Issues
+      habilitado y `origin` SSH.
+- [x] Build `32264391877` termina SUCCESS para SHA
+      `7b7c0f6394c8220f1149ef2fb21c718e535522bb`.
+- [x] Compatibility `32264393355` termina SUCCESS en los 10 jobs obligatorios sin reducir matriz.
+- [x] Build, Compatibility, Benchmarks y Release candidate están visibles y usan permisos
+      `contents: read`; los dos workflows manuales no se ejecutaron.
+- [x] Las diferencias Java 17/Javadocs y disponibilidad de `ripgrep` del runner quedaron corregidas
+      y revalidadas local y remotamente.
+- [ ] Private Vulnerability Reporting permanece no disponible (API 404) y branch rules requiere
+      GitHub Pro o visibilidad pública; no se cambió PRIVATE.
+- [ ] Central, environment, secrets, OpenPGP, tag, release, upload y publicación siguen pendientes.
 
 ## Gates transversales
 

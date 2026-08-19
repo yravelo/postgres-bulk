@@ -2,10 +2,10 @@
 
 ## Verdict
 
-The final project identity is approved and applied locally, but `0.1.0` is **not ready for public
-publication**. The private GitHub repository does not exist yet, no remote is configured, and the
-Central namespace, security channel, release environment, signing material and tag remain external
-prerequisites. No repository, tag, upload or publication is created by this assessment.
+The final project identity is approved and the private GitHub repository and remote CI are active,
+but `0.1.0` is **not ready for public publication**. The Central namespace, private vulnerability
+channel, release environment, signing material and tag remain external prerequisites. No tag,
+release candidate workflow, Central upload or publication was executed by this assessment.
 
 ## Final identity
 
@@ -13,8 +13,8 @@ prerequisites. No repository, tag, upload or publication is created by this asse
 | --- | --- | --- |
 | Project | `postgres-bulk` | PASS |
 | GitHub owner | `yravelo` | PASS — approved identity |
-| Planned repository | `https://github.com/yravelo/postgres-bulk` | EXTERNAL PREREQUISITE — private repository does not exist |
-| Git remote | none | EXTERNAL PREREQUISITE |
+| Repository | `https://github.com/yravelo/postgres-bulk` | PASS — created and confirmed PRIVATE |
+| Git remote | `git@github.com:yravelo/postgres-bulk.git` | PASS — `main` tracks `origin/main` |
 | Maven groupId | `io.github.yravelo` | PASS — final coordinate |
 | Java package root | `io.ybr.postgresbulk` | PASS — final binary namespace |
 | Release candidate | `0.1.0` | PASS |
@@ -44,12 +44,11 @@ the single version source: development defaults to `0.1.0-SNAPSHOT`, while relea
 
 ## Repository and public metadata
 
-The POM anticipates the approved repository URL and SCM location. This is preparation, not proof
-that the repository exists. Name, description, Apache-2.0 license, project URL, SCM and developer
-identity `yravelo` are present. No email is published. GitHub Issues metadata remains absent until
-the repository exists and Issues is confirmed.
+The repository exists at the URL anticipated by the POM and its HTTPS/SSH SCM metadata. Name,
+description, Apache-2.0 license, project URL, SCM and developer identity `yravelo` are present. No
+email is published. GitHub Issues is enabled.
 
-The repository is planned as a **private development repository**. That decision is distinct from
+The repository is a **private development repository**. That decision is distinct from
 publishing binary artifacts to Maven Central and does not promise a future public source repository.
 
 ## Maven Central status
@@ -68,14 +67,16 @@ confirm or request that namespace, complete any requested verification, and crea
 
 | Control | Status |
 | --- | --- |
-| GitHub Private Vulnerability Reporting | EXTERNAL PREREQUISITE — enable after repository creation |
+| GitHub Private Vulnerability Reporting | EXTERNAL PREREQUISITE — API returned 404 for this private repository; unchanged |
 | OpenPGP strategy | PASS — isolated in `central-publish` |
 | Protected OpenPGP key | EXTERNAL PREREQUISITE |
-| GitHub environment `maven-central` | EXTERNAL PREREQUISITE — repository does not exist |
+| GitHub branch protection/rules | EXTERNAL PREREQUISITE — unavailable for this private repository on the current plan |
+| GitHub environment `maven-central` | EXTERNAL PREREQUISITE — intentionally not created |
 | Central username/password secrets | EXTERNAL PREREQUISITE |
 | GPG private key/passphrase secrets | EXTERNAL PREREQUISITE |
 | Tag `v0.1.0` | NOT EXECUTED — creation/push not authorized |
-| Remote workflow | NOT EXECUTED |
+| Remote Build and Compatibility workflows | PASS |
+| Benchmarks and Release candidate workflows | NOT EXECUTED |
 | Central upload/publication | NOT EXECUTED |
 
 Secrets belong in the protected GitHub environment, never in Git, documentation, chat or logs.
@@ -103,15 +104,28 @@ All PostgreSQL Bulk artifacts in the isolated consumer resolved from file stagin
 `io.github.yravelo`; third-party dependencies resolved from Maven Central. JAR bytecode and Spring
 metadata reference `io.ybr.postgresbulk`, with no active use of the former namespace.
 
+## Phase 16C remote validation
+
+Remote validation is **PASS** for implementation SHA
+`7b7c0f6394c8220f1149ef2fb21c718e535522bb`. Build run `32264391877` succeeded on the Java 17,
+Spring Boot 3.5.16 and PostgreSQL 15.18 baseline. Compatibility run `32264393355` succeeded in all
+10 jobs: Java 21/25, Spring Boot 3.5.0, PostgreSQL 16.14/17.10, the newest supported boundary with
+PostgreSQL 18.4, Hibernate 6.6.15/6.6.55 and pgJDBC 42.7.5/42.7.13.
+
+The first remote run exposed two runner-specific gaps without reducing coverage: Java 17 strict
+Javadocs required record-constructor parameter tags, and the Ubuntu runner required explicit
+installation of `ripgrep` for the documentation/release audit scripts. Both were corrected and
+revalidated. Build, Compatibility, Benchmarks and Release candidate are visible and active;
+Benchmarks and Release candidate remain manual and were not executed.
+
 ## Remaining activation sequence
 
-1. Create private repository `yravelo/postgres-bulk`.
-2. Configure and verify the Git remote.
-3. Confirm GitHub Issues and enable Private Vulnerability Reporting.
-4. Verify `io.github.yravelo` in Central and create a user token.
-5. Create/protect an OpenPGP key and configure the four environment secrets.
-6. Create the protected `maven-central` environment and required review policy.
-7. Recheck a clean remote candidate, then create and push `v0.1.0` only with authorization.
-8. Run the remote candidate workflow; authorize Central upload and Portal publication separately.
+1. Resolve availability of Private Vulnerability Reporting and branch rules without changing the
+   repository's private visibility.
+2. Verify `io.github.yravelo` in Central and create a user token.
+3. Create/protect an OpenPGP key and configure the four environment secrets.
+4. Create the protected `maven-central` environment and required review policy.
+5. Recheck a clean remote candidate, then create and push `v0.1.0` only with authorization.
+6. Run the remote candidate workflow; authorize Central upload and Portal publication separately.
 
 No external action above is authorized by this document.

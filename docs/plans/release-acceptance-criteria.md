@@ -1,6 +1,6 @@
 # Criterios de aceptación de la primera release pública
 
-Estado auditado para el candidato `0.1.0` en Phase 16. Cada criterio usa exclusivamente `PASS`,
+Estado auditado para el candidato `0.1.0` tras Phase 16C. Cada criterio usa exclusivamente `PASS`,
 `BLOCKED`, `EXTERNAL PREREQUISITE` o `DEFERRED (non-blocking)`.
 
 ## Funcionalidad
@@ -27,8 +27,8 @@ Estado auditado para el candidato `0.1.0` en Phase 16. Cada criterio usa exclusi
 - **PASS** — POMs staged no contienen paths locales, repos privados, SNAPSHOTs ni módulos no publicables.
 - **PASS** — Name, description, license, project URL, SCM previsto y developer `yravelo` usan la
   identidad final aprobada; no se publica email.
-- **EXTERNAL PREREQUISITE** — Crear el repository privado, verificar el SCM remoto y confirmar si
-  GitHub Issues estará habilitado antes de añadir issue management.
+- **PASS** — El repository `yravelo/postgres-bulk` existe como PRIVATE, el SCM remoto coincide con
+  los POMs y GitHub Issues está habilitado.
 
 ## Transacciones, robustez y operación segura
 
@@ -67,11 +67,13 @@ Estado auditado para el candidato `0.1.0` en Phase 16. Cada criterio usa exclusi
 - **PASS** — SHA-256 de artifacts staged se genera e inspecciona.
 - **PASS** — Firma OpenPGP está aislada en `central-publish`; estrategia y secrets están documentados.
 - **DEFERRED (non-blocking)** — SBOM se evaluará tras definir formato/lifecycle estable.
-- **DEFERRED (non-blocking)** — Provenance/attestations requiere un remote/visibilidad GitHub verificables.
+- **DEFERRED (non-blocking)** — Provenance/attestations se evaluará después de la primera release.
 - **PASS** — Auditoría de patrones sensibles no encuentra tokens, passwords ni private keys hardcoded.
 - **PASS** — `CHANGELOG.md`, release notes y política SemVer `0.x` existen.
-- **EXTERNAL PREREQUISITE** — Crear el repository y habilitar GitHub Private Vulnerability
-  Reporting para activar el canal documentado en `SECURITY.md`.
+- **EXTERNAL PREREQUISITE** — GitHub Private Vulnerability Reporting no está disponible para el
+  repository privado actual (API 404); `SECURITY.md` no se presenta como canal activado.
+- **EXTERNAL PREREQUISITE** — Branch protection/rules requiere GitHub Pro o hacer público el
+  repository; se preservó la visibilidad PRIVATE y no se aplicaron reglas.
 
 ## Coordinates y publicación
 
@@ -83,14 +85,17 @@ Estado auditado para el candidato `0.1.0` en Phase 16. Cada criterio usa exclusi
 - **PASS** — Maven Central Publisher Portal y su plugin oficial son el target, sin endpoints legacy.
 - **EXTERNAL PREREQUISITE** — Verificar namespace y crear cuenta/token del Central Portal.
 - **EXTERNAL PREREQUISITE** — Crear/proteger clave OpenPGP y configurar secrets del environment.
-- **EXTERNAL PREREQUISITE** — Configurar remote, URLs reales, canal privado y tag `v0.1.0`.
-- **EXTERNAL PREREQUISITE** — Ejecutar/validar el workflow en el remote y autorizar el upload.
+- **PASS** — `origin` usa SSH, `main` está publicado y las URLs de project/SCM coinciden con el
+  repository privado real.
+- **PASS** — Build remoto `32264391877` y los 10 jobs de Compatibility `32264393355` terminaron
+  correctamente para `7b7c0f6394c8220f1149ef2fb21c718e535522bb`.
+- **EXTERNAL PREREQUISITE** — Resolver el canal privado, crear `v0.1.0` y autorizar el upload.
 - **PASS** — Workflow manual exige versión, tag, confirmación, environment y deja `autoPublish=false`.
-- **PASS** — No ocurrió push, tag, release ni publicación remota durante Phase 16.
+- **PASS** — Hubo push de `main`; no se creó tag ni se ejecutó release, upload o publicación.
 
 ## Veredicto
 
 La ingeniería local del candidato está cerrada y no quedan blockers técnicos. La release pública
-sigue **NOT READY** mientras no se completen los external prerequisites de repository/remoto,
-Central, security reporting, environment, secrets, OpenPGP, tag, workflow remoto y autorización de
-publicación. Phase 16 permanece `PARTIALLY DONE`; no se realizó ninguna acción remota.
+sigue **NOT READY** mientras no se completen los external prerequisites de Central, security
+reporting, branch rules, environment, secrets, OpenPGP, tag y autorización de publicación. Phase
+16C queda `DONE`; la activación de release de Phase 16 permanece `PARTIALLY DONE`.

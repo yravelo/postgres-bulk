@@ -1,14 +1,14 @@
 # ADR-023: Release and publishing policy
 
-- **Estado:** ACCEPTED — EXTERNAL ACTIVATION PENDING
+- **Estado:** ACCEPTED — REMOTE CI ACTIVE, PUBLICATION PENDING
 - **Fecha:** 2026-08-19
 
 ## Contexto
 
-Phase 16 debe producir un candidato `0.1.0` auditable sin publicar remotamente. Phase 16B fija el
-owner `yravelo`, el repository privado previsto, el Maven `groupId` `io.github.yravelo` y los
-packages Java `io.ybr.postgresbulk`. El repository aún no existe y no tiene `git remote`, por lo
-que SCM, Issues, security reporting y Central continúan pendientes de activación externa.
+Phase 16 debe producir un candidato `0.1.0` auditable sin publicarlo. Phase 16B fija el owner
+`yravelo`, el repository privado, el Maven `groupId` `io.github.yravelo` y los packages Java
+`io.ybr.postgresbulk`. Phase 16C crea el repository, publica `main` y valida Build/Compatibility;
+security reporting, protección del branch y Central continúan pendientes de activación externa.
 
 ## Decisión
 
@@ -24,12 +24,15 @@ que SCM, Issues, security reporting y Central continúan pendientes de activaci�
 - Requerir autorización manual, tag exacto, credenciales protegidas y revisión manual del Portal.
 - No publicar dependencias SNAPSHOT.
 - Considerar `SECURITY.md` provisional y bloquear publicación hasta disponer de canal privado real.
+- Mantener el repository PRIVATE y no debilitar Build/Compatibility para obtener una señal verde.
+- Mantener Benchmarks y Release candidate manuales; su mera visibilidad no autoriza ejecutarlos.
 
 ## Consecuencias
 
-La release candidate es inspeccionable sin cambiar POMs a mano ni tocar servicios remotos. ADR-008
-y esta política quedan aceptados, pero la publicación sigue bloqueada aunque los gates técnicos
-sean verdes. Deben crearse y verificarse repository/remote, Issues, security reporting, namespace
-Central, signing, environment, secrets, tag y workflow remoto. SBOM, attestations y JPMS quedan
-diferidos sin bloquear la ingeniería local de `0.1.0`; Spring Data JDBC pertenece únicamente al
-roadmap posterior.
+La release candidate es inspeccionable sin cambiar POMs a mano. Repository, remote, Issues y CI
+remoto están verificados, pero la publicación sigue bloqueada aunque los gates técnicos sean
+verdes. Private Vulnerability Reporting devolvió 404 y las branch rules del repository privado no
+están disponibles con el plan actual; ninguna de esas limitaciones autoriza hacerlo público. Aún
+deben resolverse Central, signing, environment, secrets, tag y autorización del workflow de
+release. SBOM, attestations y JPMS quedan diferidos sin bloquear la ingeniería local de `0.1.0`;
+Spring Data JDBC pertenece únicamente al roadmap posterior.
