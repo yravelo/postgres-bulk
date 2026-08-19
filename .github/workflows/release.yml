@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: SemVer release version (for example 0.1.0)
+        description: Stable SemVer release version (for example 0.1.0)
         required: true
         type: string
-      git_ref:
-        description: Commit or tag to inspect
+      commit_sha:
+        description: Full 40-character commit SHA from main to inspect
         required: true
         type: string
       publish_to_central:
@@ -17,8 +17,8 @@ on:
         default: false
         type: boolean
       confirmation:
-        description: Type "publish <version>" only when upload is intended
-        required: false
+        description: Type "candidate <version>" or "publish <version>"
+        required: true
         type: string
 
 permissions:
@@ -27,27 +27,52 @@ permissions:
 jobs:
   candidate:
     name: Build and inspect release candidate
+    if: >-
+      ${{ github.repository == 'yravelo/postgres-bulk' &&
+          github.actor == 'yravelo' &&
+          github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    outputs:
+      release_commit: ${{ steps.verify-commit.outputs.release_commit }}
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
     steps:
-      - name: Check out requested ref
-        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-        with:
-          ref: ${{ inputs.git_ref }}
-          persist-credentials: false
-
-      - name: Validate inputs and clean checkout
+      - name: Validate trusted dispatch and inputs
+        shell: bash
         env:
-          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_COMMIT: ${{ inputs.commit_sha }}
           PUBLISH_TO_CENTRAL: ${{ inputs.publish_to_central }}
           CONFIRMATION: ${{ inputs.confirmation }}
         run: |
-          [[ "${RELEASE_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]
-          [[ "${RELEASE_VERSION}" != *SNAPSHOT* ]]
-          [[ -z "$(git status --short)" ]]
+          set -euo pipefail
+          [[ "${RELEASE_VERSION}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+          [[ "${RELEASE_COMMIT}" =~ ^[0-9a-f]{40}$ ]]
           if [[ "${PUBLISH_TO_CENTRAL}" == "true" ]]; then
-            [[ "${CONFIRMATION}" == "publish ${RELEASE_VERSION}" ]]
+            expected_confirmation="publish ${RELEASE_VERSION}"
+          else
+            expected_confirmation="candidate ${RELEASE_VERSION}"
           fi
+          [[ "${CONFIRMATION}" == "${expected_confirmation}" ]]
+
+      - name: Check out immutable candidate commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify candidate commit belongs to main
+        id: verify-commit
+        shell: bash
+        env:
+          EXPECTED_COMMIT: ${{ inputs.commit_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$(git rev-parse HEAD)" == "${EXPECTED_COMMIT}" ]]
+          git merge-base --is-ancestor "${EXPECTED_COMMIT}" origin/main
+          [[ -z "$(git status --short)" ]]
+          printf 'release_commit=%s\n' "${EXPECTED_COMMIT}" >> "${GITHUB_OUTPUT}"
 
       - name: Set up Java 17
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
@@ -71,16 +96,16 @@ jobs:
         run: ./scripts/check-documentation.sh
 
       - name: Local staging and isolated consumer
-        run: ./scripts/release-dry-run.sh "${{ inputs.version }}"
+        run: ./scripts/release-dry-run.sh "${RELEASE_VERSION}"
 
       - name: Production dependency license audit
-        run: ./scripts/audit-production-licenses.sh "${{ inputs.version }}"
+        run: ./scripts/audit-production-licenses.sh "${RELEASE_VERSION}"
 
       - name: Public API baseline
         run: ./scripts/generate-public-api.sh --check
 
       - name: Reproducibility comparison
-        run: ./scripts/compare-release-builds.sh "${{ inputs.version }}"
+        run: ./scripts/compare-release-builds.sh "${RELEASE_VERSION}"
 
       - name: Diff and secret-pattern audit
         run: |
@@ -101,24 +126,31 @@ jobs:
   central-upload:
     name: Signed Central upload (manual Portal release)
     needs: candidate
-    if: ${{ inputs.publish_to_central }}
+    if: ${{ needs.candidate.result == 'success' && inputs.publish_to_central }}
     runs-on: ubuntu-latest
-    environment: maven-central
     timeout-minutes: 60
     concurrency:
       group: maven-central
       cancel-in-progress: false
     steps:
-      - name: Check out exact release ref
+      - name: Check out candidate commit
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
-          ref: ${{ inputs.git_ref }}
+          ref: ${{ needs.candidate.outputs.release_commit }}
+          fetch-depth: 0
           persist-credentials: false
 
-      - name: Require exact version tag
+      - name: Reverify tag and candidate commit
+        shell: bash
         env:
-          RELEASE_VERSION: ${{ inputs.version }}
-        run: test "$(git describe --exact-match --tags HEAD)" = "v${RELEASE_VERSION}"
+          EXPECTED_COMMIT: ${{ needs.candidate.outputs.release_commit }}
+          RELEASE_TAG: v${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          tag_commit="$(git rev-parse --verify "refs/tags/${RELEASE_TAG}^{commit}")"
+          [[ "$(git rev-parse HEAD)" == "${EXPECTED_COMMIT}" ]]
+          [[ "${tag_commit}" == "${EXPECTED_COMMIT}" ]]
+          [[ "$(git describe --exact-match --tags HEAD)" == "${RELEASE_TAG}" ]]
 
       - name: Set up Java, Central token and OpenPGP key
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
@@ -126,10 +158,11 @@ jobs:
           distribution: temurin
           java-version: "17"
           server-id: central
-          server-username: CENTRAL_USERNAME
-          server-password: CENTRAL_PASSWORD
+          server-username-env-var: CENTRAL_USERNAME
+          server-password-env-var: CENTRAL_PASSWORD
+          settings-path: ${{ runner.temp }}
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpg-passphrase: GPG_PASSPHRASE
+          gpg-passphrase-env-var: GPG_PASSPHRASE
 
       - name: Upload signed bundle for manual Central review
         working-directory: code/postgres-bulk-parent
@@ -137,8 +170,15 @@ jobs:
           CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
           CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          RELEASE_VERSION: ${{ inputs.version }}
         run: >-
           ./mvnw --batch-mode --no-transfer-progress
+          --settings "${RUNNER_TEMP}/settings.xml"
           -Prelease,central-publish
-          -Drevision=${{ inputs.version }}
+          -Drevision="${RELEASE_VERSION}"
           clean deploy
+
+      - name: Remove temporary Maven settings
+        if: ${{ always() }}
+        shell: bash
+        run: rm -f -- "${RUNNER_TEMP}/settings.xml"
