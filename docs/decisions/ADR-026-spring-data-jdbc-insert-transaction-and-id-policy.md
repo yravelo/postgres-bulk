@@ -50,6 +50,12 @@ manual siguen usando `PostgresBulkJdbcOperations` directamente.
   SQLState `23505`/`25P02`, PID físico, read-only, REQUIRED, REQUIRES_NEW y pool reuse.
 - Generated ID se genera en base sin modificar la entidad; assigned Long/UUID se persisten.
 
+## Relación con J3
+
+J3 reutiliza los mismos guards de transacción lógica/física y el mismo
+`JdbcOperations.execute(ConnectionCallback)` para lookup. No cambia la decisión de IDs/insert ni
+amplía NESTED; la estrategia de materialización y cleanup se acepta separadamente en ADR-027.
+
 ## Alternativas rechazadas
 
 | Alternativa | Motivo |

@@ -103,6 +103,15 @@ permanece `PROPOSED` únicamente por los gates generales ya enumerados —en esp
 el alcance explícitamente rechazado de converter directo a `JdbcValue`—, no por falta de evidencia
 productiva de ID mixed.
 
+## Evidencia J3 (2026-08-20)
+
+La misma mapping context y el mismo `JdbcConverter` del resolver alimentan ahora el constructor
+público de `EntityRowMapper`. PostgreSQL confirma lectura de custom value objects/enums, embedded
+nested/nullable, `AggregateReference` y record immutable. La key convertida sigue el contrato core:
+su `BulkKeyMetadata` declara y entrega directamente `BigDecimal` relacional, sin inferencia runtime.
+El guard root-only evita relation SQL y el conteo permanece en un SELECT. El estado del ADR no
+cambia porque sus gates de compatibilidad J7 siguen pendientes.
+
 ## Alternativas evaluadas
 
 | Alternativa | Resultado |

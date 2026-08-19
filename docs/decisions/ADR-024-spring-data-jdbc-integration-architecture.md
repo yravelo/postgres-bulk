@@ -80,6 +80,15 @@ introducir JPA/Hibernate/Boot. No añade fragmento ni lookup. El ADR permanece `
 discovery/materialización J3-J4, coexistencia completa y auto-configuración siguen siendo evidencia
 requerida.
 
+## Evidencia J3 (2026-08-20)
+
+El lookup package-private usa `JdbcOperations.execute(ConnectionCallback)` y delega CREATE/COPY/
+SELECT/DROP al engine existente sobre la misma conexión. `EntityRowMapper` y `JdbcConverter`
+públicos materializan el result set completo antes del cleanup; el query-count PostgreSQL es un
+SELECT sin consultas laterales para roots. PID, propagaciones, read-only, cleanup, pool y
+concurrencia quedan probados. No se añaden fragmento, Boot ni tipos públicos; por ello el ADR sigue
+`PROPOSED` hasta discovery J4, coexistencia completa y auto-configuración.
+
 ## Alternativas evaluadas
 
 | Alternativa | Resultado |

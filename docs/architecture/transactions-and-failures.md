@@ -123,6 +123,15 @@ SQLState en su cause chain. La precondición read-only también usa
 - Ocho threads ejecutan transacciones y conexiones independientes sobre el mismo repository
   singleton sin compartir estado de operación.
 
+## Evidencia Spring Data JDBC J3
+
+El adapter JDBC aplica la misma regla primary/suppressed al materializar con `EntityRowMapper`.
+Una SQLException SELECT conserva `42P01`; el DROP fallido queda suppressed con `25P02` y el pool
+sólo se reutiliza después del rollback. Runtime local del materializador conserva identidad. Dos
+lookups concurrentes usan temporales separadas y terminan con cero temporales en sus sesiones.
+`JdbcTransactionManager` permite observar NESTED mediante savepoint, pero esta characterization no
+lo convierte todavía en contrato soportado del adapter.
+
 ## Fuentes primarias
 
 - [PostgreSQL: códigos de error](https://www.postgresql.org/docs/current/errcodes-appendix.html)

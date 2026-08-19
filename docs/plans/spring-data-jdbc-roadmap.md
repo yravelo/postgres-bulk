@@ -87,7 +87,7 @@ Las fases preservan estas invariantes:
   progreso. Core y pgJDBC permanecen sin cambios. ADR-025 sigue `PROPOSED` por sus gates J7 ajenos
   a J2; ADR-026 acepta la política transaccional y de homogeneidad de J2.
 
-## J3 — Bulk lookup y materialización
+## J3 — Bulk lookup y materialización — DONE (2026-08-20)
 
 - **Goal:** demostrar lookup con tabla temporal y materialización Spring Data JDBC usando sólo APIs
   públicas dentro de la conexión exacta.
@@ -112,6 +112,13 @@ Las fases preservan estas invariantes:
 - **Deferred decisions:** carga de children, custom row mappers y orden de resultados.
 - **Definition of Done:** characterization concluyente; si el mapper público no sirve, fase
   detenida con ADR actualizado, sin usar internals.
+- **Cierre:** el coordinador package-private reutiliza `TemporaryTableBulkLookup` mediante la
+  fachada pgJDBC, conserva keys one-shot y materializa roots con el `EntityRowMapper` público
+  dentro del callback y la conexión transaction-bound. PostgreSQL prueba simple/composite,
+  duplicates/missing/null, 2.503 keys, converters/embedded/reference/record, schema quoted, PID,
+  REQUIRED/REQUIRES_NEW/read-only/NESTED characterization, exactamente un SELECT, fallos
+  `42P01`/`25P02`, cleanup, pool reuse, interoperabilidad y concurrencia. Core/pgJDBC y la API
+  pública permanecen sin cambios; ADR-027 acepta la estrategia y J4 sigue sin iniciar.
 
 ## J4 — Repository fragment y public API JDBC
 
