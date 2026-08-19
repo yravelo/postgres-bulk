@@ -23,18 +23,19 @@ Las fases preservan estas invariantes:
 - ningún soporte pasa de `PLANNED` a `SUPPORTED` sin test PostgreSQL;
 - no se crea módulo common por anticipación.
 
-## J1 — Metadata prototype y falsificación de boundaries
+## J1 — Metadata prototype y falsificación de boundaries — DONE (2026-08-19)
 
 - **Goal:** probar que las APIs públicas de Spring Data JDBC 3.5 producen metadata core correcta
   sin modificar core/pgJDBC.
-- **Scope:** módulo experimental `postgres-bulk-spring-data-jdbc`, resolver package-private,
+- **Scope entregado:** módulo `postgres-bulk-spring-data-jdbc`, resolver público mínimo,
   scalar/inherited metadata, identifiers y custom write conversions.
 - **Out of scope:** fragment público, ejecución COPY, lookup, Boot y publicación.
 - **Architecture changes:** añade el adapter leaf en el reactor; mantiene ambos motores intactos.
 - **Architecture constraints:** sólo APIs públicas Spring Data; sin imports Spring en core ni
   cambios de quoting/encoding en pgJDBC.
 - **Files/modules affected:** parent reactor, nuevo módulo JDBC, ADR-024/025 y docs de arquitectura.
-- **API impact:** ninguno; resolver y prototype permanecen package-private.
+- **API impact real:** un resolver público para poder inyectarlo/probarlo sin publicar todavía
+  operaciones o fragmentos. El baseline 0.1.0 se actualiza porque la release no está publicada.
 - **Implementation tasks:** inyectar `JdbcConverter`; localizar `RelationalPersistentEntity`;
   enumerar root leaf paths; construir accessors; convertir con `writeJdbcValue`; diseñar cache;
   probar quoted/plain/schema; registrar cualquier API insuficiente.
@@ -46,8 +47,11 @@ Las fases preservan estas invariantes:
 - **Risks:** no existir API pública para enumeración/path null-safe; pérdida de quoting/case.
 - **Dependencies:** J0, ADR-011/012/025 y Spring Data JDBC 3.5 baseline.
 - **Deferred decisions:** nombre del fragmento, generated-ID production y materializador de lookup.
-- **Definition of Done:** hypothesis core/pgJDBC unchanged confirmada o falsificada con evidencia;
-  ADR-025 actualizado, reactor verde y cero APIs públicas nuevas.
+- **Cierre:** core/pgJDBC permanecieron intactos; las APIs públicas 3.5 bastan para mappings
+  root-only, embedded, references y conversión. La pérdida de quoted/plain obliga a declarar plain
+  mixed-case unsupported. `JdbcValue` directo no expone un tipo Java interno estático y se rechaza.
+  Los tests PostgreSQL demuestran schema/quoted, converters, temporales, UUID, bytea, embedded e ID
+  generated. ADR-025 mantiene pendientes explícitos y el reactor incluye el nuevo módulo.
 
 ## J2 — Metadata production y bulk insert root-only
 

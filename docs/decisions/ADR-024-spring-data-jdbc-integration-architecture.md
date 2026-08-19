@@ -57,6 +57,14 @@ test y el guard root-only son gates: si fallan, no se sustituirá por internals.
 transaction manager en aplicaciones con ambos stacks y la semántica NESTED permanecen preguntas
 de implementación, no promesas.
 
+## Evidencia J1 (2026-08-19)
+
+J1 añadió el leaf module JDBC con dependencia productiva exclusiva en core y Spring Data JDBC. El
+resolver y sus tests no importan JPA, Hibernate, Boot, Actuator ni pgJDBC productivo. Se demostró
+metadata root-only y round-trip PostgreSQL, pero J1 no implementa aún conexión transaccional,
+fragment, lookup, coexistencia ni auto-configuración. Por esas evidencias todavía ausentes, este
+ADR permanece `PROPOSED`.
+
 ## Alternativas evaluadas
 
 | Alternativa | Resultado |

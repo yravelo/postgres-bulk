@@ -86,6 +86,14 @@ public final class io.ybr.postgresbulk.hibernate.HibernateEntityMetadataResolver
   public <T> io.ybr.postgresbulk.core.metadata.EntityMetadata<T> resolve(java.lang.Class<T>);
 }
 
+## postgres-bulk-spring-data-jdbc
+Compiled from "SpringDataJdbcEntityMetadataResolver.java"
+public final class io.ybr.postgresbulk.springdata.jdbc.SpringDataJdbcEntityMetadataResolver implements io.ybr.postgresbulk.core.metadata.EntityMetadataResolver {
+  public io.ybr.postgresbulk.springdata.jdbc.SpringDataJdbcEntityMetadataResolver(org.springframework.data.jdbc.core.convert.JdbcConverter, org.springframework.data.convert.CustomConversions);
+  public <T> io.ybr.postgresbulk.core.metadata.EntityMetadata<T> resolve(java.lang.Class<T>);
+  public <T> io.ybr.postgresbulk.core.metadata.EntityMetadata<T> resolveFor(T);
+}
+
 ## postgres-bulk-spring-data
 Compiled from "DefaultPostgresBulkOperations.java"
 public class io.ybr.postgresbulk.springdata.repository.DefaultPostgresBulkOperations<T, ID> implements io.ybr.postgresbulk.springdata.repository.PostgresBulkRepository<T, ID>, org.springframework.data.repository.core.support.RepositoryMetadataAccess {

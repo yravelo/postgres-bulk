@@ -11,6 +11,7 @@ MODULES=(
   postgres-bulk-core
   postgres-bulk-pgjdbc
   postgres-bulk-hibernate
+  postgres-bulk-spring-data-jdbc
   postgres-bulk-spring-data
   postgres-bulk-spring-boot-autoconfigure
   postgres-bulk-spring-boot-starter

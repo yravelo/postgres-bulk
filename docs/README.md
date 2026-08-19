@@ -23,6 +23,7 @@ This index separates adoption guidance from implementation details.
 - [Transactions and failures](architecture/transactions-and-failures.md)
 - [Spring Boot auto-configuration](architecture/spring-boot-autoconfiguration.md)
 - [Spring Data JDBC J0 investigation](architecture/spring-data-jdbc-investigation.md)
+- [Spring Data JDBC J1 metadata](architecture/spring-data-jdbc-metadata.md)
 
 ## Compatibility
 

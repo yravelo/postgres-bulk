@@ -57,6 +57,38 @@ resolver esa tensión sin materializar el iterable completo y documentar que una
 descubierta después de empezar puede dejar progreso fuera de transacción, igual que cualquier
 fallo mid-stream actual.
 
+## Evidencia J1 (2026-08-19)
+
+El resolver productivo usa únicamente `JdbcConverter`, `CustomConversions`,
+`RelationalMappingContext`, `RelationalPersistentEntity/Property`, `AggregatePath`,
+`PersistentPropertyPathAccessor`, `SqlIdentifier` e `IdValueSource` públicos. La cache es un
+`ConcurrentHashMap<Class<?>, ...>` por instancia y contiene descriptor estructural y dos variantes
+inmutables de ID; no hay cache estática ni schema runtime tenant-specific.
+
+Los characterization tests confirman scalar types, enum default/custom, value-object converter,
+nulls, records, property access, inheritance, embedded simple/nested nullable,
+`AggregateReference`, FK scalar y concurrencia. PostgreSQL confirma schema/nombres quoted,
+converters, temporal, UUID, bytea, embedded e identidad generated. También demuestra que un nombre
+plain `PlainMixed` creado por folding no puede atravesar el boundary actual que siempre cita el
+texto exacto; ese caso permanece unsupported.
+
+Spring Data 3.5 ofrece conversiones generales Java Time hacia `Timestamp` que no preservan siempre
+la representación adecuada al encoder COPY (por ejemplo, `LocalTime` incorpora la fecha actual).
+Para los scalar types ya nativos del engine, el accessor devuelve el valor domain sin conversión;
+custom value objects y enums sí pasan por `writeJdbcValue`. El resolver recibe las mismas
+`CustomConversions` para fijar el target estático de converters registrados. Un converter directo
+a `JdbcValue` se rechaza porque la API pública no revela el tipo Java de su valor interno cuando el
+domain value es null.
+
+`@Version`, `@Sequence`, children/collections/maps y generated-only ID sin otras columnas fallan
+explícitamente. `resolveFor` usa `IdValueSource`: ID asignado se incluye, ID generated se omite y no
+se sincroniza. J2 comparará la identidad de metadata devuelta por cada fila en una sola pasada para
+rechazar mezcla antes de escribir una fila incompatible, sin materializar el iterable.
+
+El ADR permanece `PROPOSED`: faltan el lane 3.5.0, converter directo a `JdbcValue` (rechazado en el
+subset actual) y la validación production de mixed-ID que pertenece a J2. Las decisiones ya
+demostradas se documentan en `spring-data-jdbc-metadata.md` sin elevar claims pendientes.
+
 ## Alternativas evaluadas
 
 | Alternativa | Resultado |

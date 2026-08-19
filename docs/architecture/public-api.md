@@ -14,6 +14,10 @@ para productores/consumidores y el resolver Hibernate es API de adapter. No exis
 de ejecucion. Los archivos `package-info.java` documentan packages y no constituyen tipos
 publicos.
 
+J1 de la evolución Spring Data JDBC añade un único tipo público experimental al release line
+todavía no publicado: `SpringDataJdbcEntityMetadataResolver`. No añade operaciones bulk,
+repository fragments, configuración Boot ni tipos públicos de ejecución.
+
 ## `BulkOperations<T>`
 
 - **Purpose:** fachada operation-centric ligada a un tipo logico; expresa bulk insert sin describir el mecanismo.
@@ -202,6 +206,32 @@ public final class BulkKeyMetadata<K> {
 El número de nuevos tipos de API de operaciones es cero. La infraestructura pública crece en dos
 tipos porque Boot necesita cargar la clase y exponer el objeto de propiedades como bean. No se
 publican conditions propias, failure analyzers, customizers, ejecutores o tuning.
+
+## Resolver público añadido en Spring Data JDBC J1
+
+- `SpringDataJdbcEntityMetadataResolver`: adapter final y thread-safe por instancia. Se construye
+  con el `JdbcConverter` y las mismas `CustomConversions` efectivas de la aplicación.
+- `resolve(Class<T>)` implementa el puerto core y devuelve la variante estable que conserva el ID.
+- `resolveFor(T)` usa `IdValueSource` por instancia; conserva IDs asignados u omite IDs marcados
+  como generated por Spring Data. No propaga valores generados.
+- Las dos variantes están cacheadas por clase dentro del resolver. El método per-instance permite
+  a J2 validar una política homogénea en una sola pasada.
+
+API exacta:
+
+```java
+public final class SpringDataJdbcEntityMetadataResolver
+        implements EntityMetadataResolver {
+    public SpringDataJdbcEntityMetadataResolver(
+        JdbcConverter converter,
+        CustomConversions conversions
+    );
+
+    public <T> EntityMetadata<T> resolve(Class<T> entityType);
+
+    public <T> EntityMetadata<T> resolveFor(T entity);
+}
+```
 
 ## Fuera de la API publica
 

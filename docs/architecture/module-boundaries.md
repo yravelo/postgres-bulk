@@ -4,8 +4,8 @@
 
 ```text
 postgres-bulk-core
-  ↑                 ↑
-pgjdbc          hibernate
+  ↑                 ↑                  ↑
+pgjdbc          hibernate       spring-data-jdbc
   ↑                 ↑
 spring-data         │
   ↑                 │
@@ -39,6 +39,20 @@ Paquetes candidatos: `copy`, `connection`, `temporarytable`, `sql`.
 **No puede conocer:** pgJDBC, Spring Data, Boot, repositorios ni ejecución COPY. Cualquier uso de API interna Hibernate queda encapsulado y cubierto por compatibility tests.
 
 Paquete candidato: `metadata`. Si soportar dos majors de Hibernate exige internals incompatibles, se preferirán artefactos adapters separados antes que reflection condicional; no se añaden ahora.
+
+## `postgres-bulk-spring-data-jdbc`
+
+**Puede conocer:** core y las APIs públicas de Spring Data JDBC/Relational, Spring Data Commons y
+Spring Framework que llegan transitivamente con `spring-data-jdbc`. Traduce el mapping context y
+las conversiones configuradas a metadata core; J1 no ejecuta COPY.
+
+**No puede conocer:** pgJDBC en producción, JPA, Hibernate, Spring Data JPA, Spring Boot,
+Actuator, repository fragments ni auto-configuración. PostgreSQL y Testcontainers son test-only.
+Enforcer prohíbe JPA/Hibernate/Boot; el dependency-tree audit verifica el scope test-only de
+PostgreSQL porque `bannedDependencies` no discrimina scope para el mismo GAV.
+
+La cache pertenece a una instancia de resolver y, por tanto, al converter/mapping context de una
+aplicación. No existe cache global ni dependencia desde core hacia Spring.
 
 ## `postgres-bulk-spring-data`
 
