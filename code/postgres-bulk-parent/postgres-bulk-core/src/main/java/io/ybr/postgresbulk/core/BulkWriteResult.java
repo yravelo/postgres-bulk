@@ -15,6 +15,8 @@ public record BulkWriteResult(long affectedRows, int batches) {
   /**
    * Creates a result and validates that its counts can describe completed non-empty batches.
    *
+   * @param affectedRows number of rows reported as written by the underlying operation
+   * @param batches number of non-empty COPY executions completed; a batch is not a transaction
    * @throws IllegalArgumentException if either count is negative, only one count is zero, or the
    *     number of batches exceeds the number of affected rows
    */
