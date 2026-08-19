@@ -29,7 +29,15 @@ import org.springframework.data.repository.core.support.RepositoryMetadataAccess
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-/** Spring Data infrastructure implementation loaded through external fragment registration. */
+/**
+ * Spring Data infrastructure implementation loaded through external fragment registration.
+ *
+ * <p>Applications should declare {@link PostgresBulkRepository} on their repository interface and
+ * let Spring Data construct this implementation.
+ *
+ * @param <T> repository domain type
+ * @param <ID> repository identifier type
+ */
 public class DefaultPostgresBulkOperations<T, ID>
     implements PostgresBulkRepository<T, ID>, RepositoryMetadataAccess {
 
@@ -39,6 +47,15 @@ public class DefaultPostgresBulkOperations<T, ID>
       Collections.synchronizedMap(new IdentityHashMap<>());
   private volatile PostgresBulkObservability observability = PostgresBulkObservability.disabled();
 
+  /**
+   * Creates the external repository fragment implementation.
+   *
+   * <p>This constructor is public for Spring Data infrastructure and is not an application
+   * extension point.
+   *
+   * @param jpaContext selects the persistence unit for the current repository domain type
+   * @param metadataResolver resolves persistence-facing metadata for that unit
+   */
   public DefaultPostgresBulkOperations(
       JpaContext jpaContext, JpaEntityMetadataResolver metadataResolver) {
     this.jpaContext = Objects.requireNonNull(jpaContext, "jpaContext must not be null");

@@ -13,11 +13,27 @@ import java.util.function.Function;
 @FunctionalInterface
 public interface JpaEntityMetadataResolver {
 
-  /** Resolves metadata for an entity managed by the supplied persistence unit. */
+  /**
+   * Resolves metadata for an entity managed by the supplied persistence unit.
+   *
+   * @param entityManagerFactory persistence unit that owns the entity mapping
+   * @param entityType mapped entity type
+   * @param <T> entity type
+   * @return immutable persistence-facing bulk metadata
+   * @throws NullPointerException if an argument is {@code null}
+   * @throws io.github.postgresbulk.core.BulkException if the mapping cannot be resolved
+   */
   <T> EntityMetadata<T> resolve(EntityManagerFactory entityManagerFactory, Class<T> entityType);
 
   /**
    * Adapts persistence-unit-bound resolver instances and caches one resolver per factory identity.
+   *
+   * <p>The returned adapter is safe for concurrent use. Factories are compared by identity so
+   * metadata never crosses persistence units.
+   *
+   * @param resolverFactory creates one resolver for each encountered persistence unit
+   * @return a caching persistence-unit-aware resolver
+   * @throws NullPointerException if the factory is {@code null} or returns {@code null}
    */
   static JpaEntityMetadataResolver caching(
       Function<? super EntityManagerFactory, ? extends EntityMetadataResolver> resolverFactory) {

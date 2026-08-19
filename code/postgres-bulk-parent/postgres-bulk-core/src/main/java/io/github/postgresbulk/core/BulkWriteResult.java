@@ -8,7 +8,7 @@ package io.github.postgresbulk.core;
  * have value semantics.
  *
  * @param affectedRows number of rows reported as written by the underlying operation
- * @param batches number of non-empty execution batches completed
+ * @param batches number of non-empty COPY executions completed; a batch is not a transaction
  */
 public record BulkWriteResult(long affectedRows, int batches) {
 

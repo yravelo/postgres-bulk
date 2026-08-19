@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Este documento enumera la superficie pública al cerrar Phase 12. Core añade el puerto
+Este documento enumera la superficie pública al cerrar Phase 15. Core añade el puerto
 `EntityMetadataResolver`; pgJDBC expone una fachada caller-owned y su callback anidado; Spring
 Data expone fragmento, resolver por persistence unit e implementación de infraestructura externa.
 Las coordenadas y el namespace siguen sujetos a ADR-008 mientras el proyecto permanezca en
@@ -238,3 +238,14 @@ public final class HibernateEntityMetadataResolver {
 
 No se publica `BulkMetadataException`, configuración/override, key resolver ni tipos
 Hibernate. El detalle completo está en `hibernate-metadata.md`.
+
+## Auditoría de documentación en Phase 15
+
+Phase 15 no añade ni cambia firmas públicas. Completa los contratos Javadoc de la fachada pgJDBC,
+el fragmento Spring Data, la implementación de infraestructura y los resolvers. El build ejecuta
+doclint con warnings como error y deja cero warnings. `ColumnMetadata.javaType()` queda descrito
+explícitamente como tipo Java persistence-facing/relacional cuando lo produce el adapter Hibernate.
+
+El example externo compila únicamente contra `postgres-bulk-spring-boot-starter`; no importa
+internals, clases package-private ni módulos sibling directamente. El inventario reproducible se
+imprime con `scripts/check-documentation.sh`.

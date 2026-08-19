@@ -61,7 +61,12 @@ public final class ColumnMetadata<T> {
   }
 
   /**
-   * Returns the declared logical Java value type, with primitive types normalized to wrappers.
+   * Returns the declared persistence-facing Java value type, with primitive types normalized to
+   * wrappers.
+   *
+   * <p>Metadata producers must expose the type consumed by the persistence boundary. In particular,
+   * the Hibernate adapter returns the relational Java type after applying mapping conversion, which
+   * may differ from the entity attribute type.
    *
    * @return a non-null, non-primitive Java class
    */

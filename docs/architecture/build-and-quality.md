@@ -9,7 +9,9 @@ ser 17 o superior. El build baseline usa Java 17; compatibility CI prueba Java 2
 el bytecode. Java 17/21 son soportados y JDK 25 es validación adicional. No se configura Maven
 Toolchains porque CI selecciona el JDK y el developer puede hacer lo mismo con `JAVA_HOME`.
 
-`0.1.0-SNAPSHOT` identifica desarrollo preestable: no existe garantía de compatibilidad de API. `project.build.outputTimestamp` fija timestamps de artefactos durante esta etapa y deberá actualizarse de forma controlada en el proceso de release.
+`0.1.0-SNAPSHOT` identifica desarrollo preestable: no existe garantía de compatibilidad de API ni
+publicación remota. `project.build.outputTimestamp` fija timestamps de artefactos durante esta etapa
+y deberá actualizarse de forma controlada en el proceso de release.
 
 ## Dependency management
 
@@ -40,6 +42,10 @@ auto-configuration metadata. El starter agrega Data JPA y autoconfigure, sin có
 - `ApplicationContextRunner` prueba once escenarios de conditions/back-off/observability sin Docker.
 - El starter arranca una aplicación Boot real y prueba insert, lookup, rollback, read-only,
   pérdida de backend y Micrometer/Actuator contra PostgreSQL 15.18 sin wiring manual.
+- `examples/spring-boot-basic` participa como módulo consumidor no publicable. Su POM tiene parent
+  Spring Boot propio, depende sólo del starter de la librería y prueba insert, options, lookup
+  simple/compuesto, rollback y métricas con Testcontainers. El mismo POM se verifica también fuera
+  del reactor después de `install` para detectar dependencias ocultas.
 
 ## Formato
 
@@ -50,6 +56,18 @@ Spotless 3.9.0 ejecuta `spotless:check` en `verify`. Java usa google-java-format
 ```
 
 No se combina con Checkstyle para formato: dos autoridades producirían diagnósticos duplicados o contradictorios.
+
+## Documentación y Javadocs
+
+`maven-javadoc-plugin` 3.12.0 ejecuta doclint con `failOnWarnings=true` durante `verify` para los
+módulos de librería. Benchmarks y example se excluyen porque son consumidores no publicables, no
+API. Por tanto un método/tipo público sin contrato suficiente rompe el build en vez de dejar un
+warning ignorado.
+
+`scripts/check-documentation.sh` valida todos los targets Markdown relativos, comprueba que el
+example no dependa de módulos internos e imprime el inventario de tipos públicos productivos. El
+workflow baseline ejecuta este audit y reconstruye el example como consumidor externo después de
+instalar el snapshot local.
 
 ## Análisis estático
 
@@ -92,7 +110,8 @@ Los overrides reproducibles son `spring-boot.version`, `hibernate.version`,
 únicamente mediante el BOM Boot. La evidencia exacta se registra en
 [`compatibility-evidence.md`](compatibility-evidence.md).
 
-El build no publica ni firma. Sources/Javadocs/signing/provenance se incorporarán en Phase 16 sin cambiar la separación de módulos.
+El build no publica ni firma. Phase 15 valida la documentación Javadoc pero no adjunta todavía JARs
+de sources/Javadocs; signing, provenance y esos artefactos de release pertenecen a Phase 16.
 
 ## Benchmarks
 

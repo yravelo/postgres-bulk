@@ -30,6 +30,17 @@ jobs:
           cache-dependency-path: |
             code/postgres-bulk-parent/pom.xml
             code/postgres-bulk-parent/*/pom.xml
+            examples/spring-boot-basic/pom.xml
 
       - name: Verify reactor
         run: ./mvnw --batch-mode --no-transfer-progress clean verify
+
+      - name: Install development snapshot
+        run: ./mvnw --batch-mode --no-transfer-progress -DskipTests install
+
+      - name: Verify standalone adoption example
+        run: ./mvnw --batch-mode --no-transfer-progress -f ../../examples/spring-boot-basic/pom.xml clean verify
+
+      - name: Audit documentation and public API
+        working-directory: .
+        run: ./scripts/check-documentation.sh

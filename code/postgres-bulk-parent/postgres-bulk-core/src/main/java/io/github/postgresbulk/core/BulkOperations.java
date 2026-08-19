@@ -43,8 +43,8 @@ public interface BulkOperations<T> {
    *
    * <p>Successful completion reports every inserted row. This operation does not promise generated
    * identifiers, ORM callbacks, persistence-context synchronization, or managed state. Failure and
-   * atomicity across batches depend on the transaction boundary supplied by a future adapter; a
-   * failed operation returns no partial result.
+   * atomicity across batches depend on the transaction boundary supplied by the adapter; a failed
+   * operation returns no partial result.
    *
    * @param items values to insert; may be a one-shot iterable
    * @param options mechanism-independent insertion options

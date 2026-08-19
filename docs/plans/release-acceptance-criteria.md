@@ -41,8 +41,9 @@
 - [x] Unit, integration, architecture y compatibility suites verdes en la matriz publicada.
 - [x] PostgreSQL real/Testcontainers valida datos; mocks no sustituyen integración.
 - [x] Benchmarks son reproducibles y no forman parte de assertions/build normal.
-- Javadocs y snippets compilan; quickstart funciona desde un proyecto consumidor limpio.
-- Build reproducible con Wrapper, CI, sources/Javadocs y release dry-run.
+- [x] Javadocs y snippets compilan; quickstart funciona desde un proyecto consumidor limpio.
+- Build reproducible con Wrapper y CI; sources/Javadocs adjuntos y release dry-run pertenecen a
+  Phase 16.
 
 ## Operación segura
 
@@ -56,5 +57,5 @@
 
 ## Estado de release
 
-Phase 14 añade una baseline JMH reproducible y aislada, pero la release final **no está ready**.
-Aún faltan documentación/ejemplos de adopción y gates de release de las Phases 15–16.
+Phase 15 añade documentación y un consumer example reproducible, pero la release final **no está
+ready**. Faltan exclusivamente los gates de publicación y gobernanza de Phase 16.

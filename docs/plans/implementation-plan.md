@@ -599,6 +599,8 @@ tuning. La variación entre corridas impide thresholds finos.
 
 ## Phase 15 — Examples and documentation
 
+**Estado:** completada el 2026-08-19. Phase 16 no iniciada.
+
 - **Goal:** permitir adopción sin leer internals.
 - **Scope:** quickstart, app ejemplo, insert/lookup, keys compuestas, transactions, tuning, limitations y troubleshooting.
 - **Out of scope:** catálogo de recetas no probadas.
@@ -610,6 +612,38 @@ tuning. La variación entre corridas impide thresholds finos.
 - **Risks:** docs divergentes de releases.
 - **Dependencies:** Phase 10–13.
 - **Definition of Done:** docs versionadas y enlaces comprobados.
+
+### Registro de cierre de Phase 15
+
+- [x] README orientado a usuario responde propósito, instalación local honesta, Quick Start,
+      transacciones, `saveAll`, mappings, observabilidad, rendimiento, compatibilidad y límites.
+- [x] Maven/Gradle usan las coordenadas reales `0.1.0-SNAPSHOT`; no se afirma Maven Central y se
+      documenta `./mvnw clean install`.
+- [x] `examples/spring-boot-basic` es una aplicación ejecutable con parent Boot propio y una única
+      dependencia de librería: el starter. Entity UUID asignada, repository fragment, insert
+      default/options, lookup simple/compuesto, rollback y métricas usan sólo API pública.
+- [x] El example se compila dentro del reactor y otra vez como consumidor externo tras `install`;
+      Testcontainers usa `postgres:15.18-alpine` y no necesita secretos.
+- [x] Guías separadas cubren getting started, transacciones, mappings, lookup, observabilidad,
+      rendimiento y errores/retry; `docs/README.md` y `docs/user-guide/README.md` indexan el corpus.
+- [x] Generated IDs, callbacks, persistence context, read-only, NESTED, duplicados/null/orden,
+      unsupported mappings y retry inseguro son advertencias visibles.
+- [x] Javadoc/doclint con warnings como fallo cubre la API pública; benchmarks/example se excluyen
+      por ser consumidores no publicables. Los warnings quedan en cero.
+- [x] `scripts/check-documentation.sh` valida enlaces relativos, aislamiento del starter e
+      inventario público; CI ejecuta el audit y el adoption smoke externo.
+- [x] `CONTRIBUTING.md` documenta Java, Wrapper, Docker, tests, compatibilidad, benchmarks,
+      fronteras de módulos y expectativas de cambio.
+- [x] No cambian firmas ni comportamiento productivo; sólo contratos Javadoc, build/documentación,
+      examples y quality gates. No se inicia Phase 16.
+
+**Fricción documentada:** lookup requiere que el usuario declare columnas físicas y accessors de
+la key; generated IDs no regresan al objeto; Actuator es una dependencia opcional separada. No se
+añade API paralela para esconder estas decisiones antes de la primera release.
+
+**Trabajo diferido:** namespace definitivo, publicación Central, JARs sources/Javadocs, signing,
+provenance, changelog/release notes, security/support policy y release automation pertenecen a
+Phase 16.
 
 ## Phase 16 — Release readiness
 

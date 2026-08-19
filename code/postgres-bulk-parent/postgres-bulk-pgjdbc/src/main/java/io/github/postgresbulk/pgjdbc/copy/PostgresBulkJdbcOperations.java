@@ -12,7 +12,11 @@ import java.util.Objects;
  * Prepared pgJDBC bulk engine operating on a caller-owned JDBC connection.
  *
  * <p>This type never acquires, closes, commits, rolls back, or changes the supplied connection.
- * Callers own the complete connection and transaction scope.
+ * Callers own the complete connection and transaction scope. Prepared instances have no mutable
+ * per-invocation state and may be shared when metadata accessors are thread-safe and each call uses
+ * its own valid connection scope.
+ *
+ * @param <T> logical row type described by the prepared entity metadata
  */
 public final class PostgresBulkJdbcOperations<T> {
 
@@ -24,17 +28,55 @@ public final class PostgresBulkJdbcOperations<T> {
     this.inserter = PostgresBulkInserter.prepare(metadata);
   }
 
-  /** Creates a prepared engine for one entity mapping. */
+  /**
+   * Creates a prepared engine for one entity mapping.
+   *
+   * @param metadata final ordered physical mapping for {@code T}
+   * @param <T> logical row type
+   * @return a reusable prepared engine
+   * @throws NullPointerException if {@code metadata} is {@code null}
+   * @throws io.github.postgresbulk.core.BulkException if a relational Java type has no supported
+   *     COPY encoder
+   */
   public static <T> PostgresBulkJdbcOperations<T> prepare(EntityMetadata<T> metadata) {
     return new PostgresBulkJdbcOperations<>(metadata);
   }
 
-  /** Executes a bulk insert with default batching on the supplied connection. */
+  /**
+   * Executes a direct PostgreSQL COPY insert with the default batching policy.
+   *
+   * <p>The operation is not an ORM persist/save operation: it does not run lifecycle callbacks,
+   * synchronize generated identifiers, or make values managed. Empty input returns {@link
+   * BulkWriteResult#empty()} without opening COPY. With autocommit disabled, the caller decides
+   * commit or rollback; with autocommit enabled, earlier COPY batches may remain committed after a
+   * later failure.
+   *
+   * @param connection open caller-owned pgJDBC connection
+   * @param items rows consumed sequentially, possibly from a one-shot iterable
+   * @return server row count and completed COPY batch count
+   * @throws NullPointerException if an argument is {@code null}
+   * @throws IllegalArgumentException if an input element is {@code null}
+   * @throws io.github.postgresbulk.core.BulkException if COPY cannot complete
+   */
   public BulkWriteResult bulkInsert(Connection connection, Iterable<? extends T> items) {
     return inserter.insert(connection, items);
   }
 
-  /** Executes a bulk insert with explicit batching on the supplied connection. */
+  /**
+   * Executes a direct PostgreSQL COPY insert with an explicit batching policy.
+   *
+   * <p>Transaction, lifecycle, empty-input, null-input, and failure semantics are identical to
+   * {@link #bulkInsert(Connection, Iterable)}. One completed batch represents one COPY execution,
+   * not one transaction.
+   *
+   * @param connection open caller-owned pgJDBC connection
+   * @param items rows consumed sequentially, possibly from a one-shot iterable
+   * @param options validated logical COPY batch policy
+   * @return server row count and completed COPY batch count
+   * @throws NullPointerException if an argument is {@code null}
+   * @throws IllegalArgumentException if an input element is {@code null}
+   * @throws io.github.postgresbulk.core.BulkException if COPY cannot complete
+   */
   public BulkWriteResult bulkInsert(
       Connection connection, Iterable<? extends T> items, BulkInsertOptions options) {
     return inserter.insert(connection, items, options);
@@ -48,6 +90,14 @@ public final class PostgresBulkJdbcOperations<T> {
    * @param keyMetadata ordered physical key mapping
    * @param emptyResult result returned without JDBC work when {@code keys} is empty
    * @param query result materializer invoked before the temporary table is dropped
+   * @param <K> logical simple or composite key type
+   * @param <R> fully materialized result type
+   * @return {@code emptyResult} for empty input, otherwise the callback result
+   * @throws NullPointerException if connection, keys, key metadata, or mapper is {@code null}
+   * @throws IllegalArgumentException if a key or key component is {@code null}
+   * @throws IllegalStateException if autocommit is enabled for non-empty input
+   * @throws io.github.postgresbulk.core.BulkException if temporary-table creation, COPY, query, or
+   *     cleanup fails
    */
   public <K, R> R findAllByBulkKey(
       Connection connection,
@@ -61,11 +111,28 @@ public final class PostgresBulkJdbcOperations<T> {
         .lookup(connection, keys, emptyResult, query::map);
   }
 
-  /** Materializes a lookup result while the temporary relation is visible. */
+  /**
+   * Materializes a lookup result while the temporary relation is visible.
+   *
+   * @param <R> fully materialized result type
+   */
   @FunctionalInterface
   public interface LookupResultMapper<R> {
 
-    /** Maps the generated select while using the same physical connection scope. */
+    /**
+     * Maps the generated select while using the same physical connection scope.
+     *
+     * <p>The mapper must consume and close all JDBC resources before returning. The SQL contains
+     * quoted identifiers generated by the library; key values are already stored in the temporary
+     * relation. The mapper must not retain the connection or SQL for later execution.
+     *
+     * @param connection the same caller-owned connection used to create and load the temporary
+     *     table
+     * @param selectSql generated SELECT/JOIN SQL valid only during this callback
+     * @param copiedKeys number of key rows copied, including duplicate input keys
+     * @return a result detached from JDBC resources
+     * @throws SQLException if result execution or materialization fails
+     */
     R map(Connection connection, String selectSql, long copiedKeys) throws SQLException;
   }
 }
