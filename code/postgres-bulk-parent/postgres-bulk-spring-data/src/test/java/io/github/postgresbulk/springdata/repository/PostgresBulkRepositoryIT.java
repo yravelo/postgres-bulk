@@ -65,7 +65,7 @@ class PostgresBulkRepositoryIT {
 
   @Container
   private static final PostgreSQLContainer POSTGRES =
-      new PostgreSQLContainer("postgres:15.18-alpine");
+      new PostgreSQLContainer("postgres:" + System.getProperty("postgres.version"));
 
   private static AnnotationConfigApplicationContext context;
   private static ProductRepository products;

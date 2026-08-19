@@ -59,3 +59,9 @@ unido la transacción, y cubre exactamente una llamada pública `bulkInsert` o
 `findAllByBulkKey`. No se añade otro proxy ni se altera la propagación. El cierre ocurre al devolver
 o lanzar desde el fragmento, antes de que Spring complete una transacción exterior; por eso
 `outcome=success` describe la operación bulk, no el commit final del caller.
+
+## Resolución de Phase 13
+
+El descubrimiento del fragmento externo, insert, lookup y sus límites transaccionales pasan con
+Spring Data JPA 3.5.0 y 3.5.13 dentro de los BOM Boot 3.5.0/3.5.16. No se prueba Spring Data 4 en
+este artefacto; ADR-021 lo clasifica junto con Boot 4/Hibernate 7 como otra generación.

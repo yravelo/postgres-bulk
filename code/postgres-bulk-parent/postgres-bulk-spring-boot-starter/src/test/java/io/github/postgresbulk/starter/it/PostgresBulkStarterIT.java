@@ -47,7 +47,7 @@ class PostgresBulkStarterIT {
 
   @Container
   private static final PostgreSQLContainer POSTGRES =
-      new PostgreSQLContainer("postgres:15.18-alpine");
+      new PostgreSQLContainer("postgres:" + System.getProperty("postgres.version"));
 
   @Autowired private ProductRepository products;
   @Autowired private PlatformTransactionManager transactionManager;

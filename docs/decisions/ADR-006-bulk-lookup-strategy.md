@@ -40,8 +40,8 @@ callback de resultado y cleanup quedan fijados por ADR-015.
 PostgreSQL 15.18 verificó keys simples/compuestas, 20.000 keys one-shot, duplicates/null,
 schema/nombres quoted, domain/typmod/collation, autocommit, commit/rollback/read-only,
 fallos COPY/SELECT/callback, cleanup, reutilización, nesting y concurrencia en conexiones
-distintas. La matriz PostgreSQL 16–18, tablas particionadas y permisos específicos queda
-en Phase 13; no impide aceptar la estrategia v1 sobre la baseline probada.
+distintas. Phase 13 extendió la misma suite a PostgreSQL 16.14, 17.10 y 18.4 sin cambios SQL.
+Tablas particionadas y permisos específicos permanecen fuera de alcance.
 
 ## Consecuencias
 

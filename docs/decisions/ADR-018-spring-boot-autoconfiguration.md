@@ -55,3 +55,9 @@ acotado exclusivamente al timer de la librería normaliza el tag estándar `erro
   no nueva API de operaciones para invocación directa.
 - Tuning global y failure analyzers siguen fuera del alcance. El endurecimiento transaccional y la
   observabilidad se resolvieron posteriormente en ADR-019 y ADR-020.
+
+## Resolución de Phase 13
+
+El starter real, sus conditions/back-off y Micrometer pasan con los stacks gestionados completos
+de Boot 3.5.0 y 3.5.16. ADR-021 limita la línea actual a ese intervalo. Boot 4 exige otra generación
+Spring Data/Hibernate y no se intenta compatibilidad condicional en runtime.

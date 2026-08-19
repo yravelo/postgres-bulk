@@ -1,96 +1,106 @@
-# Matriz inicial de compatibilidad
+# Compatibilidad soportada
 
-**Estado:** propuesta para discusión, fechada 2026-08-18. No es todavía una promesa de soporte.
+**Estado:** política validada el 2026-08-19. Las versiones exactas, comandos y conteos viven en
+[`compatibility-evidence.md`](compatibility-evidence.md); ADR-021 define cómo evoluciona el soporte.
 
-## Baseline recomendada para la primera línea
+## Significado de los estados
 
-| Componente | Baseline de compilación | Matriz de prueba propuesta | Motivo |
+- **SUPPORTED:** forma parte del contrato de mantenimiento de la línea actual.
+- **VALIDATED:** existe una ejecución verde identificable; no implica por sí sola soporte futuro.
+- **NOT TESTED:** no existe ejecución directa y no se infiere compatibilidad.
+- **PLANNED:** pertenece al roadmap, no al artefacto actual.
+- **UNSUPPORTED:** está fuera del contrato actual, aunque alguna combinación pueda compilar.
+
+## Declaración de soporte
+
+| Componente | Estado y rango | Versiones exactas validadas | Nota |
 |---|---|---|---|
-| Java | 17 bytecode | 17, 21, 25 | Máxima adopción compatible con Boot 3.5; 21 recomendado al desarrollar |
-| Spring Boot | 3.5.x | último patch 3.5.x | Línea estable basada en Spring 6.2/Hibernate 6.6 |
-| Spring Framework | 6.2.x, gobernado por Boot | versión gestionada por cada patch Boot | Evitar overrides de BOM |
-| Spring Data JPA | 3.5.x, gobernado por Boot | versión gestionada por cada patch Boot | Fragments soportados y menor exposición a internals |
-| Hibernate ORM | 6.6.x, gobernado por Boot | mínimo y último 6.6 soportado por Boot | Adapter dedicado; Hibernate 6.6 declara compatibilidad Boot 3.4–3.5 |
-| PostgreSQL | 15 | 15, 16, 17, 18 | Versiones con soporte suficiente; PostgreSQL 14 termina soporte en 2026-11 |
-| pgJDBC | 42.7.x | versión gestionada por Boot y último 42.7.x | COPY API estable; el consumidor mantiene BOM |
-| Maven | 3.6.3 mínimo | Wrapper 3.9.16; CI con JDK 17/21 | Release Maven 3 estable y mínimo documentado por Boot 3.5 |
+| Java | SUPPORTED 17 y 21 | 17.0.20, 21.0.12 | mínimo build/runtime 17; bytecode `release=17` |
+| Java 25 | VALIDATED | 25.0.3 | suite completa verde; no es baseline contractual |
+| Spring Boot | SUPPORTED 3.5.0–3.5.16 | 3.5.0, 3.5.16 | se prueban BOM mínimo y actual |
+| Spring Framework | SUPPORTED vía Boot | 6.2.7, 6.2.19 | no se overridea independientemente |
+| Spring Data JPA | SUPPORTED 3.5.0–3.5.13 vía Boot | 3.5.0, 3.5.13 | fragment externo, insert y lookup reales |
+| Hibernate ORM | SUPPORTED 6.6.15–6.6.55 | 6.6.15, 6.6.53, 6.6.55 | 6.6 es la única línea soportada |
+| Micrometer | SUPPORTED vía Boot | 1.15.0, 1.15.12 | Observation, meters y filtro probados |
+| pgJDBC | SUPPORTED 42.7.5–42.7.13 | 42.7.5, 42.7.11, 42.7.13 | contrato COPY real en ambos límites |
+| PostgreSQL | SUPPORTED majors 15–18 | 15.18, 16.14, 17.10, 18.4 | imágenes con patch exacta |
 
-Spring Boot 3.5.16 requiere Java 17 y Spring Framework 6.2.19 o superior ([requisitos oficiales](https://docs.spring.io/spring-boot/3.5/system-requirements.html)); su BOM gestiona Spring Data JPA 3.5.13 ([coordenadas gestionadas](https://docs.spring.io/spring-boot/3.5/appendix/dependency-versions/coordinates.html)). Hibernate 6.6 declara Java 11/17/21/25 y compatibilidad con Boot 3.4–3.5, aunque ya está en soporte limitado ([matriz Hibernate 6.6](https://hibernate.org/orm/releases/6.6/)). pgJDBC publica actualmente 42.7.13 para Java 8+ ([descargas oficiales](https://jdbc.postgresql.org/download/)). PostgreSQL mantiene hoy 14–18, pero 14 llega a EOL el 2026-11-12 ([política oficial](https://www.postgresql.org/support/versioning/)).
+Los patches intermedios de los rangos soportados no se ejecutan uno a uno. El claim usa una
+estrategia de límites: ambos extremos verdes, stacks Boot coherentes y un smoke combinado de los
+extremos nuevos. Una futura versión posterior a los máximos de la tabla no se considera soportada
+hasta actualizar la matriz.
 
-## Alternativa Boot 4
+## Baseline por defecto
 
-Boot 4.1.0 es la línea estable más nueva y soporta Java 17–26 con Spring Framework 7.0.8+ ([requisitos oficiales](https://docs.spring.io/spring-boot/system-requirements.html)). Adoptarla desde el primer release reduciría deuda futura, pero introduce Spring Data 4/Hibernate 7 y aleja a consumidores Boot 3. La recomendación es:
+El parent fija Java 17 bytecode, Boot 3.5.16, JUnit 5.12.2, Testcontainers 2.0.5 y
+`postgres.version=15.18-alpine`. El BOM resuelve:
 
-1. lanzar una primera línea pequeña sobre Boot 3.5/Hibernate 6.6;
-2. diseñar core y pgjdbc sin esa generación;
-3. ejecutar en Phase 13 un spike Boot 4.1/Hibernate 7;
-4. decidir entre compatibilidad binaria real, classifier/adapters separados o major `2.x`.
+| Spring Framework | Spring Data JPA | Hibernate | Micrometer | pgJDBC |
+|---:|---:|---:|---:|---:|
+| 6.2.19 | 3.5.13 | 6.6.53.Final | 1.15.12 | 42.7.11 |
 
-No se afirmará soporte dual hasta que el mismo suite de integración pase. Dado que Hibernate 6.6 está en soporte limitado, el spike Boot 4 es requisito de release, no trabajo indefinido.
+`./mvnw clean verify` usa sólo esa baseline PostgreSQL para conservar un loop local razonable.
 
-## Política de versiones
+## Stack mínimo y extremo nuevo
 
-- La librería compila contra una versión mínima fijada; los compatibility tests prueban mínimo y último patch.
-- Spring/Boot/Hibernate/pgJDBC no se versionan en APIs públicas.
-- El starter respeta dependency management del consumidor y documenta la matriz probada.
-- Se prueban sólo minors PostgreSQL soportados por la comunidad; se elimina una major después de su EOL en el siguiente minor de la librería, avisado en CHANGELOG.
-- “Compatible” significa build, unit tests y suite Testcontainers completa; no sólo resolución Maven.
+El límite mínimo coherente usa JDK 17 + Boot 3.5.0, que gestiona Spring Framework 6.2.7,
+Spring Data JPA 3.5.0, Hibernate 6.6.15.Final, Micrometer 1.15.0 y pgJDBC 42.7.5, sobre PostgreSQL
+15.18.
 
-## Baseline de build fijada en Phase 1
+El smoke de extremos nuevos usa JDK 21 + Boot 3.5.16/Spring Data 3.5.13/Micrometer 1.15.12,
+Hibernate 6.6.55.Final, pgJDBC 42.7.13 y PostgreSQL 18.4. Los overrides son patches dentro de las
+líneas que los adapters declaran independientemente; Enforcer permanece activo.
 
-Java 17 y Maven Wrapper 3.9.16 quedan fijados por ADR-007. El build puede ejecutarse con JDK superior, pero `maven.compiler.release=17` evita adoptar accidentalmente APIs de ese JDK. Maven 4 no se usa mientras sea preview. Esto fija infraestructura de build, no convierte todavía la matriz Spring/Hibernate/PostgreSQL en promesa de soporte.
+## PostgreSQL
 
-## Evidencia pgJDBC de Phase 5
+La suite completa de 76 integration tests pasa en 15.18, 16.14, 17.10 y 18.4. Incluye COPY CSV
+(NULL, empty, literales `\N` y `\.`, UTF-8), bytea/numeric/temporales, identificadores quoted,
+CTAS + `ON COMMIT DROP`, insert/lookup, duplicados, read-only, cancelación, transacción abortada,
+rollback y reutilización de conexión. No hay branches de producción por versión ni extensiones.
 
-El executor compila y se prueba con pgJDBC 42.7.13. La suite Failsafe ejecuta el contrato
-completo sobre `postgres:15.18-alpine`: dialecto COPY CSV, UTF-8, tipos soportados,
-identificadores quoted, conteo, autocommit, commit/rollback y recuperación tras fallos.
-Esto confirma la baseline PostgreSQL 15, no la matriz propuesta 16–18; esa matriz sigue
-reservada para Phase 13.
+Se fijan patches en vez de tags `15`/`16`/etc. para que un commit conserve el mismo servidor. La
+actualización se hace deliberadamente según la
+[política oficial de versiones PostgreSQL](https://www.postgresql.org/support/versioning/).
 
-## Evidencia lookup de Phase 7
+## Hibernate y Boot 4
 
-PostgreSQL 15.18 y pgJDBC 42.7.13 validan CTAS/COPY/JOIN con claves simples y compuestas,
-schema e identificadores quoted, domain, typmod y collation, 20.000 keys one-shot,
-duplicados/missing/nulls, commit/rollback, cleanup, nesting y dos conexiones concurrentes.
-Autocommit se rechaza antes de DDL porque `ON COMMIT DROP` eliminaría la temporal al
-terminar CREATE; CTAS en transacción read-only se rechaza por PostgreSQL con `25006`.
-Esto añade evidencia para la baseline 15, no amplía todavía la matriz 16–18.
+`ToOneAttributeMapping` y el resto del SPI usado por el adapter permanecen compatibles entre
+6.6.15 y 6.6.55. Hibernate 7 no lo usa Boot 3.5: la
+[matriz oficial de integraciones](https://hibernate.org/community/integrations/) alinea Boot 4.0
+con Hibernate 7.2 y Boot 4.1 con 7.4. Boot 4 también pertenece a Spring Framework 7/Spring Data 4.
+Por tanto Boot 4/Hibernate 7 son **PLANNED y UNSUPPORTED** en esta línea; no se introducen probes
+reflection ni multi-release JAR.
 
-## Evidencia Hibernate de Phase 8
+## Fuera del contrato
 
-Hibernate ORM 6.6.55.Final compila con bytecode Java 17 y el suite runtime pasa contra
-PostgreSQL 15.18. Se validan mapping físico, accessors, IDs/embeddables/asociaciones,
-converters/enums, proxies y cache con múltiples `SessionFactory`. El adapter usa un único
-tipo `internal`, `ToOneAttributeMapping`, además de SPI runtime; por ello esta evidencia
-acredita exactamente 6.6.55.Final. El job mínimo/último 6.6 continúa pendiente de Phase 13
-y no se afirma todavía compatibilidad con Hibernate 7.
+- Java <17, Spring Boot <3.5, Hibernate <6.6.15 o major 7+, pgJDBC <42.7.5 y PostgreSQL <15 son
+  UNSUPPORTED.
+- Boot >3.5.16, Hibernate >6.6.55, pgJDBC >42.7.13 y PostgreSQL 19+ son NOT TESTED hasta una nueva
+  actualización de evidencia.
+- JDK 22–24/26, patches intermedios exactos y combinaciones manuales no producidas por los BOM son
+  NOT TESTED, aunque el rango al que pertenezcan pueda estar soportado.
+- El probe Hibernate 6.6.15 + Spring Data 3.5.13 es una combinación upstream incoherente y falla
+  correctamente dependency convergence; Boot 3.5.0 y el adapter aislado sí pasan.
 
-## Evidencia Spring Data de Phase 9
+## Ejecución local
 
-Spring Data JPA 3.5.13, Spring Framework 6.2.19 y Hibernate ORM 6.6.55.Final pasan la suite
-sin Spring Boot sobre PostgreSQL 15.18. Se validan carga del fragmento externo, dos tipos de
-repositorio, batching, lookup materializado por JPA mientras vive la temporal, input vacío,
-rollback exterior, rechazo read-only, `REQUIRES_NEW`, rechazo `NESTED` por el
-`JpaTransactionManager` por defecto y coincidencia de `pg_backend_pid()` entre JDBC y JPA.
-El cache de metadata por identidad de `EntityManagerFactory` se valida con dos factories.
-Esta evidencia no afirma todavía compatibilidad con Spring Data 4 ni Hibernate 7.
+```bash
+./mvnw clean verify
+./mvnw clean verify -Dspring-boot.version=3.5.0
+./mvnw clean verify -Dpostgres.version=18.4-alpine
+./mvnw clean verify -pl postgres-bulk-hibernate -am -Dhibernate.version=6.6.55.Final
+./mvnw clean verify -pl postgres-bulk-pgjdbc -am -Dpostgresql.version=42.7.13
+```
 
-## Evidencia Spring Boot de Phase 10
+Spring Framework, Spring Data y Micrometer se cambian únicamente mediante
+`spring-boot.version`. La matriz completa está separada del build normal en
+`.github/workflows/compatibility.yml` y usa Linux, suficiente para la integración de servidor.
 
-Spring Boot 3.5.16 gobierna y valida en conjunto Spring Framework 6.2.19, Spring Data JPA
-3.5.13, Hibernate ORM 6.6.53.Final y pgJDBC 42.7.11. Nueve context tests verifican las
-conditions y el back-off; una aplicación Boot real prueba el starter contra PostgreSQL 15.18 sin
-wiring manual de la librería. El cambio desde Hibernate 6.6.55.Final/pgJDBC 42.7.13 de las fases
-anteriores es intencional: la integración Boot respeta su BOM y no fuerza patches independientes.
+## Política de mantenimiento
 
-La evidencia histórica Phase 5–9 conserva exactamente las versiones usadas entonces. Phase 10
-acredita la combinación gestionada por Boot 3.5.16, pero no amplía todavía el claim a otros patches
-3.5, PostgreSQL 16–18, Boot 4 o Hibernate 7; esa matriz corresponde a Phase 13.
-
-## Decisiones aún abiertas
-
-- Coordenadas definitivas (`groupId` actual es provisional).
-- Política exacta Boot 4/Hibernate 7.
-- Java 17 frente a 21 como baseline después de conocer consumidores objetivo.
-- Soporte explícito de PostgreSQL 14 durante una ventana inicial corta.
+Sólo entra una versión en `SUPPORTED` tras un job verde. Se retira una major PostgreSQL después de
+su EOL upstream en el siguiente minor de la librería y se anuncia en release notes. El último patch
+probado se actualiza mediante commit con evidencia reproducible. Véanse
+[Hibernate 6.6](https://hibernate.org/orm/releases/6.6/),
+[dependencias gestionadas Boot 3.5](https://docs.spring.io/spring-boot/3.5/appendix/dependency-versions/coordinates.html)
+y [pgJDBC](https://jdbc.postgresql.org/download/).

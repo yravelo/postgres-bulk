@@ -80,5 +80,5 @@ fronteras y opcionalidad descritas.
 
 La API de operaciones permanece intacta. Spring Data incorpora Micrometer Observation/Core y
 autoconfigure incorpora Core para su filtro acotado; los tres módulos inferiores no cambian. La
-aplicación controla registries, handlers, exporters y sampling. Phase 13 puede validar esta
-integración sobre la matriz de versiones sin redefinir nombres, tags ni semántica.
+aplicación controla registries, handlers, exporters y sampling. Phase 13 validó esta integración
+con Micrometer 1.15.0/1.15.12 y Boot 3.5.0/3.5.16 sin redefinir nombres, tags ni semántica.

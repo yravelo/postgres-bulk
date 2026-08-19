@@ -39,7 +39,7 @@ class TemporaryTableBulkLookupIT {
 
   @Container
   private static final PostgreSQLContainer POSTGRES =
-      new PostgreSQLContainer("postgres:15.18-alpine")
+      new PostgreSQLContainer("postgres:" + System.getProperty("postgres.version"))
           .withDatabaseName("postgres_bulk")
           .withUsername("postgres_bulk")
           .withPassword("postgres_bulk");

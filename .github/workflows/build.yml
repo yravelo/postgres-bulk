@@ -10,12 +10,8 @@ permissions:
 
 jobs:
   verify:
-    name: Java ${{ matrix.java }}
+    name: Baseline — Java 17 / Boot 3.5.16 / PostgreSQL 15.18
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        java: [17, 21]
 
     defaults:
       run:
@@ -29,7 +25,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: ${{ matrix.java }}
+          java-version: 17
           cache: maven
           cache-dependency-path: |
             code/postgres-bulk-parent/pom.xml

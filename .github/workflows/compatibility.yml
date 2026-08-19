@@ -1,0 +1,142 @@
+name: Compatibility
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: code/postgres-bulk-parent
+
+jobs:
+  java:
+    name: Java ${{ matrix.java }} / baseline stack
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [21, 25]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+          cache-dependency-path: code/postgres-bulk-parent/pom.xml
+      - name: Verify on Java ${{ matrix.java }}
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify
+
+  boot-minimum:
+    name: Boot 3.5.0 managed stack / Java 17 / PostgreSQL 15.18
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+          cache-dependency-path: code/postgres-bulk-parent/pom.xml
+      - name: Audit managed stack
+        run: >-
+          ./mvnw --batch-mode --no-transfer-progress
+          -Dspring-boot.version=3.5.0 -DskipTests
+          -pl postgres-bulk-spring-boot-starter -am dependency:tree
+          -Dincludes=org.springframework:spring-core,org.springframework.data:spring-data-jpa,org.hibernate.orm:hibernate-core,io.micrometer:micrometer-core,org.postgresql:postgresql
+      - name: Verify Boot 3.5.0
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify -Dspring-boot.version=3.5.0
+
+  postgres:
+    name: PostgreSQL ${{ matrix.postgres }} / baseline Java and stack
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        postgres: [16.14-alpine, 17.10-alpine]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+          cache-dependency-path: code/postgres-bulk-parent/pom.xml
+      - name: Verify PostgreSQL ${{ matrix.postgres }}
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify -Dpostgres.version=${{ matrix.postgres }}
+
+  newest:
+    name: Newest boundaries — Java 21 / Hibernate 6.6.55 / pgJDBC 42.7.13 / PostgreSQL 18.4
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+          cache-dependency-path: code/postgres-bulk-parent/pom.xml
+      - name: Verify newest supported boundaries
+        run: >-
+          ./mvnw --batch-mode --no-transfer-progress clean verify
+          -Dhibernate.version=6.6.55.Final
+          -Dpostgresql.version=42.7.13
+          -Dpostgres.version=18.4-alpine
+
+  hibernate-adapter:
+    name: Hibernate adapter ${{ matrix.hibernate }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        hibernate: [6.6.15.Final, 6.6.55.Final]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+          cache-dependency-path: code/postgres-bulk-parent/pom.xml
+      - name: Verify Hibernate adapter
+        run: >-
+          ./mvnw --batch-mode --no-transfer-progress clean verify
+          -pl postgres-bulk-hibernate -am
+          -Dhibernate.version=${{ matrix.hibernate }}
+
+  pgjdbc:
+    name: pgJDBC ${{ matrix.pgjdbc }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pgjdbc: [42.7.5, 42.7.13]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+          cache-dependency-path: code/postgres-bulk-parent/pom.xml
+      - name: Verify pgJDBC COPY adapter
+        run: >-
+          ./mvnw --batch-mode --no-transfer-progress clean verify
+          -pl postgres-bulk-pgjdbc -am
+          -Dpostgresql.version=${{ matrix.pgjdbc }}
