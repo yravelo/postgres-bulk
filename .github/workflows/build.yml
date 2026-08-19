@@ -42,7 +42,11 @@ jobs:
         run: ./mvnw --batch-mode --no-transfer-progress -f ../../examples/spring-boot-basic/pom.xml clean verify
 
       - name: Install documentation audit tools
-        run: sudo apt-get update && sudo apt-get install --yes ripgrep
+        run: |
+          if ! command -v rg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes ripgrep
+          fi
 
       - name: Audit documentation and public API
         working-directory: .
