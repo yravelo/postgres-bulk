@@ -90,4 +90,3 @@ fallo mid-stream actual.
 - [Spring Data JDBC sequences](https://docs.spring.io/spring-data/relational/reference/3.5/jdbc/sequences.html)
 - [`RelationalPersistentProperty` 3.5 API](https://docs.spring.io/spring-data/relational/reference/3.5/api/java/org/springframework/data/relational/core/mapping/RelationalPersistentProperty.html)
 - [`SqlIdentifier` 3.5 API](https://docs.spring.io/spring-data/relational/reference/3.5/api/java/org/springframework/data/relational/core/sql/SqlIdentifier.html)
-

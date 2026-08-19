@@ -86,4 +86,3 @@ de implementación, no promesas.
 - [Spring Data JDBC transactions](https://docs.spring.io/spring-data/relational/reference/3.5/jdbc/transactions.html)
 - [Spring Data repository fragments](https://docs.spring.io/spring-data/commons/reference/repositories/custom-implementations.html)
 - [Spring Framework JDBC connections](https://docs.spring.io/spring-framework/reference/6.2/data-access/jdbc/connections.html)
-
