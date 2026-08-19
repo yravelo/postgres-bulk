@@ -1,0 +1,39 @@
+name: Benchmarks
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Benchmark profile
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - baseline
+          - large
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - name: Run benchmark profile
+        env:
+          POSTGRES_VERSION: 15.18-alpine
+        run: ./scripts/run-benchmarks.sh "${{ inputs.profile }}" "github-${{ github.run_id }}-${{ inputs.profile }}"
+      - name: Upload raw JMH result
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-${{ github.run_id }}-${{ inputs.profile }}
+          path: docs/benchmarks/raw/github-${{ github.run_id }}-${{ inputs.profile }}.json
+          if-no-files-found: error

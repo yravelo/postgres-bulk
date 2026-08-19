@@ -5,8 +5,8 @@ Bulk insert y lookup tipado para Spring Data JPA sobre PostgreSQL `COPY`, sin su
 
 ## Getting Started en cinco minutos
 
-Requisitos: Java 17+, Spring Boot 3.5 y PostgreSQL. El proyecto aún usa la versión de desarrollo
-`0.1.0-SNAPSHOT`.
+Requisitos soportados: Java 17 o 21, Spring Boot 3.5.0–3.5.16 y PostgreSQL 15–18. El proyecto
+aún usa la versión de desarrollo `0.1.0-SNAPSHOT`.
 
 Maven:
 
@@ -91,15 +91,29 @@ persistence context.
 
 ## Estado
 
-Phase 12 completada: observations operation-level, métricas de rows/batches, cardinalidad bounded y
-opt-out Boot sin alterar transacciones ni errores. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad
-de API ni está lista para release. La siguiente fase recomendada es Phase 13 — Compatibility tests.
+Phase 14 completada: JPA `saveAll`, JDBC batch, COPY, lookup temporal y overhead de observabilidad
+tienen una baseline JMH reproducible sobre PostgreSQL real, sin thresholds ni ejecución en el
+build normal. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API ni está lista para release.
+La siguiente fase recomendada es Phase 15 — Examples and documentation.
+
+## Performance
+
+La baseline local observó que COPY supera a JPA para el dataset medido, pero queda cerca de JDBC
+batch en tamaños grandes; no es una promesa universal. Consulta
+[`docs/benchmarks/baseline.md`](docs/benchmarks/baseline.md) para resultados e incertidumbre y
+[`docs/benchmarks/methodology.md`](docs/benchmarks/methodology.md) para reproducirlos. Los
+benchmarks se ejecutan sólo de forma explícita:
+
+```shell
+JAVA_HOME=/path/to/jdk-21 ./scripts/run-benchmarks.sh baseline baseline-local
+```
 
 ## Navegación
 
 - [`docs/architecture/overview.md`](docs/architecture/overview.md): arquitectura y flujos.
 - [`docs/architecture/module-boundaries.md`](docs/architecture/module-boundaries.md): dependencias permitidas y prohibidas.
-- [`docs/architecture/compatibility.md`](docs/architecture/compatibility.md): matriz inicial de compatibilidad.
+- [`docs/architecture/compatibility.md`](docs/architecture/compatibility.md): política y matriz soportada.
+- [`docs/architecture/compatibility-evidence.md`](docs/architecture/compatibility-evidence.md): comandos, versiones resueltas y resultados.
 - [`docs/architecture/build-and-quality.md`](docs/architecture/build-and-quality.md): Wrapper, tests, formato y quality gates.
 - [`docs/architecture/copy-encoding.md`](docs/architecture/copy-encoding.md): contrato tipado y framing COPY CSV.
 - [`docs/architecture/pgjdbc-copy-execution.md`](docs/architecture/pgjdbc-copy-execution.md): SQL, UTF-8, lifecycle y ownership JDBC.
@@ -110,6 +124,7 @@ de API ni está lista para release. La siguiente fase recomendada es Phase 13 �
 - [`docs/architecture/spring-boot-autoconfiguration.md`](docs/architecture/spring-boot-autoconfiguration.md): activación, propiedades y back-off Boot.
 - [`docs/architecture/transactions-and-failures.md`](docs/architecture/transactions-and-failures.md): ownership, atomicidad, cleanup, propagaciones y pool reuse.
 - [`docs/architecture/observability.md`](docs/architecture/observability.md): observations, meters, tags, privacidad y boundary transaccional.
+- [`docs/benchmarks/`](docs/benchmarks/): metodología, baseline y resultados raw JMH.
 - [`docs/legacy/current-behavior.md`](docs/legacy/current-behavior.md): caracterización del código existente.
 - [`docs/legacy/risk-register.md`](docs/legacy/risk-register.md): problemas y riesgos priorizados.
 - [`docs/decisions/`](docs/decisions/): decisiones arquitectónicas.
@@ -122,6 +137,7 @@ repo/
 ├── code/postgres-bulk-parent/   # reactor Maven y módulos de la librería
 ├── docs/
 │   ├── architecture/
+│   ├── benchmarks/
 │   ├── decisions/
 │   ├── legacy/
 │   └── plans/
@@ -142,7 +158,17 @@ cd code/postgres-bulk-parent
 
 El Wrapper oficial ejecuta Maven 3.9.16 con unit tests, integration tests, Enforcer y Spotless.
 Los `*IT` requieren Docker y levantan PostgreSQL 15.18 mediante Testcontainers. El bytecode
-objetivo es Java 17.
+objetivo es Java 17. Para cambiar un eje sin editar POMs:
+
+```shell
+./mvnw clean verify -Dpostgres.version=18.4-alpine
+./mvnw clean verify -Dspring-boot.version=3.5.0
+./mvnw clean verify -pl postgres-bulk-hibernate -am -Dhibernate.version=6.6.55.Final
+./mvnw clean verify -pl postgres-bulk-pgjdbc -am -Dpostgresql.version=42.7.13
+```
+
+La matriz completa se ejecuta en el workflow `Compatibility`; el build normal conserva una única
+baseline funcional. El workflow manual `Benchmarks` no participa en PR ni en `clean verify`.
 
 Para aplicar formato Java:
 

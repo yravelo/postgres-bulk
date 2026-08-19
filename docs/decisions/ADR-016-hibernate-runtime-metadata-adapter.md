@@ -58,3 +58,16 @@ prometer rango completo. Cambios en `ToOneAttributeMapping`, parser de nombres o
 SPI pueden requerir un patch de la librería. Hibernate 7 necesita otro spike/adaptador.
 Phase 9 compondrá este resultado con pgJDBC y decidirá bulk-key/overrides; Phase 8 no
 depende de JDBC, Spring ni COPY.
+
+## Resolución de Phase 13
+
+El adapter y sus 13 integration tests pasan con Hibernate 6.6.15.Final, 6.6.53.Final y
+6.6.55.Final; el downcast `ToOneAttributeMapping` permanece compatible en ambos límites. ADR-021
+fija 6.6.15–6.6.55 como rango soportado. Hibernate 7 pertenece a Boot 4/Spring Data 4 y queda
+PLANNED/UNSUPPORTED en este artefacto, sin reflection probes.
+
+## Resolución de Phase 14
+
+El benchmark end-to-end reveló que el `JdbcType` de fecha puede preferir `java.sql.Date` para un
+atributo `LocalDate`. El encoder pgJDBC incorpora esa representación relacional con prueba de
+regresión; el resolver conserva su regla de exponer el tipo preferido de Hibernate.

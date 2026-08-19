@@ -38,9 +38,9 @@
 
 ## Calidad y compatibilidad
 
-- Unit, integration, architecture y compatibility suites verdes en la matriz publicada.
-- PostgreSQL real/Testcontainers valida datos; mocks no sustituyen integración.
-- Benchmarks son reproducibles y no forman parte de assertions/build normal.
+- [x] Unit, integration, architecture y compatibility suites verdes en la matriz publicada.
+- [x] PostgreSQL real/Testcontainers valida datos; mocks no sustituyen integración.
+- [x] Benchmarks son reproducibles y no forman parte de assertions/build normal.
 - Javadocs y snippets compilan; quickstart funciona desde un proyecto consumidor limpio.
 - Build reproducible con Wrapper, CI, sources/Javadocs y release dry-run.
 
@@ -56,6 +56,5 @@
 
 ## Estado de release
 
-Phase 12 cierra los criterios de observabilidad, pero la release final **no está ready**. Aún
-faltan la matriz de compatibilidad completa, benchmarks/documentación de adopción y gates de
-release de las Phases 13–16.
+Phase 14 añade una baseline JMH reproducible y aislada, pero la release final **no está ready**.
+Aún faltan documentación/ejemplos de adopción y gates de release de las Phases 15–16.

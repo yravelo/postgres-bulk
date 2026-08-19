@@ -28,6 +28,7 @@
     <module>postgres-bulk-spring-data</module>
     <module>postgres-bulk-spring-boot-autoconfigure</module>
     <module>postgres-bulk-spring-boot-starter</module>
+    <module>postgres-bulk-benchmarks</module>
   </modules>
 
   <properties>
@@ -42,6 +43,7 @@
     <postgres.version>15.18-alpine</postgres.version>
     <junit.version>5.12.2</junit.version>
     <jakarta-activation.version>2.1.1</jakarta-activation.version>
+    <jmh.version>1.37</jmh.version>
     <testcontainers.version>2.0.5</testcontainers.version>
 
     <google-java-format.version>1.28.0</google-java-format.version>
@@ -53,6 +55,7 @@
     <maven-install-plugin.version>3.1.4</maven-install-plugin.version>
     <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
     <maven-resources-plugin.version>3.4.0</maven-resources-plugin.version>
+    <maven-shade-plugin.version>3.6.1</maven-shade-plugin.version>
     <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
     <spotless-maven-plugin.version>3.9.0</spotless-maven-plugin.version>
   </properties>

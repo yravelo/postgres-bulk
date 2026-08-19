@@ -81,6 +81,7 @@ newlines de CSV.
 | `Boolean` | `true` o `false` |
 | `UUID` | forma canónica con guiones |
 | `LocalDate` | ISO local date |
+| `java.sql.Date` | ISO local date; forma relacional que Hibernate puede exponer para `LocalDate` |
 | `LocalTime` | ISO local time, con fracción cuando existe |
 | `LocalDateTime` | ISO local date-time con `T` |
 | `OffsetDateTime` | ISO date-time con offset explícito |

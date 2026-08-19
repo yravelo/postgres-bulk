@@ -4,7 +4,10 @@
 
 El reactor se construye desde `code/postgres-bulk-parent` con Maven Wrapper `only-script` 3.3.4, fijado a Maven 3.9.16 y protegido por SHA-256. El Wrapper descarga exclusivamente desde Maven Central; no se versiona un JAR bootstrap. Maven 3.6.3 es el mínimo aceptado por Enforcer para quien decida no usar el Wrapper, y Maven 4 queda fuera hasta abandonar su estado preview.
 
-El bytecode objetivo es Java 17 mediante `maven.compiler.release`; el JDK que ejecuta Maven debe ser 17 o superior. CI prueba Java 17 y 21. No se configura Maven Toolchains porque no se necesita un JDK distinto al que ejecuta el build; añadirlo hoy introduciría una precondición local sin beneficio.
+El bytecode objetivo es Java 17 mediante `maven.compiler.release`; el JDK que ejecuta Maven debe
+ser 17 o superior. El build baseline usa Java 17; compatibility CI prueba Java 21 y 25 sin cambiar
+el bytecode. Java 17/21 son soportados y JDK 25 es validación adicional. No se configura Maven
+Toolchains porque CI selecciona el JDK y el developer puede hacer lo mismo con `JAVA_HOME`.
 
 `0.1.0-SNAPSHOT` identifica desarrollo preestable: no existe garantía de compatibilidad de API. `project.build.outputTimestamp` fija timestamps de artefactos durante esta etapa y deberá actualizarse de forma controlada en el proceso de release.
 
@@ -13,7 +16,7 @@ El bytecode objetivo es Java 17 mediante `maven.compiler.release`; el JDK que ej
 El parent gestiona versiones, pero no añade dependencias runtime globales. Gestiona:
 
 - artefactos internos con la versión del reactor;
-- el BOM Spring Boot 3.5.16 para Spring Framework, Spring Data JPA, Hibernate y pgJDBC;
+- el BOM Spring Boot 3.5.16 para Spring Framework, Spring Data JPA, Hibernate, Micrometer y pgJDBC;
 - el BOM JUnit 5.12.2;
 - el BOM Testcontainers 2.0.5;
 - versiones de plugins de lifecycle y quality gates.
@@ -31,8 +34,9 @@ auto-configuration metadata. El starter agrega Data JPA y autoconfigure, sin có
 - Surefire ejecuta unit tests llamados `*Test.java` en la fase `test`.
 - Failsafe ejecuta integration tests llamados `*IT.java` en `integration-test` y verifica resultados en `verify`.
 - JUnit Jupiter se declara con scope `test` en cada módulo con pruebas.
-- `./mvnw clean verify` ejecuta ambos carriles. Los integration tests pgJDBC requieren
-  Docker y levantan `postgres:15.18-alpine`; no están ocultos tras un perfil.
+- `./mvnw clean verify` ejecuta ambos carriles. Los integration tests requieren Docker y levantan
+  por defecto `postgres:15.18-alpine`; `postgres.version` está centralizada en el parent y puede
+  cambiarse con `-Dpostgres.version=18.4-alpine`. No están ocultos tras un perfil.
 - `ApplicationContextRunner` prueba once escenarios de conditions/back-off/observability sin Docker.
 - El starter arranca una aplicación Boot real y prueba insert, lookup, rollback, read-only,
   pérdida de backend y Micrometer/Actuator contra PostgreSQL 15.18 sin wiring manual.
@@ -77,6 +81,28 @@ Surefire y Failsafe quedan alineados en 3.5.4: durante la validación Phase 1, l
 
 ## Reproducibilidad y seguridad
 
-No se declaran repositorios Maven: se usa Central por defecto. No hay rutas locales, credenciales, settings corporativos ni variables obligatorias. Las versiones de plugins de lifecycle están fijadas. GitHub Actions usa el mismo `./mvnw clean verify`, permisos read-only y cache nativa de `setup-java` basada en todos los POM.
+No se declaran repositorios Maven: se usa Central por defecto. No hay rutas locales, credenciales,
+settings corporativos ni variables obligatorias. Las versiones de plugins de lifecycle están
+fijadas. GitHub Actions usa el mismo `./mvnw clean verify`, permisos read-only y cache nativa de
+`setup-java`. `build.yml` ejecuta la baseline; `compatibility.yml` separa JDK, BOM Boot, servidor,
+Hibernate y pgJDBC mediante límites/pairwise, manteniendo Enforcer activo.
+
+Los overrides reproducibles son `spring-boot.version`, `hibernate.version`,
+`postgresql.version` y `postgres.version`. Spring Framework, Spring Data y Micrometer se cambian
+únicamente mediante el BOM Boot. La evidencia exacta se registra en
+[`compatibility-evidence.md`](compatibility-evidence.md).
 
 El build no publica ni firma. Sources/Javadocs/signing/provenance se incorporarán en Phase 16 sin cambiar la separación de módulos.
+
+## Benchmarks
+
+`postgres-bulk-benchmarks` es un consumidor JMH separado y tiene `maven.deploy.skip=true`. El
+reactor lo compila y empaqueta para detectar drift, pero Surefire/Failsafe no descubren ni ejecutan
+sus métodos `@Benchmark`. No existen assertions ni thresholds de rendimiento en Maven.
+
+La ejecución explícita vive en `scripts/run-benchmarks.sh`; un PostgreSQL Testcontainers real se
+comparte entre forks y los JSON se guardan como evidencia. `.github/workflows/benchmarks.yml` sólo
+acepta `workflow_dispatch`, por lo que una corrida larga no bloquea PRs ni el build baseline.
+Metodología, entorno, resultados y límites están en
+[`../benchmarks/methodology.md`](../benchmarks/methodology.md) y
+[`../benchmarks/baseline.md`](../benchmarks/baseline.md).

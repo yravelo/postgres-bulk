@@ -112,7 +112,11 @@ Una clase no entidad, un mapping no representable o un fallo de introspección p
 runtime original de Hibernate/JPA. No se añade todavía `BulkMetadataException`: no existe
 una recuperación diferente que justifique otro tipo público.
 
-El suite levanta un `SessionFactory` real y PostgreSQL 15.18 con Testcontainers. Además de
-assertar nombres, tipos y valores, inserta mediante JDBC los valores resueltos para probar
-que converters/enums son realmente relacionales. Esto valida 6.6.55.Final; la promesa
-mínimo/último 6.6 queda pendiente del job de matriz de Phase 13.
+El suite levanta un `SessionFactory` real y PostgreSQL con Testcontainers. Además de assertar
+nombres, tipos y valores, inserta mediante JDBC los valores resueltos para probar que
+converters/enums son realmente relacionales. Phase 13 validó 6.6.15.Final, 6.6.53.Final y
+6.6.55.Final; `ToOneAttributeMapping` permanece compatible en los límites soportados.
+
+Phase 14 confirmó end-to-end que Hibernate puede preferir `java.sql.Date` para un atributo
+`LocalDate`. El encoder COPY acepta esa forma relacional y la serializa como fecha ISO; la API de
+entidad y el modelo neutral no cambian.

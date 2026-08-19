@@ -298,8 +298,8 @@ parcial no revierte COPY ya confirmados con autocommit.
 
 **Decisiones diferidas:** API pública y forma de resultado, elevación o no del callback a
 SPI y adquisición Spring (Phase 9); metadata Hibernate (Phase 8); índice/`ANALYZE`,
-VALUES/UNNEST y selección adaptativa (Phase 14); PostgreSQL 16–18, particiones y permisos
-especiales (Phase 13).
+VALUES/UNNEST y selección adaptativa (Phase 14); particiones y permisos especiales. PostgreSQL
+16–18 quedó validado en Phase 13.
 
 **Aprendizajes:** `ON COMMIT DROP` exige una transacción que abarque todo el workflow;
 autocommit elimina la temporal tras CREATE. CTAS directo preserva los tipos físicos que
@@ -335,9 +335,9 @@ también rechaza CTAS en una transacción read-only.
   extras y el DAG no cambia: Hibernate depende sólo de core y Hibernate/JPA.
 
 **Decisiones diferidas:** `BulkKeyMetadata` derivada de entidad, override programático,
-connection access, facade/repository y composición con COPY/lookup (Phase 9); matriz
-mínimo/último Hibernate 6.6 y Hibernate 7 (Phase 13); natural-key associations, `IdClass`,
-custom user types, herencia y mappings multi-table.
+connection access, facade/repository y composición con COPY/lookup (Phase 9); natural-key
+associations, `IdClass`, custom user types, herencia y mappings multi-table. Phase 13 validó los
+límites Hibernate 6.6 y clasificó Hibernate 7 como otra generación no soportada.
 
 **Aprendizajes:** `JdbcType.getPreferredJavaTypeClass` refleja mejor el valor de binding
 que `JdbcMapping.getJdbcJavaType`; enum ordinal se normaliza a `Integer` por contrato core.
@@ -377,7 +377,7 @@ sin inicialización.
       concreto; Phase 10 realizará el wiring automático.
 
 **Decisiones diferidas:** Boot auto-configuration/back-off (Phase 10), `NESTED` y fault injection
-completa (Phase 11), matriz mínimo/último Spring Data/Hibernate y varias PU reales (Phase 13).
+completa (Phase 11), y varias PU reales. Phase 13 cerró la matriz Spring Data/Hibernate.
 
 ## Phase 10 — Spring Boot auto-configuration
 
@@ -420,8 +420,8 @@ completa (Phase 11), matriz mínimo/último Spring Data/Hibernate y varias PU re
       y múltiples persistence units.
 
 **Decisiones diferidas:** failure analyzer y fault injection JDBC/transaccional (Phase 11),
-Micrometer y más properties sólo si la observabilidad las exige (Phase 12), y matriz mínimo/último
-Boot/Hibernate/pgJDBC/PostgreSQL (Phase 13).
+Micrometer y más properties sólo si la observabilidad las exige (Phase 12). Phase 13 cerró la
+matriz mínimo/último Boot/Hibernate/pgJDBC/PostgreSQL.
 
 **Aprendizajes:** detectar el producto de base de datos durante startup rompería el carácter lazy
 del datasource; el gate de classpath y el unwrap al primer uso mantienen un arranque sin I/O. El
@@ -468,8 +468,8 @@ transaccional. Respetar el BOM Boot evita una matriz de patches incoherente.
       retry o compensación automática.
 
 **Decisiones diferidas:** transacciones distribuidas, idempotencia/retry de aplicación, soporte
-NESTED con otra combinación transaction-manager/dialect, timeouts/cancelación externa y matriz de
-versiones (Phase 13).
+NESTED con otra combinación transaction-manager/dialect y timeouts/cancelación externa. Phase 13
+cerró la matriz de versiones.
 
 **Aprendizajes:** conexión abierta no significa transacción usable: después de fallo SQL PostgreSQL
 exige rollback. El interceptor Spring puede traducir runtimes del productor conservándolos como
@@ -478,7 +478,7 @@ través de su proxy; no corresponde al executor cerrar el recurso prestado.
 
 ## Phase 12 — Observability
 
-**Estado:** completada el 2026-08-18. Phase 13 no iniciada.
+**Estado:** completada el 2026-08-18. Su matriz multi-versión se validó en Phase 13.
 
 - **Goal:** observabilidad opcional sin contaminar core ni datos.
 - **Scope:** frontera de eventos/observer, Micrometer Observation en auto-config, métricas/logs acordados.
@@ -509,8 +509,8 @@ través de su proxy; no corresponde al executor cerrar el recurso prestado.
 - [x] Core, pgJDBC y Hibernate no dependen ni importan Micrometer; no se añade API pública de
       operaciones y no existe instrumentación por fila, batch interno ni COPY anidado.
 
-**Decisiones diferidas:** histogramas/SLOs, exporters, dashboards, correlación de negocio y
-compatibilidad multi-versión (Phase 13). No se publican custom conventions ni tags extensibles.
+**Decisiones diferidas:** histogramas/SLOs, exporters, dashboards y correlación de negocio. Phase
+13 validó la compatibilidad multi-versión. No se publican custom conventions ni tags extensibles.
 
 **Aprendizajes:** el resultado de una llamada bulk y el commit de una transacción exterior son
 límites distintos. Una única observación en el fragmento evita doble conteo y permite que tracing y
@@ -518,6 +518,8 @@ timing compartan lifecycle; los contadores de progreso requieren el resultado au
 motor y por eso sólo se actualizan después del éxito.
 
 ## Phase 13 — Compatibility tests
+
+**Estado:** completada el 2026-08-19.
 
 - **Goal:** transformar la matriz propuesta en soporte verificable.
 - **Scope:** Java, Boot/Spring Data/Hibernate patches, PostgreSQL 15–18, pgJDBC; spike Boot 4.1/Hibernate 7.
@@ -531,7 +533,32 @@ motor y por eso sólo se actualizan después del éxito.
 - **Dependencies:** funcionalidades completas y release matrix vigente.
 - **Definition of Done:** compatibilidad pasa de PROPOSED a política publicada.
 
+### Registro de cierre de Phase 13
+
+- [x] Java 17 es mínimo de build/runtime y `release=17`; suites completas pasan en JDK 17/21 y
+      JDK 25 queda como validación adicional no contractual.
+- [x] Boot 3.5.0 y 3.5.16 pasan con sus BOM completos; Spring Data 3.5.0/3.5.13 y Micrometer
+      1.15.0/1.15.12 quedan validados transitivamente y con tests funcionales.
+- [x] El adapter Hibernate pasa en 6.6.15/6.6.55, incluidos SPI y `ToOneAttributeMapping`; 6.6.53
+      pasa en baseline. Hibernate 7/Boot 4 quedan PLANNED y UNSUPPORTED como otra generación.
+- [x] El adapter pgJDBC pasa en 42.7.5/42.7.13 y la baseline 42.7.11; PostgreSQL 15.18, 16.14,
+      17.10 y 18.4 pasan 76 integration tests cada uno.
+- [x] `postgres.version` centraliza la imagen exacta y mantiene PostgreSQL 15.18 como default local.
+- [x] CI separa baseline y diez jobs compatibility por límites, sin producto cartesiano.
+- [x] ADR-021, `compatibility.md` y `compatibility-evidence.md` publican política, comandos,
+      resolución BOM, semánticas críticas, unsupported/not-tested y el fallo mixed-stack.
+- [x] No cambian producción, API pública ni dependencias; no hay runtime version hacks.
+- [x] Spotless, unit/integration tests, verify/install, matrices, YAML estático y diff checks pasan.
+- [x] Phase 14 no se inició.
+
+**Aprendizajes:** variar todo el stack mediante el BOM evita falsos negativos de convergence. Un
+override aislado de Hibernate 6.6.15 sobre Spring Data 3.5.13 falla correctamente por ANTLR, aunque
+el adapter y el stack Boot 3.5.0 sean compatibles. Pairwise cubre mejor las fronteras reales que
+una matriz cartesiana y mantiene visible el origen de cada fallo.
+
 ## Phase 14 — Benchmarks
+
+**Estado:** completada el 2026-08-19.
 
 - **Goal:** comparar rendimiento de forma reproducible sin assertions frágiles.
 - **Scope:** JPA `saveAll`, JDBC batch y COPY para 1K/10K/100K/1M; CPU/memoria/throughput y dataset definido.
@@ -544,6 +571,31 @@ motor y por eso sólo se actualizan después del éxito.
 - **Risks:** medir setup/red/containers y comparar semánticas no equivalentes.
 - **Dependencies:** Phase 6, 11 y compatibilidad estable.
 - **Definition of Done:** informe reproducible, benchmarks fuera de `verify` normal.
+
+### Registro de cierre de Phase 14
+
+- [x] Módulo JMH 1.37 separado, no publicable, compilado por el reactor y nunca ejecutado por
+      `test`/`verify`/`clean verify`.
+- [x] Insert compara `saveAll` default/batched, JDBC batch y la API pública COPY con IDs asignados,
+      mismo schema/dataset y commit incluido.
+- [x] Baseline cubre 10/100/1K/10K/100K; perfil suplementario cubre JDBC/COPY a 1M y documenta por
+      qué JPA 1M no es estable con heap de 3 GB.
+- [x] Lookup compara SQL IN y tabla temporal COPY JOIN sobre target de 100K; observabilidad se mide
+      enabled/disabled y COPY prueba batch 100/1K/10K/all-in-one.
+- [x] Setup, dataset determinista, TRUNCATE y verificaciones quedan fuera del scope medido;
+      warmup, iterations, forks, PostgreSQL defaults, hardware y limitaciones están publicados.
+- [x] Dos baselines completas, raw JSON, CSV, `-prof gc`, media/error, ms/op y filas/s quedan
+      versionadas sin thresholds ni claims universales.
+- [x] Script de un comando y workflow exclusivamente manual reproducen smoke/baseline/large.
+- [x] El smoke descubrió y corrigió el soporte real de `java.sql.Date` producido por metadata
+      Hibernate para `LocalDate`, con prueba de regresión y sin API nueva.
+- [x] ADR-022 registra aislamiento y metodología; README, build docs y criterios de release quedan
+      sincronizados.
+
+**Aprendizajes:** COPY aventaja claramente a JPA, pero converge con JDBC batch en tamaños grandes y
+asigna más memoria que JDBC. Batch grande reduce round trips en este host sin justificar cambiar
+defaults. Lookup no ofrece un crossover monotónico y requiere estudiar planes/ANALYZE antes de
+tuning. La variación entre corridas impide thresholds finos.
 
 ## Phase 15 — Examples and documentation
 
