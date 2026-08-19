@@ -65,6 +65,21 @@ metadata root-only y round-trip PostgreSQL, pero J1 no implementa aún conexión
 fragment, lookup, coexistencia ni auto-configuración. Por esas evidencias todavía ausentes, este
 ADR permanece `PROPOSED`.
 
+## Evidencia J2 (2026-08-20)
+
+El coordinador package-private usa `JdbcOperations.execute(ConnectionCallback)` y entrega esa
+misma `Connection` a `PostgresBulkJdbcOperations`. Un default de tabla calculado por
+`pg_backend_pid()` coincide con consultas Spring inmediatamente anteriores y posteriores dentro de
+la misma transacción. Tests PostgreSQL prueban REQUIRED, rollback exterior, read-only,
+REQUIRES_NEW con PID independiente, NESTED sólo como characterization y reutilización Hikari tras
+éxito y fallo. La conexión permanece caller-owned y el adapter no invoca close, commit, rollback o
+mutadores JDBC.
+
+J2 también confirma que el módulo puede depender productivamente de pgJDBC y Spring JDBC sin
+introducir JPA/Hibernate/Boot. No añade fragmento ni lookup. El ADR permanece `PROPOSED` porque
+discovery/materialización J3-J4, coexistencia completa y auto-configuración siguen siendo evidencia
+requerida.
+
 ## Alternativas evaluadas
 
 | Alternativa | Resultado |

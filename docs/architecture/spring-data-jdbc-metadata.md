@@ -100,11 +100,11 @@ El test con `Timestamp` fija ese reparto de responsabilidad.
 | `@Sequence` | rechazo | fuera de scope |
 | `@Version` | rechazo | fuera de scope |
 
-Si omitir el ID deja cero columnas, se rechaza porque core requiere una fila no vacía. J1 no
-implementa el batch, pero entrega la capability de J2: por cada elemento, en la misma pasada del
-iterable, J2 llama `resolveFor`; si la identidad de metadata cambia respecto de la primera fila,
-rechaza mixed assigned/generated. No materializa el dataset. Un ID generado por callback también
-queda fuera porque el bulk path no ejecutará callbacks.
+Si omitir el ID deja cero columnas, se rechaza porque core requiere una fila no vacía. J2 consume
+esta capability: por cada elemento, en la misma pasada del iterable, llama `resolveFor`; si la
+identidad de metadata cambia respecto de la primera fila, rechaza mixed assigned/generated. No
+materializa el dataset. Un ID generado por callback también queda fuera porque el bulk path no
+ejecuta callbacks.
 
 ## Cache, concurrencia y schema futuro
 
@@ -162,10 +162,10 @@ boundary general. J1 no parchea el quoter.
 | child entity/collection/set/map | UNSUPPORTED | rechazo root-only |
 | assigned Long/UUID ID | SUPPORTED | incluido |
 | generated numeric ID | PARTIAL, capability J1 | omitido; PostgreSQL default; no sync |
-| mixed ID batch | UNSUPPORTED; gate de J2 | capability single-pass documentada |
+| mixed ID batch | UNSUPPORTED | J2 rechaza ambas direcciones one-based durante la pasada |
 | sequence/callback ID | UNSUPPORTED | rechazo/no callbacks |
 | `@Version` | UNSUPPORTED | rechazo explícito |
-| tipo no encodable | gate del encoder J2 | metadata no duplica registry |
+| tipo no encodable | gate del encoder | preparación pgJDBC falla antes de consumir input |
 | plain mixed-case dependiente de folding | UNSUPPORTED | PostgreSQL `42P01` |
 
 ## PostgreSQL characterization
@@ -179,9 +179,17 @@ arrancarlo, `verify` falla visiblemente.
 
 ## Riesgos diferidos
 
-- J2 implementará operación COPY, detección mixed-ID y transacción JDBC single-pass.
 - J3 decidirá materialización de lookup, sin usar internals.
 - J4 congelará repository fragment/API de operaciones.
 - J5/J6 cerrarán transacciones, coexistencia y Boot.
 - El lane mínimo Spring Data JDBC 3.5.0 y la matrix completa pertenecen a fases de compatibilidad.
 - Schema runtime por tenant requiere un boundary explícito por operación, no otra cache global.
+
+## Evidencia de consumo J2
+
+`DefaultSpringDataJdbcBulkOperations` usa estas variantes sin duplicar conversions ni accessors.
+La primera fila fija metadata y prepara `PostgresBulkJdbcOperations`; cada fila posterior se
+resuelve en el mismo iterator. PostgreSQL real confirma converters, enum default/custom,
+embedded/nested null, `AggregateReference`, IDs assigned/generated, schema y quoted names. Mixed
+ID se detecta durante la pasada y se revierte mediante la transacción JDBC obligatoria definida en
+ADR-026.

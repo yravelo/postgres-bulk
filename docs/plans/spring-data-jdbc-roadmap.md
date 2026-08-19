@@ -53,7 +53,7 @@ Las fases preservan estas invariantes:
   Los tests PostgreSQL demuestran schema/quoted, converters, temporales, UUID, bytea, embedded e ID
   generated. ADR-025 mantiene pendientes explícitos y el reactor incluye el nuevo módulo.
 
-## J2 — Metadata production y bulk insert root-only
+## J2 — Metadata production y bulk insert root-only — DONE (2026-08-20)
 
 - **Goal:** entregar metadata soportada y COPY de filas root con transacción JDBC real.
 - **Scope:** embedded simple/nested probado, assigned/database-generated IDs, scalar FKs,
@@ -78,6 +78,14 @@ Las fases preservan estas invariantes:
 - **Deferred decisions:** sequences, callbacks, version synchronization y aggregate graphs.
 - **Definition of Done:** insert interno end-to-end verde en PostgreSQL 15 y 18; contrato root-only
   documentado; ADR-025 puede pasar a ACCEPTED sólo si toda su evidencia se cumple.
+- **Cierre:** `DefaultSpringDataJdbcBulkOperations` package-private usa un único lookahead,
+  metadata per-row y `JdbcOperations.execute(ConnectionCallback)` sobre la conexión transaccional.
+  PostgreSQL confirma batching 0/1/1.000/1.001/2.500, IDs assigned/generated, converters,
+  embedded/reference, schema/quoted, PID físico, REQUIRED/rollback/REQUIRES_NEW, read-only,
+  NESTED como characterization, fallos y pool reuse. Mixed ID se rechaza one-based durante la
+  pasada; como puede descubrirse con COPY activo, la transacción obligatoria hace reversible todo
+  progreso. Core y pgJDBC permanecen sin cambios. ADR-025 sigue `PROPOSED` por sus gates J7 ajenos
+  a J2; ADR-026 acepta la política transaccional y de homogeneidad de J2.
 
 ## J3 — Bulk lookup y materialización
 

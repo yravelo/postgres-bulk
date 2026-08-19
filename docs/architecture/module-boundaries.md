@@ -3,15 +3,10 @@
 ## Grafo permitido
 
 ```text
-postgres-bulk-core
-  ↑                 ↑                  ↑
-pgjdbc          hibernate       spring-data-jdbc
-  ↑                 ↑
-spring-data         │
-  ↑                 │
-  └── boot-autoconfigure ───┘
-                 ↑
-             boot-starter
+core <- pgjdbc <- spring-data-jdbc
+core <- hibernate
+core + pgjdbc + hibernate <- spring-data
+spring-data + hibernate <- boot-autoconfigure <- boot-starter
 ```
 
 Las flechas apuntan hacia la dependencia. Es un DAG, no una jerarquía estricta. Ningún módulo productivo depende del starter.
@@ -42,17 +37,19 @@ Paquete candidato: `metadata`. Si soportar dos majors de Hibernate exige interna
 
 ## `postgres-bulk-spring-data-jdbc`
 
-**Puede conocer:** core y las APIs públicas de Spring Data JDBC/Relational, Spring Data Commons y
-Spring Framework que llegan transitivamente con `spring-data-jdbc`. Traduce el mapping context y
-las conversiones configuradas a metadata core; J1 no ejecuta COPY.
+**Puede conocer:** core, pgJDBC, Spring JDBC y las APIs públicas de Spring Data
+JDBC/Relational/Commons. Traduce el mapping context y las conversiones configuradas a metadata core
+y, desde J2, coordina internamente `JdbcOperations.execute(ConnectionCallback)` con
+`PostgresBulkJdbcOperations` para insertar sólo la fila root.
 
-**No puede conocer:** pgJDBC en producción, JPA, Hibernate, Spring Data JPA, Spring Boot,
-Actuator, repository fragments ni auto-configuración. PostgreSQL y Testcontainers son test-only.
-Enforcer prohíbe JPA/Hibernate/Boot; el dependency-tree audit verifica el scope test-only de
-PostgreSQL porque `bannedDependencies` no discrimina scope para el mismo GAV.
+**No puede conocer:** JPA, Hibernate, Spring Data JPA, Spring Boot, Actuator, repository fragments,
+lookup/materialization ni auto-configuración. El driver PostgreSQL entra productivamente sólo a
+través de `postgres-bulk-pgjdbc`; Testcontainers y Hikari son test-only. Enforcer prohíbe
+JPA/Hibernate/Boot.
 
 La cache pertenece a una instancia de resolver y, por tanto, al converter/mapping context de una
-aplicación. No existe cache global ni dependencia desde core hacia Spring.
+aplicación. El coordinador es package-private, exige transacción JDBC write activa y nunca adquiere
+o completa una transacción. No existe cache global ni dependencia desde core hacia Spring.
 
 ## `postgres-bulk-spring-data`
 

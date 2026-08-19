@@ -15,8 +15,9 @@ de ejecucion. Los archivos `package-info.java` documentan packages y no constitu
 publicos.
 
 J1 de la evolución Spring Data JDBC añade un único tipo público experimental al release line
-todavía no publicado: `SpringDataJdbcEntityMetadataResolver`. No añade operaciones bulk,
-repository fragments, configuración Boot ni tipos públicos de ejecución.
+todavía no publicado: `SpringDataJdbcEntityMetadataResolver`. J2 añade ejecución root-only
+package-private y **cero tipos públicos**: todavía no existen operaciones públicas, repository
+fragments, configuración Boot ni tipos públicos de ejecución JDBC.
 
 ## `BulkOperations<T>`
 
@@ -248,6 +249,10 @@ executor pgJDBC y coordinadores bulk insert y temporary-table lookup.
 `PostgresBulkJdbcOperations<T>`. `BulkEncodingException` y
 `CopyExecutionException` son subtipos internos de la raíz pública `BulkException`; no se
 compromete una API de transporte antes de tener una operación pública que la necesite.
+
+En el adapter Spring Data JDBC, `DefaultSpringDataJdbcBulkOperations<T>` y sus seams de test son
+package-private. J2 no adelanta el fragmento previsto para J4 ni convierte esta clase en API de
+aplicación.
 
 ## `HibernateEntityMetadataResolver`
 

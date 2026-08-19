@@ -89,6 +89,20 @@ El ADR permanece `PROPOSED`: faltan el lane 3.5.0, converter directo a `JdbcValu
 subset actual) y la validación production de mixed-ID que pertenece a J2. Las decisiones ya
 demostradas se documentan en `spring-data-jdbc-metadata.md` sin elevar claims pendientes.
 
+## Evidencia J2 (2026-08-20)
+
+La metadata J1 alimenta sin adaptación intermedia al engine COPY real. PostgreSQL confirma
+`Money -> BigDecimal`, enum default -> String, enum custom -> Integer, embedded/nested nullable,
+`AggregateReference -> UUID`, FK, identifiers quoted/schema y assigned Long/UUID. Una entidad con
+ID generated omite la columna, PostgreSQL genera el ID y la instancia permanece sin modificar.
+
+El coordinador llama `resolveFor` para cada fila en la única pasada y exige la misma instancia de
+metadata cacheada que seleccionó la primera. Generated+assigned y assigned+generated fallan con
+posición one-based y tipo, sin valores; la política completa queda aceptada en ADR-026. Este ADR
+permanece `PROPOSED` únicamente por los gates generales ya enumerados —en especial el lane 3.5.0 y
+el alcance explícitamente rechazado de converter directo a `JdbcValue`—, no por falta de evidencia
+productiva de ID mixed.
+
 ## Alternativas evaluadas
 
 | Alternativa | Resultado |
