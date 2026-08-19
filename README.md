@@ -56,7 +56,7 @@ Maven:
 
 ```xml
 <dependency>
-  <groupId>io.github.postgresbulk</groupId>
+  <groupId>io.github.yravelo</groupId>
   <artifactId>postgres-bulk-spring-boot-starter</artifactId>
   <version>0.1.0-SNAPSHOT</version>
 </dependency>
@@ -70,7 +70,7 @@ repositories {
 }
 
 dependencies {
-    implementation("io.github.postgresbulk:postgres-bulk-spring-boot-starter:0.1.0-SNAPSHOT")
+    implementation("io.github.yravelo:postgres-bulk-spring-boot-starter:0.1.0-SNAPSHOT")
 }
 ```
 

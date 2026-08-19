@@ -75,6 +75,10 @@ asignación de la JVM benchmark. No se derivan claims universales.
 
 ## Evidencia
 
+Los JSON raw conservan los FQCN históricos con los que se ejecutaron el 2026-08-19. Phase 16B
+migra el código actual a `io.ybr.postgresbulk`; reescribir esos nombres en evidencia ya capturada
+falsearía su procedencia. Los valores numéricos no cambian por la migración.
+
 - [Raw baseline 1](raw/baseline-run-1.json) y [CSV](baseline-run-1.csv).
 - [Raw baseline 2](raw/baseline-run-2.json) y [CSV](baseline-run-2.csv).
 - [Raw 1M](raw/large-1m.json) y [CSV](large-1m.csv).

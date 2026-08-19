@@ -49,7 +49,7 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 - [x] `./mvnw --version`, `./mvnw validate` y `./mvnw clean verify` terminan correctamente.
 - [x] No existen fuentes Java ni se ha comenzado Phase 2.
 
-**Aprendizajes:** Toolchains se difiere porque `release=17` satisface el objetivo sin exigir otro JDK local. Testcontainers/ArchUnit se añadirán sólo en el primer módulo que los consuma. Surefire/Failsafe se fijaron en 3.5.4 porque Failsafe 3.6.0 aparecía en documentación adelantada pero no estaba publicado en Maven Central durante la validación. `io.github.postgresbulk` sigue provisional hasta verificar ownership; Apache-2.0 sí queda adoptada.
+**Aprendizajes:** Toolchains se difiere porque `release=17` satisface el objetivo sin exigir otro JDK local. Testcontainers/ArchUnit se añadirán sólo en el primer módulo que los consuma. Surefire/Failsafe se fijaron en 3.5.4 porque Failsafe 3.6.0 aparecía en documentación adelantada pero no estaba publicado en Maven Central durante la validación. El groupId usado en Phase 1 era provisional; Phase 16B lo sustituyó antes de la primera release. Apache-2.0 sí quedó adoptada.
 
 ## Phase 2 — Core domain and API
 
@@ -75,7 +75,8 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 - [x] `BulkWriteResult` contiene `affectedRows`/`batches`, valida sus conteos y omite duración, IDs y lifecycle ORM.
 - [x] `BulkException` establece una raíz unchecked y conserva causas; no se crean subtipos sin fallos concretos.
 - [x] La superficie pública queda inventariada en cuatro tipos con Javadocs y sin dependencias runtime.
-- [x] ADR-009 acepta la forma de API; ADR-010 acepta diferir lookup; ADR-006 y ADR-008 siguen PROPOSED.
+- [x] En el cierre de Phase 2, ADR-009 aceptó la forma de API, ADR-010 difirió lookup y ADR-006/
+      ADR-008 seguían `PROPOSED`; ADR-008 fue aceptado posteriormente en Phase 16B.
 - [x] Tests Java puro cubren defaults, invariantes, value semantics, null del overload, delegación genérica y causas.
 - [x] Spotless, unit tests y reactor completo terminan correctamente.
 - [x] No se han creado metadata, codecs, executors ni código de Phase 3.
@@ -178,7 +179,7 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 - [x] ADR-013 fija antes del código el contrato interno, API pgJDBC, ownership, lifecycle,
       error mapping, UTF-8 y SQL.
 - [x] Encoding, builder y executor forman el package package-private cohesivo
-      `io.github.postgresbulk.pgjdbc.copy`; core no cambia.
+      `io.ybr.postgresbulk.pgjdbc.copy`; core no cambia.
 - [x] El builder always-quote trata schema/tabla/columnas como componentes, duplica quotes
       y conserva el orden de metadata con el dialecto ADR-012 exacto.
 - [x] El executor usa `Connection.unwrap(PGConnection.class)`, `CopyIn`, buffer de 64 KiB,
@@ -599,7 +600,7 @@ tuning. La variación entre corridas impide thresholds finos.
 
 ## Phase 15 — Examples and documentation
 
-**Estado:** completada el 2026-08-19. Phase 16 no iniciada.
+**Estado:** completada el 2026-08-19. Phase 16 auditada posteriormente.
 
 - **Goal:** permitir adopción sin leer internals.
 - **Scope:** quickstart, app ejemplo, insert/lookup, keys compuestas, transactions, tuning, limitations y troubleshooting.
@@ -635,7 +636,7 @@ tuning. La variación entre corridas impide thresholds finos.
 - [x] `CONTRIBUTING.md` documenta Java, Wrapper, Docker, tests, compatibilidad, benchmarks,
       fronteras de módulos y expectativas de cambio.
 - [x] No cambian firmas ni comportamiento productivo; sólo contratos Javadoc, build/documentación,
-      examples y quality gates. No se inicia Phase 16.
+      examples y quality gates. Phase 16 no formó parte de este cierre.
 
 **Fricción documentada:** lookup requiere que el usuario declare columnas físicas y accessors de
 la key; generated IDs no regresan al objeto; Actuator es una dependencia opcional separada. No se
@@ -646,6 +647,9 @@ provenance, changelog/release notes, security/support policy y release automatio
 Phase 16.
 
 ## Phase 16 — Release readiness
+
+**Estado:** `PARTIALLY DONE` el 2026-08-19; ingeniería local completada y activación externa
+pendiente.
 
 - **Goal:** producir artefactos firmables y gobernables para publicación independiente.
 - **Scope:** licencia, notices, SCM/developer metadata, sources/Javadocs, signing, Central, semantic versioning, changelog, security/support policy y release automation.
@@ -658,6 +662,37 @@ Phase 16.
 - **Risks:** secretos/signing y API prematuramente estable.
 - **Dependencies:** todas las fases y aprobación de publicación.
 - **Definition of Done:** release candidate aprobada; publicación sigue siendo una acción separada y explícita.
+
+### Registro de cierre local de Phase 16
+
+- [x] Los seis módulos publicables producen POM, binario, sources y Javadocs con versión release;
+      benchmarks y examples permanecen fuera del staging.
+- [x] El dry-run local despliega a un repositorio de archivos y un consumidor aislado compila y
+      ejecuta sus pruebas contra esos artefactos sin depender del repositorio Maven habitual.
+- [x] Build reproducible, API baseline, auditoría de licencias, checksums SHA-256, changelog,
+      release notes, política de seguridad y criterios de aceptación quedan versionados.
+- [x] El perfil de publicación usa firma GPG y el plugin oficial de Central con publicación
+      automática desactivada; el workflow exige tag, entorno protegido, confirmación y secretos.
+- [x] Phase 16B fija `yravelo`, el repository privado previsto, `io.github.yravelo` para Maven e
+      `io.ybr.postgresbulk` para Java; ADR-008 queda `ACCEPTED` y la metadata anticipa la URL
+      aprobada sin afirmar que el repository exista.
+- [ ] Aprobar una release candidate y ejecutar signing/upload sólo después de configurar identidad,
+      namespace, repositorio remoto, credenciales y clave GPG fuera del repositorio.
+
+**Resultado:** la ingeniería local de release está preparada, pero la publicación pública no cumple
+la Definition of Done. No se publicó, no se creó tag y no se inicia ninguna fase posterior.
+
+### Phase 16B — identidad final y revalidación
+
+**Estado:** alcance técnico `DONE` el 2026-08-19; activación externa pendiente.
+
+- [x] Nombre, owner, repository privado previsto, Maven groupId y namespace Java quedan decididos.
+- [x] Coordinates, packages, recursos Spring, example, scripts, documentación y API baseline se
+      migran antes de la primera publicación.
+- [x] Registrar build baseline, staging final, consumer externo y comparación reproducible con la
+      identidad definitiva.
+- [ ] Crear repository/remote, verificar Central, habilitar security reporting y configurar
+      environment, secrets, signing y tag mediante acciones externas autorizadas.
 
 ## Gates transversales
 

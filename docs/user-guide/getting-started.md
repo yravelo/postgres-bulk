@@ -13,7 +13,7 @@ Add only the library starter to a normal Spring Boot 3.5 application:
 
 ```xml
 <dependency>
-  <groupId>io.github.postgresbulk</groupId>
+  <groupId>io.github.yravelo</groupId>
   <artifactId>postgres-bulk-spring-boot-starter</artifactId>
   <version>0.1.0-SNAPSHOT</version>
 </dependency>

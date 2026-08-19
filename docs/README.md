@@ -33,6 +33,9 @@ This index separates adoption guidance from implementation details.
 - [Architecture decision records](decisions/)
 - [Benchmark methodology](benchmarks/methodology.md)
 - [Benchmark baseline](benchmarks/baseline.md)
+- [0.1.0 release notes](releases/0.1.0.md)
+- [0.1.0 release readiness](releases/release-readiness.md)
+- [0.1.0 public API baseline](releases/0.1.0-public-api.txt)
 
 ## Planning
 

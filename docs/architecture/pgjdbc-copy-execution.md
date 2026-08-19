@@ -5,7 +5,7 @@
 Phase 5 añade al módulo `postgres-bulk-pgjdbc` la primitive interna que consume el encoder
 de Phase 4. No implementa batching, fachada bulk insert, adquisición de conexiones,
 Spring, Hibernate ni tablas temporales. Todos los tipos viven package-private en
-`io.github.postgresbulk.pgjdbc.copy`:
+`io.ybr.postgresbulk.pgjdbc.copy`:
 
 ```text
 EntityMetadata ──> CopySqlBuilder ──> COPY SQL

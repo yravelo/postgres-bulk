@@ -5,9 +5,9 @@
 Este documento enumera la superficie pública al cerrar Phase 15. Core añade el puerto
 `EntityMetadataResolver`; pgJDBC expone una fachada caller-owned y su callback anidado; Spring
 Data expone fragmento, resolver por persistence unit e implementación de infraestructura externa.
-Las coordenadas y el namespace siguen sujetos a ADR-008 mientras el proyecto permanezca en
-`0.1.0-SNAPSHOT`. Phases 10–12 no añaden operaciones para invocación directa; Boot requiere dos
-tipos públicos de infraestructura.
+ADR-008 fija las coordenadas Maven `io.github.yravelo` y el namespace Java
+`io.ybr.postgresbulk`. Phases 10–12 no añaden operaciones para invocación directa; Boot requiere
+dos tipos públicos de infraestructura.
 
 Los cuatro tipos de operacion son API, los cuatro descriptores de metadata son public SPI
 para productores/consumidores y el resolver Hibernate es API de adapter. No existe un SPI
@@ -18,7 +18,7 @@ publicos.
 
 - **Purpose:** fachada operation-centric ligada a un tipo logico; expresa bulk insert sin describir el mecanismo.
 - **Visibility:** public API.
-- **Stability:** ACCEPTED para Phase 2; el namespace sigue provisional.
+- **Stability:** ACCEPTED para Phase 2; namespace finalizado por ADR-008.
 - **Important invariants:** acepta `Iterable<? extends T>` de una pasada; input vacio devuelve `BulkWriteResult.empty()` sin batches; iterable/options null y elementos null son invalidos; no promete IDs generados, callbacks ORM, estado managed, streaming ni paralelismo.
 
 API exacta:
@@ -89,7 +89,7 @@ public class BulkException extends RuntimeException {
 
 - **Purpose:** identidad fisica neutral con schema opcional y tabla como componentes separados.
 - **Visibility:** public SPI value.
-- **Stability:** ACCEPTED por ADR-011; el namespace sigue provisional.
+- **Stability:** ACCEPTED por ADR-011; namespace finalizado por ADR-008.
 - **Important invariants:** componentes non-null/non-blank; ausencia de schema no usa string vacio; conserva texto exacto; no parsea, normaliza ni aplica quoting/reglas PostgreSQL; inmutable, thread-safe y con value semantics.
 
 API exacta:
@@ -211,7 +211,7 @@ custom tags/conventions. Tampoco existen command objects, metadata de
 ID/lifecycle/nullability ni una jerarquía genérica de resultados.
 
 Salvo la fachada `PostgresBulkJdbcOperations<T>`, el package
-`io.github.postgresbulk.pgjdbc.copy` contiene detalles package-private: registro de encoders,
+`io.ybr.postgresbulk.pgjdbc.copy` contiene detalles package-private: registro de encoders,
 representación NULL/texto, framing CSV, encoder de fila/key, quoting, builders SQL, callbacks,
 executor pgJDBC y coordinadores bulk insert y temporary-table lookup.
 `PostgresBulkInserter<T>` y `TemporaryTableBulkLookup<K>` permanecen internos detrás de
@@ -223,7 +223,7 @@ compromete una API de transporte antes de tener una operación pública que la n
 
 - **Purpose:** traducir una clase entidad del metamodelo runtime Hibernate 6.6 al descriptor neutral `EntityMetadata<T>`.
 - **Visibility:** public adapter API en `postgres-bulk-hibernate`.
-- **Stability:** ACCEPTED por ADR-004/016 para Hibernate 6.6; namespace provisional por ADR-008.
+- **Stability:** ACCEPTED por ADR-004/016 para Hibernate 6.6; namespace finalizado por ADR-008.
 - **Important invariants:** constructor ligado a un `EntityManagerFactory`; cache concurrente por instancia; no abre sesión; no filtra internals Hibernate; mappings unsupported fallan con `BulkException`.
 
 API exacta:

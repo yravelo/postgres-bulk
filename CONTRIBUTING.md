@@ -67,3 +67,19 @@ Keep changes within one phase/problem, add tests for failure paths, preserve roo
 sensitive values in errors or metrics. Update user documentation when observable behavior changes.
 Do not add generated IDs, retries, adaptive lookup or new mapping support merely to simplify an
 example; document friction and propose the behavior separately.
+
+## Release candidate dry-run
+
+The default build uses `0.1.0-SNAPSHOT` and never needs signing material. The `release` profile
+uses the same tracked POMs with an explicit CI-friendly version:
+
+```bash
+./scripts/release-dry-run.sh 0.1.0
+./scripts/audit-production-licenses.sh 0.1.0
+./scripts/compare-release-builds.sh 0.1.0
+```
+
+Run these commands from the repository root with Docker available. They write only under
+`target/`; no remote publication occurs. The `central-publish` profile is reserved for the manual,
+protected release workflow after all external prerequisites in
+[release readiness](docs/releases/release-readiness.md) are resolved.

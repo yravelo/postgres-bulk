@@ -33,7 +33,7 @@ La metadata mínima debe conservar nombres físicos ya resueltos, separar schema
 
 ## Decisión
 
-- Crear el package cohesivo `io.github.postgresbulk.core.metadata` con cuatro tipos **public SPI**:
+- Crear el package cohesivo `io.ybr.postgresbulk.core.metadata` con cuatro tipos **public SPI**:
   - `TableName`: schema opcional y nombre de tabla como componentes separados;
   - `ColumnMetadata<T>`: nombre físico exacto, `Class<?>` Java normalizada y accessor prerresuelto;
   - `EntityMetadata<T>`: tipo lógico, tabla y lista ordenada final de columnas insertables;

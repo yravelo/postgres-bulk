@@ -1,0 +1,131 @@
+# PostgreSQL Bulk 0.1.0 public binary API
+# Generated with scripts/generate-public-api.sh and javap -public.
+
+## postgres-bulk-core
+Compiled from "BulkException.java"
+public class io.ybr.postgresbulk.core.BulkException extends java.lang.RuntimeException {
+  public io.ybr.postgresbulk.core.BulkException(java.lang.String);
+  public io.ybr.postgresbulk.core.BulkException(java.lang.String, java.lang.Throwable);
+}
+Compiled from "BulkInsertOptions.java"
+public final class io.ybr.postgresbulk.core.BulkInsertOptions {
+  public static io.ybr.postgresbulk.core.BulkInsertOptions defaults();
+  public static io.ybr.postgresbulk.core.BulkInsertOptions ofBatchSize(int);
+  public int batchSize();
+  public boolean equals(java.lang.Object);
+  public int hashCode();
+  public java.lang.String toString();
+}
+Compiled from "BulkOperations.java"
+public interface io.ybr.postgresbulk.core.BulkOperations<T> {
+  public default io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.lang.Iterable<? extends T>);
+  public abstract io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.lang.Iterable<? extends T>, io.ybr.postgresbulk.core.BulkInsertOptions);
+}
+Compiled from "BulkWriteResult.java"
+public final class io.ybr.postgresbulk.core.BulkWriteResult extends java.lang.Record {
+  public io.ybr.postgresbulk.core.BulkWriteResult(long, int);
+  public static io.ybr.postgresbulk.core.BulkWriteResult empty();
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public long affectedRows();
+  public int batches();
+}
+Compiled from "BulkKeyMetadata.java"
+public final class io.ybr.postgresbulk.core.metadata.BulkKeyMetadata<K> {
+  public static <K> io.ybr.postgresbulk.core.metadata.BulkKeyMetadata<K> of(java.lang.Class<K>, java.util.List<? extends io.ybr.postgresbulk.core.metadata.ColumnMetadata<K>>);
+  public java.lang.Class<K> javaType();
+  public java.util.List<io.ybr.postgresbulk.core.metadata.ColumnMetadata<K>> components();
+}
+Compiled from "ColumnMetadata.java"
+public final class io.ybr.postgresbulk.core.metadata.ColumnMetadata<T> {
+  public static <T, V> io.ybr.postgresbulk.core.metadata.ColumnMetadata<T> of(java.lang.String, java.lang.Class<V>, java.util.function.Function<? super T, ? extends V>);
+  public java.lang.String columnName();
+  public java.lang.Class<?> javaType();
+  public java.lang.Object read(T);
+}
+Compiled from "EntityMetadata.java"
+public final class io.ybr.postgresbulk.core.metadata.EntityMetadata<T> {
+  public static <T> io.ybr.postgresbulk.core.metadata.EntityMetadata<T> of(java.lang.Class<T>, io.ybr.postgresbulk.core.metadata.TableName, java.util.List<? extends io.ybr.postgresbulk.core.metadata.ColumnMetadata<T>>);
+  public java.lang.Class<T> javaType();
+  public io.ybr.postgresbulk.core.metadata.TableName table();
+  public java.util.List<io.ybr.postgresbulk.core.metadata.ColumnMetadata<T>> insertColumns();
+}
+Compiled from "EntityMetadataResolver.java"
+public interface io.ybr.postgresbulk.core.metadata.EntityMetadataResolver {
+  public abstract <T> io.ybr.postgresbulk.core.metadata.EntityMetadata<T> resolve(java.lang.Class<T>);
+}
+Compiled from "TableName.java"
+public final class io.ybr.postgresbulk.core.metadata.TableName {
+  public static io.ybr.postgresbulk.core.metadata.TableName of(java.lang.String);
+  public static io.ybr.postgresbulk.core.metadata.TableName of(java.lang.String, java.lang.String);
+  public java.util.Optional<java.lang.String> schema();
+  public java.lang.String table();
+  public boolean equals(java.lang.Object);
+  public int hashCode();
+  public java.lang.String toString();
+}
+
+## postgres-bulk-pgjdbc
+Compiled from "PostgresBulkJdbcOperations.java"
+public interface io.ybr.postgresbulk.pgjdbc.copy.PostgresBulkJdbcOperations$LookupResultMapper<R> {
+  public abstract R map(java.sql.Connection, java.lang.String, long) throws java.sql.SQLException;
+}
+Compiled from "PostgresBulkJdbcOperations.java"
+public final class io.ybr.postgresbulk.pgjdbc.copy.PostgresBulkJdbcOperations<T> {
+  public static <T> io.ybr.postgresbulk.pgjdbc.copy.PostgresBulkJdbcOperations<T> prepare(io.ybr.postgresbulk.core.metadata.EntityMetadata<T>);
+  public io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.sql.Connection, java.lang.Iterable<? extends T>);
+  public io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.sql.Connection, java.lang.Iterable<? extends T>, io.ybr.postgresbulk.core.BulkInsertOptions);
+  public <K, R> R findAllByBulkKey(java.sql.Connection, java.lang.Iterable<? extends K>, io.ybr.postgresbulk.core.metadata.BulkKeyMetadata<K>, R, io.ybr.postgresbulk.pgjdbc.copy.PostgresBulkJdbcOperations$LookupResultMapper<R>);
+}
+
+## postgres-bulk-hibernate
+Compiled from "HibernateEntityMetadataResolver.java"
+public final class io.ybr.postgresbulk.hibernate.HibernateEntityMetadataResolver implements io.ybr.postgresbulk.core.metadata.EntityMetadataResolver {
+  public io.ybr.postgresbulk.hibernate.HibernateEntityMetadataResolver(jakarta.persistence.EntityManagerFactory);
+  public <T> io.ybr.postgresbulk.core.metadata.EntityMetadata<T> resolve(java.lang.Class<T>);
+}
+
+## postgres-bulk-spring-data
+Compiled from "DefaultPostgresBulkOperations.java"
+public class io.ybr.postgresbulk.springdata.repository.DefaultPostgresBulkOperations<T, ID> implements io.ybr.postgresbulk.springdata.repository.PostgresBulkRepository<T, ID>, org.springframework.data.repository.core.support.RepositoryMetadataAccess {
+  public io.ybr.postgresbulk.springdata.repository.DefaultPostgresBulkOperations(org.springframework.data.jpa.repository.JpaContext, io.ybr.postgresbulk.springdata.repository.JpaEntityMetadataResolver);
+  public io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.lang.Iterable<? extends T>, io.ybr.postgresbulk.core.BulkInsertOptions);
+  public <K> java.util.List<T> findAllByBulkKey(java.lang.Iterable<? extends K>, io.ybr.postgresbulk.core.metadata.BulkKeyMetadata<K>);
+}
+Compiled from "JpaEntityMetadataResolver.java"
+public interface io.ybr.postgresbulk.springdata.repository.JpaEntityMetadataResolver {
+  public abstract <T> io.ybr.postgresbulk.core.metadata.EntityMetadata<T> resolve(jakarta.persistence.EntityManagerFactory, java.lang.Class<T>);
+  public static io.ybr.postgresbulk.springdata.repository.JpaEntityMetadataResolver caching(java.util.function.Function<? super jakarta.persistence.EntityManagerFactory, ? extends io.ybr.postgresbulk.core.metadata.EntityMetadataResolver>);
+}
+Compiled from "PostgresBulkRepository.java"
+public interface io.ybr.postgresbulk.springdata.repository.PostgresBulkRepository<T, ID> extends io.ybr.postgresbulk.core.BulkOperations<T> {
+  public default io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.lang.Iterable<? extends T>);
+  public abstract io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.lang.Iterable<? extends T>, io.ybr.postgresbulk.core.BulkInsertOptions);
+  public abstract <K> java.util.List<T> findAllByBulkKey(java.lang.Iterable<? extends K>, io.ybr.postgresbulk.core.metadata.BulkKeyMetadata<K>);
+}
+
+## postgres-bulk-spring-boot-autoconfigure
+Compiled from "PostgresBulkAutoConfiguration.java"
+public final class io.ybr.postgresbulk.autoconfigure.PostgresBulkAutoConfiguration {
+}
+Compiled from "PostgresBulkProperties.java"
+public final class io.ybr.postgresbulk.autoconfigure.PostgresBulkProperties$Observability extends java.lang.Record {
+  public io.ybr.postgresbulk.autoconfigure.PostgresBulkProperties$Observability(boolean);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public boolean enabled();
+}
+Compiled from "PostgresBulkProperties.java"
+public final class io.ybr.postgresbulk.autoconfigure.PostgresBulkProperties extends java.lang.Record {
+  public io.ybr.postgresbulk.autoconfigure.PostgresBulkProperties(boolean, io.ybr.postgresbulk.autoconfigure.PostgresBulkProperties$Observability);
+  public final java.lang.String toString();
+  public final int hashCode();
+  public final boolean equals(java.lang.Object);
+  public boolean enabled();
+  public io.ybr.postgresbulk.autoconfigure.PostgresBulkProperties$Observability observability();
+}
+
+## postgres-bulk-spring-boot-starter
+# Dependency-only starter: no production classes.

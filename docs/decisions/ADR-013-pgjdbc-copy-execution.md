@@ -27,7 +27,7 @@ Fuentes primarias:
 ### Responsabilidad y visibilidad
 
 Mantener encoding, SQL y ejecución en un único package cohesivo
-`io.github.postgresbulk.pgjdbc.copy`. Los tipos de Phase 4 se moverán desde el package
+`io.ybr.postgresbulk.pgjdbc.copy`. Los tipos de Phase 4 se moverán desde el package
 `encoding`; siguen siendo package-private. Phase 5 añade también sólo tipos
 package-private:
 

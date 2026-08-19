@@ -28,7 +28,7 @@ Fuentes primarias:
 ### Ubicación y fronteras
 
 Todo el mecanismo reside en `postgres-bulk-pgjdbc`, bajo el package interno cohesivo
-`io.github.postgresbulk.pgjdbc.copy`. Core no cambia. Se mantienen tres pasos
+`io.ybr.postgresbulk.pgjdbc.copy`. Core no cambia. Se mantienen tres pasos
 independientes:
 
 1. un encoder tipado convierte un valor Java no-null en texto lógico;

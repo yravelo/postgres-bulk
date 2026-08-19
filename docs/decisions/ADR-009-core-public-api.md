@@ -46,7 +46,8 @@ Phase 2 debe materializar un contrato pequeno para bulk insert sin filtrar conce
 - `BulkInsertOptions` es una clase final inmutable con factories `defaults()` y `ofBatchSize(int)`; no necesita builder. El default inicial es 1.000 filas.
 - `BulkWriteResult` es un record inmutable con `affectedRows` y `batches`. Ambos proceden de una ejecucion completada; no incluye duracion, IDs generados ni datos de lifecycle. Sus invariantes impiden conteos negativos, batches sin filas, filas sin batches y mas batches que filas.
 - Se publica solo `BulkException`, unchecked, con constructores que permiten conservar la causa. Los errores de argumentos/value objects usan `IllegalArgumentException`; los nulls de contrato usan `NullPointerException` descriptivo. Subtipos de metadata, mapping o ejecucion se difieren hasta que exista comportamiento real.
-- Los cuatro tipos viven juntos en `io.github.postgresbulk.core`. El namespace sigue siendo provisional segun ADR-008; usarlo no cambia aquel ADR a ACCEPTED.
+- Los cuatro tipos viven juntos en `io.ybr.postgresbulk.core`. En Phase 2 la raíz era provisional;
+  Phase 16B la fijó como namespace definitivo mediante ADR-008.
 - Metadata, value encoding y execution no se materializan en Phase 2: metadata comienza en Phase 3; encoding y executors dependen de los mecanismos de fases posteriores.
 
 ## Consecuencias
