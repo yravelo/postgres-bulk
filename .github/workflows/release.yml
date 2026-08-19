@@ -1,0 +1,136 @@
+name: Release candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: SemVer release version (for example 0.1.0)
+        required: true
+        type: string
+      git_ref:
+        description: Commit or tag to inspect
+        required: true
+        type: string
+      publish_to_central:
+        description: Upload a signed bundle to Central for manual review
+        required: true
+        default: false
+        type: boolean
+      confirmation:
+        description: Type "publish <version>" only when upload is intended
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  candidate:
+    name: Build and inspect release candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.git_ref }}
+
+      - name: Validate inputs and clean checkout
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+          PUBLISH_TO_CENTRAL: ${{ inputs.publish_to_central }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          [[ "${RELEASE_VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]
+          [[ "${RELEASE_VERSION}" != *SNAPSHOT* ]]
+          [[ -z "$(git status --short)" ]]
+          if [[ "${PUBLISH_TO_CENTRAL}" == "true" ]]; then
+            [[ "${CONFIRMATION}" == "publish ${RELEASE_VERSION}" ]]
+          fi
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+          cache-dependency-path: |
+            code/postgres-bulk-parent/pom.xml
+            code/postgres-bulk-parent/*/pom.xml
+            examples/spring-boot-basic/pom.xml
+
+      - name: Full normal build
+        working-directory: code/postgres-bulk-parent
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify
+
+      - name: Documentation and link gates
+        run: ./scripts/check-documentation.sh
+
+      - name: Local staging and isolated consumer
+        run: ./scripts/release-dry-run.sh "${{ inputs.version }}"
+
+      - name: Production dependency license audit
+        run: ./scripts/audit-production-licenses.sh "${{ inputs.version }}"
+
+      - name: Public API baseline
+        run: ./scripts/generate-public-api.sh --check
+
+      - name: Reproducibility comparison
+        run: ./scripts/compare-release-builds.sh "${{ inputs.version }}"
+
+      - name: Diff and secret-pattern audit
+        run: |
+          git diff --check
+          ! rg -n --hidden -g '!target/**' -g '!.git/**' \
+            'BEGIN (RSA |EC |OPENSSH |PGP )?PRIVATE KEY|centralPassword\s*=|token\s*[:=]\s*[A-Za-z0-9_-]{24,}' .
+
+      - name: Upload inspected local candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: postgres-bulk-${{ inputs.version }}-release-candidate
+          path: |
+            target/release-staging
+            target/release-audit
+            target/reproducibility/*/SHA256SUMS
+          if-no-files-found: error
+
+  central-upload:
+    name: Signed Central upload (manual Portal release)
+    needs: candidate
+    if: ${{ inputs.publish_to_central }}
+    runs-on: ubuntu-latest
+    environment: maven-central
+    timeout-minutes: 60
+    steps:
+      - name: Check out exact release ref
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.git_ref }}
+
+      - name: Require exact version tag
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: test "$(git describe --exact-match --tags HEAD)" = "v${RELEASE_VERSION}"
+
+      - name: Set up Java, Central token and OpenPGP key
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          server-id: central
+          server-username: CENTRAL_USERNAME
+          server-password: CENTRAL_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-passphrase: GPG_PASSPHRASE
+
+      - name: Upload signed bundle for manual Central review
+        working-directory: code/postgres-bulk-parent
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        run: >-
+          ./mvnw --batch-mode --no-transfer-progress
+          -Prelease,central-publish
+          -Drevision=${{ inputs.version }}
+          clean deploy

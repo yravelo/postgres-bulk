@@ -1,1 +1,1 @@
-io.github.postgresbulk.springdata.repository.PostgresBulkRepository=io.github.postgresbulk.springdata.repository.DefaultPostgresBulkOperations
+io.ybr.postgresbulk.springdata.repository.PostgresBulkRepository=io.ybr.postgresbulk.springdata.repository.DefaultPostgresBulkOperations

@@ -11,15 +11,16 @@
     <relativePath />
   </parent>
 
-  <groupId>io.github.postgresbulk.examples</groupId>
+  <groupId>io.github.yravelo.examples</groupId>
   <artifactId>spring-boot-basic</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>${revision}</version>
   <name>PostgreSQL Bulk Spring Boot Basic Example</name>
   <description>Standalone consumer example for the PostgreSQL Bulk starter</description>
 
   <properties>
+    <revision>0.1.0-SNAPSHOT</revision>
     <java.version>17</java.version>
-    <postgres-bulk.version>0.1.0-SNAPSHOT</postgres-bulk.version>
+    <postgres-bulk.version>${revision}</postgres-bulk.version>
     <testcontainers.version>2.0.5</testcontainers.version>
     <google-java-format.version>1.28.0</google-java-format.version>
     <spotless-maven-plugin.version>3.9.0</spotless-maven-plugin.version>
@@ -42,15 +43,10 @@
 
   <dependencies>
     <dependency>
-      <groupId>io.github.postgresbulk</groupId>
+      <groupId>io.github.yravelo</groupId>
       <artifactId>postgres-bulk-spring-boot-starter</artifactId>
       <version>${postgres-bulk.version}</version>
     </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
-
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
@@ -102,4 +98,27 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>staged</id>
+      <activation>
+        <property>
+          <name>postgres-bulk.staging-url</name>
+        </property>
+      </activation>
+      <repositories>
+        <repository>
+          <id>postgres-bulk-local-staging</id>
+          <url>${postgres-bulk.staging-url}</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
 </project>

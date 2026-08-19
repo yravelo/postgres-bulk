@@ -4,12 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>io.github.postgresbulk</groupId>
+    <groupId>io.github.yravelo</groupId>
     <artifactId>postgres-bulk-parent</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>${revision}</version>
   </parent>
   <artifactId>postgres-bulk-spring-data</artifactId>
   <name>PostgreSQL Bulk Spring Data Adapter</name>
+  <description>Spring Data JPA repository fragments and transaction integration for bulk operations</description>
 
   <dependencies>
     <dependency>
