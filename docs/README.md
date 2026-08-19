@@ -22,6 +22,7 @@ This index separates adoption guidance from implementation details.
 - [Bulk lookup](architecture/bulk-lookup.md)
 - [Transactions and failures](architecture/transactions-and-failures.md)
 - [Spring Boot auto-configuration](architecture/spring-boot-autoconfiguration.md)
+- [Spring Data JDBC J0 investigation](architecture/spring-data-jdbc-investigation.md)
 
 ## Compatibility
 
@@ -41,3 +42,4 @@ This index separates adoption guidance from implementation details.
 
 - [Implementation plan](plans/implementation-plan.md)
 - [Release acceptance criteria](plans/release-acceptance-criteria.md)
+- [Spring Data JDBC roadmap](plans/spring-data-jdbc-roadmap.md)
