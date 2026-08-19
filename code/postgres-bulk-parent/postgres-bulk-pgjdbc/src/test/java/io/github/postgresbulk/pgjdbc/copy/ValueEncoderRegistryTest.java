@@ -78,6 +78,9 @@ class ValueEncoderRegistryTest {
 
   @Test
   void encodesTemporalValuesWithIsoFormatsAndExplicitOffsets() {
+    assertEquals(
+        "2026-08-18",
+        encode(java.sql.Date.class, java.sql.Date.valueOf(LocalDate.of(2026, 8, 18))));
     assertEquals("2026-08-18", encode(LocalDate.class, LocalDate.of(2026, 8, 18)));
     assertEquals(
         "12:34:56.123456789", encode(LocalTime.class, LocalTime.of(12, 34, 56, 123456789)));

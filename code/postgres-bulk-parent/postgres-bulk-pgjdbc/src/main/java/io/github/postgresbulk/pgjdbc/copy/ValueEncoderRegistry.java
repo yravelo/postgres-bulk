@@ -34,6 +34,11 @@ final class ValueEncoderRegistry {
               Map.entry(Boolean.class, value -> (Boolean) value ? "true" : "false"),
               Map.entry(UUID.class, value -> ((UUID) value).toString()),
               Map.entry(
+                  java.sql.Date.class,
+                  value ->
+                      DateTimeFormatter.ISO_LOCAL_DATE.format(
+                          ((java.sql.Date) value).toLocalDate())),
+              Map.entry(
                   LocalDate.class,
                   value -> DateTimeFormatter.ISO_LOCAL_DATE.format((LocalDate) value)),
               Map.entry(
