@@ -1,6 +1,6 @@
 # Criterios de aceptación de la primera release pública
 
-Estado auditado para el candidato `0.1.0` tras Phase 16D. Cada criterio usa exclusivamente `PASS`,
+Estado auditado para el candidato `0.1.0` tras Phase 16E. Cada criterio usa exclusivamente `PASS`,
 `BLOCKED`, `EXTERNAL PREREQUISITE` o `DEFERRED (non-blocking)`.
 
 ## Funcionalidad
@@ -85,24 +85,37 @@ Estado auditado para el candidato `0.1.0` tras Phase 16D. Cada criterio usa excl
 - **PASS** — `${revision}` cambia SNAPSHOT/release sin editar múltiples POMs.
 - **PASS** — Maven Central Publisher Portal y el plugin oficial `0.11.0` son el target, sin
   endpoints legacy y con `autoPublish=false`.
-- **EXTERNAL PREREQUISITE** — Entrar al Portal con GitHub `yravelo`, confirmar cuenta/namespace
-  `io.github.yravelo` y generar un user token; el estado actual es UNKNOWN.
-- **PASS** — El environment vacío `maven-central` existe y el upload está aislado en él.
-- **EXTERNAL PREREQUISITE** — El plan actual del repository privado no ofrece secrets/protection
-  utilizables en environments; los cuatro secret names están MISSING.
+- **PASS** — El owner confirma `io.github.yravelo` como `VERIFIED` en Maven Central Portal; no se
+  almacena screenshot, sesión ni token.
+- **PASS** — Repository Secrets es la frontera aprobada para el repo privado y single-maintainer;
+  sus límites y el riesgo de workflows con write access están documentados en ADR-023.
+- **DEFERRED (non-blocking)** — El environment vacío `maven-central` permanece como marcador inerte
+  y el workflow no lo referencia porque el plan no aporta secrets/protections utilizables.
+- **EXTERNAL PREREQUISITE** — Los cuatro Repository Secret names siguen MISSING; no se generó el
+  Portal token ni se configuró ningún valor.
 - **EXTERNAL PREREQUISITE** — Crear/proteger la clave OpenPGP real y distribuir su public key.
 - **PASS** — `origin` usa SSH, `main` está publicado y las URLs de project/SCM coinciden con el
   repository privado real.
 - **PASS** — Build remoto `32264391877` y los 10 jobs de Compatibility `32264393355` terminaron
   correctamente para `7b7c0f6394c8220f1149ef2fb21c718e535522bb`.
-- **EXTERNAL PREREQUISITE** — Resolver el canal privado, crear `v0.1.0` y autorizar el upload.
-- **PASS** — Workflow manual exige versión, tag, confirmación, environment y deja `autoPublish=false`.
+- **PASS** — El hardening SHA `457681c7be28222fa2cd5b715f613da8523abc5a` pasa Build
+  `32274812469` y los 10 jobs de Compatibility `32274812453` (PostgreSQL 16.14 pasó al reintentar
+  únicamente el job fallido, sin cambios ni reducción de matriz).
+- **EXTERNAL PREREQUISITE** — Crear `v0.1.0` y autorizar upload/publicación; el canal privado sigue
+  diferido como non-blocking.
+- **PASS** — Release es `workflow_dispatch` only desde `main` por `yravelo`; exige stable SemVer,
+  full SHA perteneciente a `origin/main`, publish intent y confirmación literal.
+- **PASS** — Upload depende del candidate exitoso y vuelve a exigir que `v<version>` resuelva al
+  mismo SHA; no puede publicar un branch arbitrario por introducir una versión.
+- **PASS** — Sólo `central-upload` referencia los cuatro secrets, todas las Actions están pinned por
+  SHA, `GITHUB_TOKEN` conserva `contents: read`, concurrency no cancela y `autoPublish=false`.
+- **PASS** — Fork PRs y Dependabot no reciben Actions secrets en condiciones documentadas; release
+  no usa `pull_request_target`, `workflow_run`, push, PR ni schedule.
 - **PASS** — Hubo push de `main`; no se creó tag ni se ejecutó release, upload o publicación.
 
 ## Veredicto
 
-La ingeniería local del candidato está cerrada y no quedan blockers técnicos. La release pública
-sigue **NOT READY** mientras no se completen los external prerequisites de Central, environment,
-secrets, OpenPGP, tag y autorización de publicación. Phase 16D queda `DONE` en preparación; Phase
-16 permanece `PARTIALLY DONE` hasta confirmar Central, proveer signing/credentials y disponer de
-secrets protegidos utilizables.
+La ingeniería y la frontera técnica de Phase 16 están cerradas. El proyecto queda **READY FOR
+CREDENTIAL ACTIVATION**; la release pública aún no está autorizada ni ejecutable hasta generar el
+Portal token/clave, configurar los cuatro Repository Secrets, crear el tag exacto y autorizar
+upload/publicación. Phase 16E queda `DONE`; esas acciones son activación manual, no Phase 17.

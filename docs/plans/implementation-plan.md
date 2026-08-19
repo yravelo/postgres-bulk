@@ -648,8 +648,8 @@ Phase 16.
 
 ## Phase 16 — Release readiness
 
-**Estado:** `PARTIALLY DONE` el 2026-08-19; ingeniería, CI remoto y configuración de release
-completados, pero credenciales/signing protegidos y publicación siguen pendientes.
+**Estado:** preparación técnica `DONE` el 2026-08-19 tras Phase 16E; credential activation y
+publicación siguen intencionalmente pendientes y no forman Phase 17.
 
 - **Goal:** producir artefactos firmables y gobernables para publicación independiente.
 - **Scope:** licencia, notices, SCM/developer metadata, sources/Javadocs, signing, Central, semantic versioning, changelog, security/support policy y release automation.
@@ -672,17 +672,20 @@ completados, pero credenciales/signing protegidos y publicación siguen pendient
 - [x] Build reproducible, API baseline, auditoría de licencias, checksums SHA-256, changelog,
       release notes, política de seguridad y criterios de aceptación quedan versionados.
 - [x] El perfil de publicación usa firma GPG y el plugin oficial de Central con publicación
-      automática desactivada; el workflow exige tag, entorno protegido, confirmación y secretos.
+      automática desactivada; el workflow exige candidate, SHA/tag exactos, confirmación y secrets.
 - [x] Phase 16B fija `yravelo`, el repository privado previsto, `io.github.yravelo` para Maven e
       `io.ybr.postgresbulk` para Java; ADR-008 queda `ACCEPTED` y la metadata anticipa la URL
       aprobada sin afirmar que el repository exista.
 - [x] Phase 16C crea el repository PRIVATE, configura `origin`, publica `main` y valida Build más
       los 10 jobs de Compatibility en GitHub sin ejecutar Benchmarks ni Release candidate.
-- [ ] Aprobar una release candidate y ejecutar signing/upload sólo después de configurar identidad,
-      namespace, repositorio remoto, credenciales y clave GPG fuera del repositorio.
+- [x] Phase 16E confirma el namespace Central y adopta Repository Secrets con threat model y gates
+      verificables, sin crear ningún secret, clave, token o tag.
+- [ ] Activar credenciales y ejecutar signing/upload sólo con autorización separada, una vez creada
+      la clave/token fuera del repositorio y configurados los cuatro Repository Secrets.
 
-**Resultado:** la ingeniería local de release está preparada, pero la publicación pública no cumple
-la Definition of Done. No se publicó, no se creó tag y no se inicia ninguna fase posterior.
+**Resultado:** la preparación técnica de release cumple la Definition of Done de Phase 16; la
+activación/publicación pública sigue separada y requiere autorización. No se publicó, no se creó
+tag y no se inicia ninguna fase posterior.
 
 ### Phase 16B — identidad final y revalidación
 
@@ -693,8 +696,9 @@ la Definition of Done. No se publicó, no se creó tag y no se inicia ninguna fa
       migran antes de la primera publicación.
 - [x] Registrar build baseline, staging final, consumer externo y comparación reproducible con la
       identidad definitiva.
-- [ ] Verificar Central, resolver security reporting y configurar environment, secrets, signing y
-      tag mediante acciones externas autorizadas.
+- [x] Verificar el namespace Central y resolver la estrategia de secrets mediante Phase 16E.
+- [ ] Resolver security reporting y activar secrets, signing y tag mediante acciones externas
+      autorizadas.
 
 ### Phase 16C — repository privado y CI remoto
 
@@ -712,12 +716,12 @@ la Definition of Done. No se publicó, no se creó tag y no se inicia ninguna fa
 - [x] Private Vulnerability Reporting permanece no disponible (API 404) y branch rules requiere
       GitHub Pro o visibilidad pública; ambas limitaciones se documentan como non-blocking y no se
       cambió PRIVATE.
-- [ ] Central account/namespace, environment protection/secrets, OpenPGP, tag, release, upload y
-      publicación siguen pendientes.
+- [x] Namespace y secrets boundary se resuelven posteriormente en Phase 16E.
+- [ ] OpenPGP, Portal token, secret values, tag, release, upload y publicación siguen pendientes.
 
 ### Phase 16D — Central, signing y release environment
 
-**Estado:** alcance de preparación `DONE` el 2026-08-19; Phase 16 global sigue `PARTIALLY DONE`.
+**Estado:** alcance de preparación `DONE` el 2026-08-19; pendientes transferidos a Phase 16E.
 
 - [x] Flujo oficial Central actual, token, requisitos POM, OpenPGP, keyservers y lifecycle manual
       quedan verificados y documentados sin usar OSSRH legacy.
@@ -729,10 +733,37 @@ la Definition of Done. No se publicó, no se creó tag y no se inicia ninguna fa
 - [x] Inventario por nombre: `CENTRAL_USERNAME`, `CENTRAL_PASSWORD`, `GPG_PRIVATE_KEY` y
       `GPG_PASSPHRASE` están MISSING; ningún valor fue solicitado o mostrado.
 - [x] Dry-run repetido: 25 artifacts, cero SNAPSHOT, sin benchmark/example y consumer aislado PASS.
-- [ ] Cuenta y namespace Central permanecen UNKNOWN hasta login manual del owner.
-- [ ] El repository privado no dispone de secrets/protection de environment bajo el entitlement
-      actual; se requiere soporte de plan o una alternativa explícitamente aprobada.
+- [x] Phase 16E registra `io.github.yravelo` como `VERIFIED` por confirmación del owner.
+- [x] El repository privado no dispone de secrets/protection de environment bajo el entitlement
+      actual; Phase 16E aprueba Repository Secrets como alternativa explícita.
 - [ ] Clave real, secrets, tag, release workflow, upload y publicación permanecen sin ejecutar.
+
+### Phase 16E — namespace verificado y frontera segura de secrets
+
+**Estado:** `DONE` el 2026-08-19; Phase 17 no iniciada.
+
+- [x] `gh auth status`, repository PRIVATE, working tree y sincronía `HEAD == origin/main`
+      reconfirmados antes del cambio.
+- [x] Namespace Central `io.github.yravelo` registrado como owner-confirmed `VERIFIED`.
+- [x] Repository Secrets, Environment Secrets, release local, cambio de plan y apertura del
+      repository comparados con documentación oficial actual.
+- [x] Repository Secrets elegidos para el threat model private/single-maintainer, con reevaluación
+      obligatoria si cambian acceso, visibilidad o plan.
+- [x] Release queda `workflow_dispatch` only; owner/default-branch gate, stable SemVer, full SHA,
+      confirmación literal, pertenencia a `main` y exact tag/commit gate quedan estáticos.
+- [x] `central-upload` depende de candidate, mantiene `contents: read`, Actions pinned, concurrency
+      sin cancelación, `autoPublish=false` y contiene las únicas cuatro referencias a secrets.
+- [x] `maven-central` se conserva remoto como marcador inerte pero se retira del workflow para no
+      presentarlo como una protection boundary inexistente.
+- [x] GPG import/cleanup, Maven settings temporal, Central credentials y prohibiciones de logging
+      quedan documentados; key/keyring/settings no forman parte de artifacts ni bundle.
+- [x] Hardening SHA `457681c7be28222fa2cd5b715f613da8523abc5a`: Build `32274812469`
+      PASS y Compatibility `32274812453` 10/10 PASS tras reintentar sólo PostgreSQL 16.14, sin
+      cambios de código ni reducción de matriz.
+- [x] No se generaron ni configuraron credenciales, clave o secret values; no hubo tag, workflow
+      Release, benchmark, upload ni publicación.
+- [ ] Generar token/clave, configurar cuatro Repository Secrets y autorizar tag/upload/publicación
+      son prerrequisitos manuales de activación posteriores al cierre técnico de Phase 16.
 
 ## Gates transversales
 

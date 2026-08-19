@@ -87,9 +87,9 @@ protected release workflow after all external prerequisites in
 ## Central and OpenPGP activation (owner only)
 
 Central uses the Publisher Portal, not the legacy OSSRH workflow. Sign in at
-`https://central.sonatype.com` using GitHub identity `yravelo`. In Publishing Settings, confirm
-that `io.github.yravelo` is verified; if it is absent, add that exact namespace and follow its
-verification flow or contact Central Support. Then generate a named, expiring user token at
+`https://central.sonatype.com` using GitHub identity `yravelo`. The owner confirmed on 2026-08-19
+that `io.github.yravelo` is `VERIFIED`. Reconfirm that state before activation, then generate a
+named, expiring user token at
 `https://central.sonatype.com/usertoken`. Its generated username/password pair maps to
 `CENTRAL_USERNAME` and `CENTRAL_PASSWORD`; neither value belongs in this repository or chat.
 
@@ -111,18 +111,25 @@ Verify the imported fingerprint matches before continuing. `keyserver.ubuntu.com
 sent to them. Keep `private-key.asc` and its passphrase separate and remove the export from normal
 storage after GitHub configuration according to the owner's secure deletion policy.
 
-After the private repository has GitHub environment-secret support, configure the four required
-names directly in `maven-central`. `gh secret set` without `--body` reads interactively; the
-armored key can be read from a protected file without placing its content in shell history:
+Phase 16E explicitly selects Actions Repository Secrets for the current private, single-maintainer
+repository. The existing `maven-central` environment is not used by the workflow because it has no
+effective secrets or protection rules under the current plan. `gh secret set` without `--body`
+reads interactively; the armored key can be read from a protected file without placing its content
+in shell history:
 
 ```bash
-gh secret set CENTRAL_USERNAME --repo yravelo/postgres-bulk --env maven-central
-gh secret set CENTRAL_PASSWORD --repo yravelo/postgres-bulk --env maven-central
-gh secret set GPG_PRIVATE_KEY --repo yravelo/postgres-bulk --env maven-central < /secure/path/private-key.asc
-gh secret set GPG_PASSPHRASE --repo yravelo/postgres-bulk --env maven-central
+gh secret set CENTRAL_USERNAME --repo yravelo/postgres-bulk
+gh secret set CENTRAL_PASSWORD --repo yravelo/postgres-bulk
+gh secret set GPG_PRIVATE_KEY --repo yravelo/postgres-bulk < /secure/path/private-key.asc
+gh secret set GPG_PASSPHRASE --repo yravelo/postgres-bulk
+gh secret list --repo yravelo/postgres-bulk --app actions
 ```
 
-Do not use repository-level secrets as a silent fallback. The current private-repository
-entitlement does not make environment secrets/protection available; changing that security model
-requires a separate explicit decision. Creating the tag, executing the release workflow, uploading
-to Central and publishing are also separate authorized actions.
+The list command verifies names only; never request or display values. Before dispatch, review the
+workflow on `main`, resolve the full 40-character candidate SHA, and ensure it belongs to
+`origin/main`. Candidate-only confirmation is `candidate <version>`; upload confirmation is
+`publish <version>`. Upload additionally requires `v<version>` to point exactly to that SHA. Never
+enable shell tracing or print the environment in the upload job. Creating the tag, executing the
+workflow, uploading and publishing in Central are separate authorized actions. Reevaluate this
+storage decision before adding write collaborators, making the repository public or changing the
+GitHub plan.

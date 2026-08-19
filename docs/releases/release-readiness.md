@@ -2,10 +2,10 @@
 
 ## Verdict
 
-The final project identity is approved and the private GitHub repository and remote CI are active,
-but `0.1.0` is **not ready for public publication**. The Central account/namespace, publishing
-credentials, signing material and usable protected environment secrets remain external
-prerequisites. No tag, release candidate workflow, Central upload or publication was executed.
+The final project identity, private GitHub repository, Central namespace and secure-secrets model
+are approved. Phase 16 is technically ready for credential activation, but `0.1.0` is **not ready
+for public publication**: the real Portal token, signing material, four secret values, tag, upload
+and Portal publication remain intentionally withheld. No release or benchmark workflow ran.
 
 ## Final identity
 
@@ -56,11 +56,9 @@ publishing binary artifacts to Maven Central and does not promise a future publi
 Target: Maven Central Publisher Portal using Sonatype's official plugin with
 `autoPublish=false`.
 
-Central account: **UNKNOWN — PENDING USER ACTION**. Namespace `io.github.yravelo`: **UNKNOWN**.
-Neither can be queried safely without an authenticated Portal session. The owner must sign in with
-GitHub identity `yravelo`, confirm the automatically provisioned namespace or add/verify exactly
-`io.github.yravelo`, and then generate a Portal user token. Matching the GitHub username alone is
-not recorded as proof of verification.
+Namespace `io.github.yravelo`: **PASS — VERIFIED** in Maven Central Portal, confirmed by owner
+`yravelo` on 2026-08-19. This owner-confirmed Portal state is the evidence of record; no screenshot,
+session data or token is stored. The real Portal user token has not been generated.
 
 - [Central publication requirements](https://central.sonatype.org/publish/requirements/)
 - [Central namespace registration](https://central.sonatype.org/register/namespace/)
@@ -74,8 +72,9 @@ not recorded as proof of verification.
 | OpenPGP strategy | PASS — required by Central and isolated in `central-publish` |
 | Protected OpenPGP key | EXTERNAL PREREQUISITE — real key was not generated |
 | GitHub branch protection/rules | DEFERRED (non-blocking) — unavailable for this private repository on the current plan |
-| GitHub environment `maven-central` | PASS — created empty; ID `20189458466` |
-| Environment protection | EXTERNAL PREREQUISITE — no rules available/configured for the private repository on the current entitlement |
+| Repository Secrets model | PASS — explicitly selected for the current private, single-maintainer threat model |
+| GitHub environment `maven-central` | DEFERRED (non-blocking) — retained as an inert marker; not referenced by release workflow |
+| Environment protection | DEFERRED (non-blocking) — unavailable for this private repository on the current entitlement |
 | `CENTRAL_USERNAME` / `CENTRAL_PASSWORD` | MISSING |
 | `GPG_PRIVATE_KEY` / `GPG_PASSPHRASE` | MISSING |
 | Tag `v0.1.0` | NOT EXECUTED — creation/push not authorized |
@@ -83,7 +82,12 @@ not recorded as proof of verification.
 | Benchmarks and Release candidate workflows | NOT EXECUTED |
 | Central upload/publication | NOT EXECUTED |
 
-Secrets belong in the protected GitHub environment, never in Git, documentation, chat or logs.
+Future values belong in Actions Repository Secrets, never in Git, documentation, chat or logs.
+Repository Secrets are not an approval boundary: GitHub reads them when a run is queued and any
+trusted workflow can reference them. The approved compensating controls are owner-only dispatch
+from `main`, strict stable-SemVer/full-SHA/confirmation validation, candidate SHA membership in
+`origin/main`, exact tag-to-candidate verification, candidate dependency, `contents: read`, pinned
+Actions, upload concurrency and `autoPublish=false`.
 
 ## License, supply chain and reproducibility
 
@@ -146,16 +150,54 @@ The repeated local `0.1.0` dry-run is **PASS**: 25 primary artifacts, zero SNAPS
 no benchmark/example artifacts and an isolated external consumer PASS. No real GPG key, Central
 bundle upload, tag or publication was produced.
 
+## Phase 16E verified namespace and secure secrets boundary
+
+The owner-confirmed Central namespace `io.github.yravelo` is `VERIFIED`. Current GitHub
+documentation confirms Repository Secrets are available to Actions in private repositories,
+repository/environment secrets can be administered by the applicable repository roles, repository
+secrets are read when a run is queued, Actions secrets are withheld from normal fork PRs and
+Dependabot-triggered workflows, and log redaction is not guaranteed for transformed values.
+
+The chosen model is Repository Secrets plus code-level controls appropriate to the current single
+maintainer. A malicious workflow reaching trusted `main` remains the main residual risk, because a
+repository secret can be referenced by other workflows; adding collaborators therefore triggers a
+mandatory reevaluation. The workflow is `workflow_dispatch` only and accepts a stable version,
+full commit SHA, boolean publish intent and literal confirmation. Candidate validates the SHA is
+on `origin/main`; upload depends on candidate and checks `v<version>` points to the identical SHA.
+Only `central-upload` contains the four `secrets.*` references.
+
+`actions/setup-java` imports the armored key through temporary runner material and removes the
+imported key in its post-step. Maven settings is generated in `RUNNER_TEMP`, used explicitly and
+removed even after failure. No upload-job artifacts contain the key, keyring or settings. The
+Central plugin retains `autoPublish=false`, so successful upload still requires a separate manual
+Portal publication.
+
+- [GitHub secret types](https://docs.github.com/en/code-security/reference/secret-security/secret-types)
+- [Using secrets in Actions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
+- [Secrets reference and redaction limits](https://docs.github.com/en/actions/reference/security/secrets)
+- [GitHub Actions secure use](https://docs.github.com/en/actions/reference/security/secure-use)
+- [Deployment environments](https://docs.github.com/en/actions/reference/workflows-and-actions/deployments-and-environments)
+- [setup-java GPG lifecycle](https://github.com/actions/setup-java/blob/main/docs/advanced-usage.md#gpg)
+
+The environment object ID `20189458466` remains remotely present only as an inert marker/deployment
+history placeholder. Removing `environment: maven-central` from the job avoids representing it as
+a security gate while the plan supplies neither usable environment secrets nor protection rules.
+
+Remote validation for hardening SHA `457681c7be28222fa2cd5b715f613da8523abc5a` is **PASS**: Build
+run `32274812469` succeeded and Compatibility run `32274812453` succeeded in all 10 matrix jobs.
+The PostgreSQL 16.14 job failed on its first attempt and passed unchanged when only failed jobs were
+retried; no workflow/code adjustment or matrix reduction was made. Release candidate and
+Benchmarks were not executed.
+
 ## Remaining activation sequence
 
-1. Sign in to Central using GitHub `yravelo`; report account status and whether
-   `io.github.yravelo` is shown as verified.
-2. Generate a Portal user token and a real passphrase-protected OpenPGP key outside the repository;
+1. Generate a Portal user token and a real passphrase-protected OpenPGP key outside the repository;
    distribute only its public key through a Central-supported keyserver.
-3. Obtain GitHub environment-secret support for this private repository or explicitly approve a
-   different secrets strategy; then configure the four names without exposing values.
-4. Resolve the private vulnerability channel independently; it is non-blocking for Phase 16D.
-5. Recheck a clean remote candidate, then create and push `v0.1.0` only with authorization.
-6. Run the remote candidate workflow; authorize Central upload and Portal publication separately.
+2. Configure the four approved Repository Secret names without exposing their values.
+3. Resolve the private vulnerability channel independently; it remains non-blocking.
+4. Recheck an authorized candidate SHA from `main`, then create and push `v0.1.0` only with
+   separate authorization and make it point to that exact SHA.
+5. Dispatch from `main` with the full SHA and explicit intent; authorize Central upload and Portal
+   publication separately.
 
 No external action above is authorized by this document.
