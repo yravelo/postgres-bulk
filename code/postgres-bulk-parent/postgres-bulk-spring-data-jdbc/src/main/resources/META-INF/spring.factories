@@ -1,0 +1,1 @@
+io.ybr.postgresbulk.springdata.jdbc.repository.PostgresBulkJdbcRepository=io.ybr.postgresbulk.springdata.jdbc.DefaultPostgresBulkJdbcOperations
