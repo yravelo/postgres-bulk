@@ -3,9 +3,9 @@
 ## Verdict
 
 The final project identity is approved and the private GitHub repository and remote CI are active,
-but `0.1.0` is **not ready for public publication**. The Central namespace, private vulnerability
-channel, release environment, signing material and tag remain external prerequisites. No tag,
-release candidate workflow, Central upload or publication was executed by this assessment.
+but `0.1.0` is **not ready for public publication**. The Central account/namespace, publishing
+credentials, signing material and usable protected environment secrets remain external
+prerequisites. No tag, release candidate workflow, Central upload or publication was executed.
 
 ## Final identity
 
@@ -56,8 +56,11 @@ publishing binary artifacts to Maven Central and does not promise a future publi
 Target: Maven Central Publisher Portal using Sonatype's official plugin with
 `autoPublish=false`.
 
-Namespace `io.github.yravelo`: **PENDING EXTERNAL ACTION**. The owner must sign in to Central,
-confirm or request that namespace, complete any requested verification, and create a user token.
+Central account: **UNKNOWN — PENDING USER ACTION**. Namespace `io.github.yravelo`: **UNKNOWN**.
+Neither can be queried safely without an authenticated Portal session. The owner must sign in with
+GitHub identity `yravelo`, confirm the automatically provisioned namespace or add/verify exactly
+`io.github.yravelo`, and then generate a Portal user token. Matching the GitHub username alone is
+not recorded as proof of verification.
 
 - [Central publication requirements](https://central.sonatype.org/publish/requirements/)
 - [Central namespace registration](https://central.sonatype.org/register/namespace/)
@@ -67,13 +70,14 @@ confirm or request that namespace, complete any requested verification, and crea
 
 | Control | Status |
 | --- | --- |
-| GitHub Private Vulnerability Reporting | EXTERNAL PREREQUISITE — API returned 404 for this private repository; unchanged |
-| OpenPGP strategy | PASS — isolated in `central-publish` |
-| Protected OpenPGP key | EXTERNAL PREREQUISITE |
-| GitHub branch protection/rules | EXTERNAL PREREQUISITE — unavailable for this private repository on the current plan |
-| GitHub environment `maven-central` | EXTERNAL PREREQUISITE — intentionally not created |
-| Central username/password secrets | EXTERNAL PREREQUISITE |
-| GPG private key/passphrase secrets | EXTERNAL PREREQUISITE |
+| GitHub Private Vulnerability Reporting | DEFERRED (non-blocking) — API returned 404 for this private repository; unchanged |
+| OpenPGP strategy | PASS — required by Central and isolated in `central-publish` |
+| Protected OpenPGP key | EXTERNAL PREREQUISITE — real key was not generated |
+| GitHub branch protection/rules | DEFERRED (non-blocking) — unavailable for this private repository on the current plan |
+| GitHub environment `maven-central` | PASS — created empty; ID `20189458466` |
+| Environment protection | EXTERNAL PREREQUISITE — no rules available/configured for the private repository on the current entitlement |
+| `CENTRAL_USERNAME` / `CENTRAL_PASSWORD` | MISSING |
+| `GPG_PRIVATE_KEY` / `GPG_PASSPHRASE` | MISSING |
 | Tag `v0.1.0` | NOT EXECUTED — creation/push not authorized |
 | Remote Build and Compatibility workflows | PASS |
 | Benchmarks and Release candidate workflows | NOT EXECUTED |
@@ -118,13 +122,39 @@ installation of `ripgrep` for the documentation/release audit scripts. Both were
 revalidated. Build, Compatibility, Benchmarks and Release candidate are visible and active;
 Benchmarks and Release candidate remain manual and were not executed.
 
+## Phase 16D Central and signing preparation
+
+The current Central Publisher Portal flow is documented and audited: sign in using GitHub, confirm
+the namespace, generate a Portal user token, sign every deployed POM/JAR with OpenPGP, run Maven
+`deploy` to upload a bundle, wait for Portal validation and publish manually. The project uses
+`org.sonatype.central:central-publishing-maven-plugin:0.11.0`; `autoPublish=false` deliberately
+keeps upload and publication separate. Plugin `validate` completed without credentials or upload.
+
+The release workflow keeps candidate validation secret-free and gives only `central-upload` access
+to the `maven-central` environment. Its Actions are pinned to commits, checkout credentials are not
+persisted and simultaneous Central uploads are serialized. `setup-java` imports the armored key
+from the runner temp directory, removes that file after import and cleans the imported key after
+the job. No private key is uploaded as an artifact.
+
+The empty `maven-central` environment exists, but the current private-repository entitlement does
+not provide usable environment secrets or protection rules. All four required secret names are
+missing at both environment and repository level. The environment must not be treated as a
+security boundary until the account supports those controls or an explicitly approved alternative
+is adopted.
+
+The repeated local `0.1.0` dry-run is **PASS**: 25 primary artifacts, zero SNAPSHOT dependencies,
+no benchmark/example artifacts and an isolated external consumer PASS. No real GPG key, Central
+bundle upload, tag or publication was produced.
+
 ## Remaining activation sequence
 
-1. Resolve availability of Private Vulnerability Reporting and branch rules without changing the
-   repository's private visibility.
-2. Verify `io.github.yravelo` in Central and create a user token.
-3. Create/protect an OpenPGP key and configure the four environment secrets.
-4. Create the protected `maven-central` environment and required review policy.
+1. Sign in to Central using GitHub `yravelo`; report account status and whether
+   `io.github.yravelo` is shown as verified.
+2. Generate a Portal user token and a real passphrase-protected OpenPGP key outside the repository;
+   distribute only its public key through a Central-supported keyserver.
+3. Obtain GitHub environment-secret support for this private repository or explicitly approve a
+   different secrets strategy; then configure the four names without exposing values.
+4. Resolve the private vulnerability channel independently; it is non-blocking for Phase 16D.
 5. Recheck a clean remote candidate, then create and push `v0.1.0` only with authorization.
 6. Run the remote candidate workflow; authorize Central upload and Portal publication separately.
 

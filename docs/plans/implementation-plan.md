@@ -648,8 +648,8 @@ Phase 16.
 
 ## Phase 16 — Release readiness
 
-**Estado:** `PARTIALLY DONE` el 2026-08-19; ingeniería local y CI remoto completados, publicación
-externa pendiente.
+**Estado:** `PARTIALLY DONE` el 2026-08-19; ingeniería, CI remoto y configuración de release
+completados, pero credenciales/signing protegidos y publicación siguen pendientes.
 
 - **Goal:** producir artefactos firmables y gobernables para publicación independiente.
 - **Scope:** licencia, notices, SCM/developer metadata, sources/Javadocs, signing, Central, semantic versioning, changelog, security/support policy y release automation.
@@ -709,9 +709,30 @@ la Definition of Done. No se publicó, no se creó tag y no se inicia ninguna fa
       `contents: read`; los dos workflows manuales no se ejecutaron.
 - [x] Las diferencias Java 17/Javadocs y disponibilidad de `ripgrep` del runner quedaron corregidas
       y revalidadas local y remotamente.
-- [ ] Private Vulnerability Reporting permanece no disponible (API 404) y branch rules requiere
-      GitHub Pro o visibilidad pública; no se cambió PRIVATE.
-- [ ] Central, environment, secrets, OpenPGP, tag, release, upload y publicación siguen pendientes.
+- [x] Private Vulnerability Reporting permanece no disponible (API 404) y branch rules requiere
+      GitHub Pro o visibilidad pública; ambas limitaciones se documentan como non-blocking y no se
+      cambió PRIVATE.
+- [ ] Central account/namespace, environment protection/secrets, OpenPGP, tag, release, upload y
+      publicación siguen pendientes.
+
+### Phase 16D — Central, signing y release environment
+
+**Estado:** alcance de preparación `DONE` el 2026-08-19; Phase 16 global sigue `PARTIALLY DONE`.
+
+- [x] Flujo oficial Central actual, token, requisitos POM, OpenPGP, keyservers y lifecycle manual
+      quedan verificados y documentados sin usar OSSRH legacy.
+- [x] Plugin Central actualizado a `0.11.0`, cargado en `validate` y conservando
+      `autoPublish=false`; no hubo deploy Central.
+- [x] Workflow release mantiene candidate sin secrets, upload aislado, exact-tag gate, least
+      privilege, Actions pinned, checkout sin credenciales persistentes y concurrency de upload.
+- [x] Environment vacío `maven-central` creado; no se ejecutó el workflow.
+- [x] Inventario por nombre: `CENTRAL_USERNAME`, `CENTRAL_PASSWORD`, `GPG_PRIVATE_KEY` y
+      `GPG_PASSPHRASE` están MISSING; ningún valor fue solicitado o mostrado.
+- [x] Dry-run repetido: 25 artifacts, cero SNAPSHOT, sin benchmark/example y consumer aislado PASS.
+- [ ] Cuenta y namespace Central permanecen UNKNOWN hasta login manual del owner.
+- [ ] El repository privado no dispone de secrets/protection de environment bajo el entitlement
+      actual; se requiere soporte de plan o una alternativa explícitamente aprobada.
+- [ ] Clave real, secrets, tag, release workflow, upload y publicación permanecen sin ejecutar.
 
 ## Gates transversales
 

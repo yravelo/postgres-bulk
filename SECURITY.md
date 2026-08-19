@@ -8,12 +8,11 @@ public version until the release blockers in
 
 ## Reporting a vulnerability
 
-The development repository is planned as the private repository
-`https://github.com/yravelo/postgres-bulk`, but it does not exist yet and no remote is configured.
-There is therefore no confirmed private vulnerability reporting channel. Do not disclose a
-suspected vulnerability in a public issue.
+The development repository exists at `https://github.com/yravelo/postgres-bulk` and remains
+private. GitHub Private Vulnerability Reporting is not available for the repository under its
+current configuration, so there is still no confirmed private vulnerability reporting channel.
+Do not disclose a suspected vulnerability in a public issue.
 
-Creating the repository, deciding any future source visibility, and configuring and testing GitHub
-Private Vulnerability Reporting are external prerequisites for publication. Once enabled, replace
-this paragraph with the repository's real Security Advisories reporting instructions. No email,
-response time or remediation SLA is implied by this provisional policy.
+Resolving and testing an appropriate private reporting channel remains an external action. Once
+enabled, replace this paragraph with the repository's real Security Advisories reporting
+instructions. No email, response time or remediation SLA is implied by this provisional policy.

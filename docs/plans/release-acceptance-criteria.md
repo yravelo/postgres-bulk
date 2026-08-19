@@ -1,6 +1,6 @@
 # Criterios de aceptación de la primera release pública
 
-Estado auditado para el candidato `0.1.0` tras Phase 16C. Cada criterio usa exclusivamente `PASS`,
+Estado auditado para el candidato `0.1.0` tras Phase 16D. Cada criterio usa exclusivamente `PASS`,
 `BLOCKED`, `EXTERNAL PREREQUISITE` o `DEFERRED (non-blocking)`.
 
 ## Funcionalidad
@@ -65,14 +65,15 @@ Estado auditado para el candidato `0.1.0` tras Phase 16C. Cada criterio usa excl
 - **PASS** — Auditoría reproducible de licencias productivas no presenta metadata desconocida.
 - **PASS** — No se requiere NOTICE vacío según el contenido actualmente auditado.
 - **PASS** — SHA-256 de artifacts staged se genera e inspecciona.
-- **PASS** — Firma OpenPGP está aislada en `central-publish`; estrategia y secrets están documentados.
+- **PASS** — OpenPGP sigue siendo obligatorio; la firma está aislada en `central-publish` y el
+  procedimiento seguro de generación/distribución está documentado.
 - **DEFERRED (non-blocking)** — SBOM se evaluará tras definir formato/lifecycle estable.
 - **DEFERRED (non-blocking)** — Provenance/attestations se evaluará después de la primera release.
 - **PASS** — Auditoría de patrones sensibles no encuentra tokens, passwords ni private keys hardcoded.
 - **PASS** — `CHANGELOG.md`, release notes y política SemVer `0.x` existen.
-- **EXTERNAL PREREQUISITE** — GitHub Private Vulnerability Reporting no está disponible para el
+- **DEFERRED (non-blocking)** — GitHub Private Vulnerability Reporting no está disponible para el
   repository privado actual (API 404); `SECURITY.md` no se presenta como canal activado.
-- **EXTERNAL PREREQUISITE** — Branch protection/rules requiere GitHub Pro o hacer público el
+- **DEFERRED (non-blocking)** — Branch protection/rules requiere GitHub Pro o hacer público el
   repository; se preservó la visibilidad PRIVATE y no se aplicaron reglas.
 
 ## Coordinates y publicación
@@ -82,9 +83,14 @@ Estado auditado para el candidato `0.1.0` tras Phase 16C. Cada criterio usa excl
 - **PASS** — ADR-008 está `ACCEPTED` y registra deliberadamente que Maven groupId y Java package
   root son distintos; ADR-023 mantiene pendiente sólo la activación externa.
 - **PASS** — `${revision}` cambia SNAPSHOT/release sin editar múltiples POMs.
-- **PASS** — Maven Central Publisher Portal y su plugin oficial son el target, sin endpoints legacy.
-- **EXTERNAL PREREQUISITE** — Verificar namespace y crear cuenta/token del Central Portal.
-- **EXTERNAL PREREQUISITE** — Crear/proteger clave OpenPGP y configurar secrets del environment.
+- **PASS** — Maven Central Publisher Portal y el plugin oficial `0.11.0` son el target, sin
+  endpoints legacy y con `autoPublish=false`.
+- **EXTERNAL PREREQUISITE** — Entrar al Portal con GitHub `yravelo`, confirmar cuenta/namespace
+  `io.github.yravelo` y generar un user token; el estado actual es UNKNOWN.
+- **PASS** — El environment vacío `maven-central` existe y el upload está aislado en él.
+- **EXTERNAL PREREQUISITE** — El plan actual del repository privado no ofrece secrets/protection
+  utilizables en environments; los cuatro secret names están MISSING.
+- **EXTERNAL PREREQUISITE** — Crear/proteger la clave OpenPGP real y distribuir su public key.
 - **PASS** — `origin` usa SSH, `main` está publicado y las URLs de project/SCM coinciden con el
   repository privado real.
 - **PASS** — Build remoto `32264391877` y los 10 jobs de Compatibility `32264393355` terminaron
@@ -96,6 +102,7 @@ Estado auditado para el candidato `0.1.0` tras Phase 16C. Cada criterio usa excl
 ## Veredicto
 
 La ingeniería local del candidato está cerrada y no quedan blockers técnicos. La release pública
-sigue **NOT READY** mientras no se completen los external prerequisites de Central, security
-reporting, branch rules, environment, secrets, OpenPGP, tag y autorización de publicación. Phase
-16C queda `DONE`; la activación de release de Phase 16 permanece `PARTIALLY DONE`.
+sigue **NOT READY** mientras no se completen los external prerequisites de Central, environment,
+secrets, OpenPGP, tag y autorización de publicación. Phase 16D queda `DONE` en preparación; Phase
+16 permanece `PARTIALLY DONE` hasta confirmar Central, proveer signing/credentials y disponer de
+secrets protegidos utilizables.
