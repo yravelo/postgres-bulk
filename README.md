@@ -1,12 +1,56 @@
-# PostgreSQL Bulk for Spring
+# PostgreSQL Bulk
 
-Bulk insert y lookup tipado para Spring Data JPA sobre PostgreSQL `COPY`, sin sustituir
-`JpaRepository` ni separar la operación de la transacción JPA activa.
+PostgreSQL Bulk uses PostgreSQL `COPY` for high-throughput bulk insert and temporary-table bulk
+lookup while preserving a Spring Data JPA repository experience. It integrates with Spring Boot
+3.5 and Hibernate 6.6; it is not an ORM replacement.
 
-## Getting Started en cinco minutos
+The project is currently `0.1.0-SNAPSHOT`. Coordinates and API may change before the first release,
+and the artifacts are **not published to Maven Central**.
 
-Requisitos soportados: Java 17 o 21, Spring Boot 3.5.0–3.5.16 y PostgreSQL 15–18. El proyecto
-aún usa la versión de desarrollo `0.1.0-SNAPSHOT`.
+## Why
+
+`JpaRepository.saveAll(...)` applies normal ORM semantics: entity state management, callbacks,
+dirty checking and identifier handling. Those semantics are valuable, but can be unnecessary work
+for an import whose rows are already prepared. `bulkInsert` writes the mapped relational values
+directly with PostgreSQL COPY.
+
+`bulkInsert != saveAll`: choose COPY only when bypassing the ORM lifecycle is acceptable.
+
+## Features
+
+- Bulk insert through PostgreSQL COPY with bounded, single-pass batching.
+- Typed bulk lookup through a temporary table, COPY and JOIN.
+- Simple and composite lookup keys through `BulkKeyMetadata`.
+- Opt-in Spring Data repository fragment and Spring Boot starter.
+- Transaction-aware access to the Hibernate connection and runtime mapping metadata.
+- Operation-level Micrometer observations and bounded metrics.
+- Contractual support for PostgreSQL 15–18 and Java 17/21.
+
+## Requirements
+
+| Component | Supported |
+|---|---|
+| Java | 17 and 21 |
+| Spring Boot | 3.5.0–3.5.16 |
+| Spring Data JPA | 3.5.0–3.5.13, through the Boot BOM |
+| Hibernate ORM | 6.6.15–6.6.55 |
+| pgJDBC | 42.7.5–42.7.13 |
+| PostgreSQL | 15–18 |
+
+Java 25 has been validated experimentally but is not part of the support contract. Spring Boot 4,
+Spring Data 4 and Hibernate 7 are not supported by this artifact generation. See the complete
+[compatibility policy](docs/architecture/compatibility.md).
+
+## Installation
+
+There is no remote release yet. Install the current snapshot into your local Maven repository:
+
+```bash
+cd code/postgres-bulk-parent
+./mvnw clean install
+```
+
+Then use the starter. It already brings Spring Data JPA, Hibernate and pgJDBC.
 
 Maven:
 
@@ -20,158 +64,227 @@ Maven:
 
 Gradle:
 
-```groovy
-implementation "io.github.postgresbulk:postgres-bulk-spring-boot-starter:0.1.0-SNAPSHOT"
+```kotlin
+repositories {
+    mavenLocal()
+}
+
+dependencies {
+    implementation("io.github.postgresbulk:postgres-bulk-spring-boot-starter:0.1.0-SNAPSHOT")
+}
 ```
 
-Define una entidad normal y opta al fragmento en el repositorio:
+## Quick Start
+
+Use an assigned identifier in the first integration. Generated identifiers have different
+semantics, described below.
 
 ```java
 @Entity
 @Table(name = "product")
-class Product {
-  @Id Long id;
-  @Column(unique = true, nullable = false) String sku;
-  @Column(nullable = false) String name;
-}
+public class Product {
+    @Id
+    private UUID id;
 
-interface ProductRepository
-    extends JpaRepository<Product, Long>, PostgresBulkRepository<Product, Long> {}
-```
+    @Column(nullable = false, unique = true)
+    private String sku;
 
-El starter registra automáticamente el bridge de metadata Hibernate. No hace falta una clase
-`@Configuration`, una factory de repositorios ni un bean propio:
+    @Column(nullable = false)
+    private String name;
 
-```java
-@Transactional
-void load(ProductRepository products, List<Product> input) {
-  BulkWriteResult result =
-      products.bulkInsert(input, BulkInsertOptions.ofBatchSize(1_000));
+    @Column(nullable = false)
+    private BigDecimal price;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
 }
 ```
 
-Para lookup masivo, declara explícitamente la clave física:
+Opt in by adding the repository fragment; no custom repository factory or configuration class is
+needed with the starter:
 
 ```java
-BulkKeyMetadata<String> skuKey = BulkKeyMetadata.of(
-    String.class,
-    List.of(ColumnMetadata.of("sku", String.class, value -> value)));
-
-List<Product> found = products.findAllByBulkKey(skus, skuKey);
+public interface ProductRepository
+        extends JpaRepository<Product, UUID>,
+                PostgresBulkRepository<Product, UUID> {
+}
 ```
 
-Ambas operaciones usan la conexión de la transacción JPA. El fragmento crea una transacción
-`REQUIRED` si no existe, participa en una exterior y rechaza transacciones `readOnly`. COPY no
-ejecuta callbacks JPA, no rellena IDs generados y no vuelve managed los objetos insertados.
+Put the operation behind a transactional application service:
 
-La autoconfiguración está habilitada por defecto y puede desactivarse así:
+```java
+@Service
+public class ProductImportService {
+    private static final BulkKeyMetadata<String> SKU_KEY = BulkKeyMetadata.of(
+        String.class,
+        List.of(ColumnMetadata.of("sku", String.class, sku -> sku))
+    );
 
-```properties
-postgres-bulk.enabled=false
+    private final ProductRepository products;
+
+    ProductImportService(ProductRepository products) {
+        this.products = products;
+    }
+
+    @Transactional
+    public BulkWriteResult importProducts(List<Product> input) {
+        BulkWriteResult result = products.bulkInsert(input);
+        System.out.printf("rows=%d batches=%d%n", result.affectedRows(), result.batches());
+        return result;
+    }
+
+    @Transactional
+    public List<Product> findBySkus(List<String> skus) {
+        return products.findAllByBulkKey(skus, SKU_KEY);
+    }
+}
 ```
+
+For an explicit batch size:
+
+```java
+BulkWriteResult result = products.bulkInsert(
+    input,
+    BulkInsertOptions.ofBatchSize(10_000)
+);
+```
+
+The default remains 1,000. A larger value improved throughput in the current local benchmark, but
+also creates a larger COPY failure unit and increases partial-persistence exposure with autocommit.
+Measure with your schema and workload instead of treating 10,000 as a universal recommendation.
+
+The complete, compiled application is in
+[`examples/spring-boot-basic`](examples/spring-boot-basic/README.md).
+
+## Transaction semantics
+
+Repository methods use Spring `REQUIRED`: they create a read-write transaction when none exists or
+join the current transaction. `REQUIRES_NEW` is supported through normal Spring propagation.
+`NESTED` is unsupported with the validated `JpaTransactionManager`/Hibernate baseline.
+
+> **Do not call bulk lookup from `@Transactional(readOnly = true)`.** Lookup creates a temporary
+> table and loads it with COPY, so it requires a write-capable transaction. Insert is rejected in a
+> read-only transaction as well.
+
+`bulkInsert` participates in the surrounding transaction. A rollback reverses all its COPY batches.
+At the low-level JDBC API, autocommit can persist completed batches before a later batch fails. See
+the user-facing [transaction guide](docs/user-guide/transactions.md).
+
+## bulkInsert vs saveAll
+
+| Aspect | `saveAll` | `bulkInsert` |
+|---|---|---|
+| ORM lifecycle | Normal JPA/Hibernate lifecycle | Bypassed |
+| Managed entities | Normal JPA state transitions | Input objects do not become managed |
+| Generated IDs | Normal provider semantics | Not returned or populated |
+| `@PrePersist`, listeners, Hibernate events | Invoked as applicable | Not invoked |
+| Persistence context | Kept consistent by ORM operations | May be stale after direct COPY |
+| Write path | General ORM SQL | PostgreSQL COPY |
+| Transaction | JPA transaction | Participates in the Spring/JPA transaction |
+
+COPY does not call `flush()`, `clear()` or `refresh()`. Avoid mixing managed instances and direct
+bulk changes without an explicit consistency plan. Flush pending ORM changes before a lookup when
+they must be visible; clear or refresh only when your application semantics require it.
+
+Assigned IDs are included in COPY. Hibernate-generated identity/sequence columns are omitted from
+the physical mapping, but `bulkInsert` does not return the generated values or synchronize them
+into the input objects.
+
+## Supported mappings
+
+The Hibernate adapter supports basic fields, field/property access, mapped superclasses,
+`@Embedded`, `@EmbeddedId`, assigned IDs, insertable `@ManyToOne` foreign keys,
+`AttributeConverter`, and enum `STRING`/`ORDINAL` mappings. It uses Hibernate's relational Java
+representation after conversion; it does not simply call `Enum.name()` for every entity enum.
+
+Associations are projected to foreign keys only. COPY does not cascade or persist associated
+entities. See the tested [mapping support table](docs/user-guide/mapping-support.md), including
+unsupported secondary tables, multi-table inheritance, soft delete mappings, collection tables
+and custom types without an encoder.
+
+## Bulk lookup semantics
+
+A lookup key names the exact physical target column or columns. Simple keys can use `String`,
+`UUID` or another supported relational type; composite keys use a value object with ordered
+components.
+
+- Duplicate input keys do not duplicate results.
+- Duplicate target rows with the same key are all returned; key metadata does not imply UNIQUE.
+- Missing keys produce no result.
+- A null key or component is rejected with `IllegalArgumentException` without including its value.
+- Result order is not guaranteed.
+
+See [Bulk lookup](docs/user-guide/bulk-lookup.md) for simple/composite examples and performance
+guidance.
 
 ## Observability
 
-Cuando existe un `ObservationRegistry`, cada insert/lookup publica una única observación
-`postgres.bulk.operation`. Con un `MeterRegistry` también publica `postgres.bulk.rows` y
-`postgres.bulk.batches`, usando sólo tags bounded y sin entidades, keys ni SQL. Actuator se integra
-automáticamente, pero no es obligatorio. Para desactivar únicamente esta instrumentación:
+When an `ObservationRegistry` is available, each public insert or lookup emits one
+`postgres.bulk.operation` observation. With a `MeterRegistry`, successful operations also update:
+
+| Metric | Type | Tags | Meaning |
+|---|---|---|---|
+| `postgres.bulk.operation` | Observation/timer | `operation`, `outcome`; bounded `error` in Boot | One complete public bulk call |
+| `postgres.bulk.rows` | Counter | `operation=insert\|lookup` | Successfully processed rows |
+| `postgres.bulk.batches` | Counter | `operation=insert` | Successfully completed COPY batches |
+
+Actuator is optional and is not installed by the starter. Add it in the application when its
+registry integration is wanted; HTTP metrics endpoints additionally require a web application.
+Disable only library instrumentation with:
 
 ```properties
 postgres-bulk.observability.enabled=false
 ```
 
-Consulta [Observability](docs/architecture/observability.md) para el boundary y la semántica de
-meters, errores y rollback.
-
-Consulta [Spring Boot auto-configuration](docs/architecture/spring-boot-autoconfiguration.md)
-para condiciones, back-off, varias persistence units y diagnóstico, y
-[Spring Data integration](docs/architecture/spring-data-integration.md) para transacciones y
-persistence context.
-
-## Estado
-
-Phase 14 completada: JPA `saveAll`, JDBC batch, COPY, lookup temporal y overhead de observabilidad
-tienen una baseline JMH reproducible sobre PostgreSQL real, sin thresholds ni ejecución en el
-build normal. La versión `0.1.0-SNAPSHOT` no ofrece estabilidad de API ni está lista para release.
-La siguiente fase recomendada es Phase 15 — Examples and documentation.
+An observed bulk success can still be followed by rollback of an outer transaction. Details and an
+Actuator example are in [Observability](docs/user-guide/observability.md).
 
 ## Performance
 
-La baseline local observó que COPY supera a JPA para el dataset medido, pero queda cerca de JDBC
-batch en tamaños grandes; no es una promesa universal. Consulta
-[`docs/benchmarks/baseline.md`](docs/benchmarks/baseline.md) para resultados e incertidumbre y
-[`docs/benchmarks/methodology.md`](docs/benchmarks/methodology.md) para reproducirlos. Los
-benchmarks se ejecutan sólo de forma explícita:
+In the documented local environment, COPY outperformed JPA `saveAll` at all measured sizes and
+was 3.8–33.7% faster than JDBC batch. That is evidence for one host, dataset and schema—not a
+universal production claim. At one million rows, COPY and JDBC batch were close, and COPY allocated
+more memory than JDBC.
 
-```shell
-JAVA_HOME=/path/to/jdk-21 ./scripts/run-benchmarks.sh baseline baseline-local
-```
+Lookup performance was non-monotonic: SQL `IN` won at 10, 100 and 10,000 keys, while temporary
+COPY/JOIN won at 1,000. Schema, data distribution and query plan matter; there is no automatic or
+recommended key-count threshold. See the [performance guide](docs/user-guide/performance.md) and
+[raw benchmark baseline](docs/benchmarks/baseline.md).
 
-## Navegación
+## Limitations
 
-- [`docs/architecture/overview.md`](docs/architecture/overview.md): arquitectura y flujos.
-- [`docs/architecture/module-boundaries.md`](docs/architecture/module-boundaries.md): dependencias permitidas y prohibidas.
-- [`docs/architecture/compatibility.md`](docs/architecture/compatibility.md): política y matriz soportada.
-- [`docs/architecture/compatibility-evidence.md`](docs/architecture/compatibility-evidence.md): comandos, versiones resueltas y resultados.
-- [`docs/architecture/build-and-quality.md`](docs/architecture/build-and-quality.md): Wrapper, tests, formato y quality gates.
-- [`docs/architecture/copy-encoding.md`](docs/architecture/copy-encoding.md): contrato tipado y framing COPY CSV.
-- [`docs/architecture/pgjdbc-copy-execution.md`](docs/architecture/pgjdbc-copy-execution.md): SQL, UTF-8, lifecycle y ownership JDBC.
-- [`docs/architecture/bulk-insert.md`](docs/architecture/bulk-insert.md): batching, conteos, fallos y semántica transaccional.
-- [`docs/architecture/bulk-lookup.md`](docs/architecture/bulk-lookup.md): keys, tabla temporal, COPY/JOIN, resultados y cleanup.
-- [`docs/architecture/hibernate-metadata.md`](docs/architecture/hibernate-metadata.md): resolver, mappings soportados, conversiones y cache Hibernate.
-- [`docs/architecture/spring-data-integration.md`](docs/architecture/spring-data-integration.md): fragmento, transacciones, conexión y persistence context.
-- [`docs/architecture/spring-boot-autoconfiguration.md`](docs/architecture/spring-boot-autoconfiguration.md): activación, propiedades y back-off Boot.
-- [`docs/architecture/transactions-and-failures.md`](docs/architecture/transactions-and-failures.md): ownership, atomicidad, cleanup, propagaciones y pool reuse.
-- [`docs/architecture/observability.md`](docs/architecture/observability.md): observations, meters, tags, privacidad y boundary transaccional.
-- [`docs/benchmarks/`](docs/benchmarks/): metodología, baseline y resultados raw JMH.
-- [`docs/legacy/current-behavior.md`](docs/legacy/current-behavior.md): caracterización del código existente.
-- [`docs/legacy/risk-register.md`](docs/legacy/risk-register.md): problemas y riesgos priorizados.
-- [`docs/decisions/`](docs/decisions/): decisiones arquitectónicas.
-- [`docs/plans/implementation-plan.md`](docs/plans/implementation-plan.md): migración incremental y criterios de aceptación.
+- PostgreSQL only; the driver connection must unwrap to pgJDBC.
+- No generated-ID return/population, JPA callbacks, cascades or automatic persistence-context sync.
+- No secondary-table or multi-table entity insert, supported inheritance discriminator insert,
+  collection-table insert, or Hibernate soft-delete literal generation.
+- No built-in JSON/JSONB, array or arbitrary custom-type encoder.
+- No automatic retry, adaptive lookup strategy, index/`ANALYZE` tuning or guaranteed result order.
+- Spring Boot 4, Spring Data 4 and Hibernate 7 are unsupported in this artifact generation.
 
-## Estructura
+## How it fits
 
 ```text
-repo/
-├── code/postgres-bulk-parent/   # reactor Maven y módulos de la librería
-├── docs/
-│   ├── architecture/
-│   ├── benchmarks/
-│   ├── decisions/
-│   ├── legacy/
-│   └── plans/
-└── examples/                    # reservado para aplicaciones ejecutables futuras
+Application
+    ↓
+PostgresBulkRepository
+    ↓
+Spring Data adapter
+    ├── Hibernate runtime metadata
+    └── pgJDBC COPY engine
+            ↓
+        PostgreSQL
 ```
 
-El legacy permanece fuera del nuevo repositorio, en [`../legacy`](../legacy), y se trata sólo
-como evidencia de comportamiento.
+## Documentation
 
-## Validación
+- [Documentation index](docs/README.md)
+- [User guide](docs/user-guide/README.md)
+- [Executable Spring Boot example](examples/spring-boot-basic/README.md)
+- [Architecture](docs/architecture/overview.md)
+- [Compatibility and evidence](docs/architecture/compatibility.md)
+- [Benchmarks](docs/benchmarks/baseline.md)
+- [Contributing](CONTRIBUTING.md)
 
-Desde la raíz del repositorio:
+## License
 
-```shell
-cd code/postgres-bulk-parent
-./mvnw clean verify
-```
-
-El Wrapper oficial ejecuta Maven 3.9.16 con unit tests, integration tests, Enforcer y Spotless.
-Los `*IT` requieren Docker y levantan PostgreSQL 15.18 mediante Testcontainers. El bytecode
-objetivo es Java 17. Para cambiar un eje sin editar POMs:
-
-```shell
-./mvnw clean verify -Dpostgres.version=18.4-alpine
-./mvnw clean verify -Dspring-boot.version=3.5.0
-./mvnw clean verify -pl postgres-bulk-hibernate -am -Dhibernate.version=6.6.55.Final
-./mvnw clean verify -pl postgres-bulk-pgjdbc -am -Dpostgresql.version=42.7.13
-```
-
-La matriz completa se ejecuta en el workflow `Compatibility`; el build normal conserva una única
-baseline funcional. El workflow manual `Benchmarks` no participa en PR ni en `clean verify`.
-
-Para aplicar formato Java:
-
-```shell
-./mvnw spotless:apply
-```
+Licensed under the [Apache License 2.0](LICENSE).
