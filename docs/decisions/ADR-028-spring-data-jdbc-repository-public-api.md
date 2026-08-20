@@ -24,6 +24,8 @@ crear una API común que prometa semántica equivalente entre stores.
   candidates falla mediante las reglas estándar de Spring.
 - Declarar `@Transactional` `REQUIRED` en contrato e implementación. El proxy crea o une la
   transacción; el coordinador conserva los guards read-write/físicos de J2/J3.
+- Declarar NESTED condicionado en Javadocs sin añadir métodos: sólo managers JDBC sobre el mismo
+  `DataSource`, con savepoints propiedad del manager.
 - No traducir excepciones artificialmente.
 - Rechazar explícitamente un repository que herede a la vez el fragmento JDBC y el JPA. La
   coexistencia de ambos artifacts con repositories separados permanece válida.
@@ -38,6 +40,14 @@ lo que evita una migración engañosa: JDBC no tiene persistence context ni life
 La configuración explícita debe aportar infraestructura Spring Data JDBC y el resolver. Boot,
 starter, selección multi-DataSource/manager, observability y una posible API common permanecen
 fuera de J4.
+
+## Evidencia J5
+
+La API pública permanece binariamente idéntica. Contextos reales prueban selección explícita de
+`DataSource`, `JdbcOperations` y transaction manager; ante varios candidates la librería no
+adivina. Los Javadocs documentan NESTED condicionado y ausencia de retry. La coexistencia con el
+fragmento JPA funciona para repositories separados, pero no promete atomicidad al anidar managers
+locales distintos.
 
 ## Alternativas
 

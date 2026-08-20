@@ -15,6 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
  * entities, invoke Spring Data callbacks, auditing, or domain events, update version properties, or
  * synchronize database-generated identifiers with input objects. Methods use Spring {@code
  * REQUIRED}, read-write transaction semantics and join an existing transaction when one is present.
+ * {@code NESTED} is supported only when the enclosing boundary is owned by a {@code
+ * JdbcTransactionManager} or {@code DataSourceTransactionManager} for the same data source; the
+ * manager, not this fragment, owns the savepoint. Applications with multiple JDBC operations, data
+ * sources, or transaction managers must select them explicitly. The fragment never retries a failed
+ * operation.
  *
  * @param <T> repository aggregate-root type
  */

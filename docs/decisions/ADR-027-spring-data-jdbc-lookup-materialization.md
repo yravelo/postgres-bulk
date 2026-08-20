@@ -48,6 +48,13 @@ simple/compuesto al materializador J3. PostgreSQL confirma converters de lectura
 keys, resultado completo y empty sin tabla física desde la interface pública. No se añade mapper,
 streaming, key inference ni carga de children.
 
+## Evidencia J5
+
+Lookup NESTED funciona con ambos transaction managers JDBC. Ante SELECT fallido, el fallo `42P01`
+permanece primario, el DROP en la transacción abortada queda suppressed con `25P02`, y el rollback
+al savepoint del manager retira el estado temporal y permite continuar al outer. Concurrencia,
+100 operaciones y Hikari size-one no dejan tablas `pgbulk_*` ni estado de conexión contaminado.
+
 ## Alternativas rechazadas
 
 | Alternativa | Motivo |

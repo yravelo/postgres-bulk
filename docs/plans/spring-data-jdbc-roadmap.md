@@ -152,7 +152,7 @@ Las fases preservan estas invariantes:
   Core/pgJDBC y el fragmento JPA permanecen intactos; Boot, starter, observability y selección
   multi-manager siguen diferidos.
 
-## J5 — Transacciones, coexistencia y robustez
+## J5 — Transacciones, coexistencia y robustez — DONE (2026-08-20)
 
 - **Goal:** cerrar semántica transaccional JDBC y comportamiento con ambos Spring Data stores.
 - **Scope:** REQUIRED, outer rollback, REQUIRES_NEW, read-only, rollback-only, NESTED
@@ -179,6 +179,14 @@ Las fases preservan estas invariantes:
 - **Deferred decisions:** JTA/distributed transactions, retries y automatic transaction creation.
 - **Definition of Done:** matriz transaccional publicada, causas/SQLState preservados y ADR-024
   ACCEPTED si también se cumplen gates de coexistencia.
+- **Cierre:** PostgreSQL prueba REQUIRED, rollback-only/`UnexpectedRollbackException`, `25P02`,
+  REQUIRES_NEW en ambos sentidos y NESTED condicionado con `JdbcTransactionManager` y
+  `DataSourceTransactionManager`. La selección multi-DataSource/`JdbcOperations`/manager es
+  explícita; la ambigüedad falla sin elección por orden. Un contexto real con repositories JPA y
+  JDBC demuestra operación independiente y ausencia de atomicidad entre managers locales, incluso
+  sobre `DataSource` compartido. Ownership, fallos por etapa, backend loss, Hikari size-one, 100
+  operaciones y concurrencia pasan sin fugas. Core/pgJDBC y API binaria permanecen intactos;
+  ADR-029 acepta el contrato. ADR-024 queda `PROPOSED` sólo hasta el back-off/auto-config J6.
 
 ## J6 — Spring Boot auto-configuration y starter JDBC
 

@@ -41,8 +41,10 @@ mensaje incorpora filas, entidades, keys o valores CSV.
   completion produce `UnexpectedRollbackException`.
 - `REQUIRES_NEW` usa transacción física independiente: un inner fallido se revierte y el outer
   puede confirmar; un inner exitoso permanece aunque el outer se revierta.
-- `NESTED` es **UNSUPPORTED** en la baseline. El default lo rechaza y habilitar
-  `nestedTransactionAllowed` tampoco funciona porque `HibernateJpaDialect` no expone savepoints.
+- En la integración JPA, `NESTED` es **UNSUPPORTED**: `HibernateJpaDialect` no expone savepoints.
+  En Spring Data JDBC es **SUPPORTED con condiciones** por ADR-029 cuando
+  `JdbcTransactionManager` o `DataSourceTransactionManager` posee el mismo `DataSource`; la
+  librería nunca crea ni manipula el savepoint.
 - read-only se rechaza antes de metadata/conexión/COPY/DDL y nunca se desactiva internamente.
 - Una invocación directa del delegate sin proxy/transacción activa se rechaza.
 
@@ -91,3 +93,10 @@ transaccional. El mismo throwable continúa siendo primario y se relanza por ide
 fallo de handlers, scopes o meters se suprime o ignora y nunca sustituye el resultado ni el error
 bulk. Los totales de filas y batches sólo se incrementan al completar con éxito, de modo que un
 fallo después de progreso parcial no publica progreso engañoso.
+
+## Resolución Spring Data JDBC J5
+
+ADR-029 conserva ownership, primacía/suppressed, privacidad y ausencia de retry. PostgreSQL prueba
+rollback-only/`25P02`, ambas direcciones de `REQUIRES_NEW`, NESTED con dos managers JDBC, pérdida de
+backend, recuperación Hikari, 100 repeticiones y ocho threads. Dos managers locales JPA/JDBC no se
+coordinan aunque compartan `DataSource`; no se promete atomicidad cross-stack.

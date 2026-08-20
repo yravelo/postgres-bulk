@@ -28,8 +28,9 @@ también debe participar en la conexión física del transaction manager sin apr
   assigned incluye el ID.
 - La detección puede ocurrir mientras COPY está activo. No se materializa ni se hace pre-scan: la
   transacción obligatoria y rollback del owner son la garantía de atomicidad.
-- REQUIRED y REQUIRES_NEW siguen las fronteras del transaction manager. NESTED no es una promesa
-  J2; sólo se caracteriza y postgres-bulk no crea savepoints.
+- REQUIRED y REQUIRES_NEW siguen las fronteras del transaction manager. Desde J5, NESTED está
+  soportado sólo con `JdbcTransactionManager`/`DataSourceTransactionManager` sobre el mismo
+  `DataSource`; el manager crea, revierte y libera savepoints.
 
 ## Consecuencias
 
@@ -62,6 +63,13 @@ El proxy repository crea una transacción `REQUIRED` para llamadas directas y co
 rollback, `REQUIRES_NEW` y rechazo read-only al atravesar el fragmento externo. PostgreSQL prueba
 IDs generated/assigned, mixed rejection, batching explícito y SQLState desde esa API. El fragmento
 no crea boundaries ni modifica la política single-pass/homogénea aceptada aquí.
+
+## Evidencia J5
+
+Ambos managers JDBC completan insert NESTED y revierten un COPY fallido al savepoint, tras lo cual
+el outer sigue usable y confirma. El audit prohíbe todas las operaciones de ownership, incluidas
+las tres de savepoint. REQUIRED capturado termina rollback-only y `25P02`; REQUIRES_NEW usa PID
+independiente en ambas direcciones.
 
 ## Alternativas rechazadas
 

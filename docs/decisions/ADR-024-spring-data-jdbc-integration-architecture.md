@@ -101,6 +101,18 @@ fragments falla explícitamente y varios `JdbcOperations` fallan por DI estánda
 smoke de both-classpath, el suite JPA carga también el JAR JDBC y confirma que su fragmento sigue
 descubriéndose y operando sin selección accidental.
 
+## Evidencia J5 (2026-08-20)
+
+La matriz PostgreSQL cierra REQUIRED, rollback-only/`UnexpectedRollbackException`, `25P02`, ambas
+direcciones de REQUIRES_NEW y NESTED con `JdbcTransactionManager` y
+`DataSourceTransactionManager`. Dos data sources, dos `JdbcOperations` y dos managers demuestran
+fallo por ambiguity y selección explícita sin orden implícito. Un contexto real JPA+JDBC prueba
+ambos fragments y demuestra que managers locales distintos no ofrecen atomicidad cross-stack,
+incluso con `DataSource` compartido. Ownership, backend loss, pool, repetición y concurrencia pasan.
+
+El ADR permanece `PROPOSED` únicamente por el gate de auto-configuración/back-off J6; las preguntas
+transaccionales y de coexistencia quedan resueltas por ADR-029.
+
 ## Alternativas evaluadas
 
 | Alternativa | Resultado |
@@ -120,7 +132,7 @@ descubriéndose y operando sin selección accidental.
 - discovery del fragmento externo en Spring Data JDBC 3.5.0 y 3.5.13;
 - lookup root-only materializado por API pública y custom conversions;
 - tests JPA-only, JDBC-only y both-classpath sin selección accidental;
-- transaction tests REQUIRED, rollback, REQUIRES_NEW, read-only y characterization NESTED;
+- transaction tests REQUIRED, rollback, REQUIRES_NEW, read-only y NESTED condicionado;
 - auto-configuración con back-off ante múltiples candidates;
 - ninguna modificación ni dependencia nueva en core/pgJDBC.
 
