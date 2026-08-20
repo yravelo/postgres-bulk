@@ -14,7 +14,7 @@ defaults:
 
 jobs:
   java:
-    name: Java ${{ matrix.java }} / baseline stack
+    name: Java ${{ matrix.java }} / JDBC + JPA baseline stack
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -34,7 +34,7 @@ jobs:
         run: ./mvnw --batch-mode --no-transfer-progress clean verify
 
   boot-minimum:
-    name: Boot 3.5.0 managed stack / Java 17 / PostgreSQL 15.18
+    name: Minimum — Java 17 / Boot + Data JDBC 3.5.0 / pgJDBC 42.7.5 / PostgreSQL 15.18
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -52,12 +52,12 @@ jobs:
           -Dspring-boot.version=3.5.0 -DskipTests
           -pl postgres-bulk-spring-boot-starter,postgres-bulk-spring-boot-starter-data-jdbc
           -am dependency:tree
-          -Dincludes=org.springframework:spring-core,org.springframework.data:spring-data-jpa,org.springframework.data:spring-data-jdbc,org.hibernate.orm:hibernate-core,io.micrometer:micrometer-core,org.postgresql:postgresql
+          -Dincludes=org.springframework:spring-core,org.springframework:spring-jdbc,org.springframework.data:spring-data-jpa,org.springframework.data:spring-data-jdbc,org.springframework.data:spring-data-relational,org.hibernate.orm:hibernate-core,io.micrometer:micrometer-core,org.postgresql:postgresql
       - name: Verify Boot 3.5.0
         run: ./mvnw --batch-mode --no-transfer-progress clean verify -Dspring-boot.version=3.5.0
 
   postgres:
-    name: PostgreSQL ${{ matrix.postgres }} / baseline Java and stack
+    name: PostgreSQL ${{ matrix.postgres }} / JDBC + JPA baseline stack
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -77,7 +77,7 @@ jobs:
         run: ./mvnw --batch-mode --no-transfer-progress clean verify -Dpostgres.version=${{ matrix.postgres }}
 
   newest:
-    name: Newest boundaries — Java 21 / Hibernate 6.6.55 / pgJDBC 42.7.13 / PostgreSQL 18.4
+    name: Newest — Java 21 / Boot 3.5.16 / Data JDBC 3.5.13 / pgJDBC 42.7.13 / PostgreSQL 18.4
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -95,6 +95,12 @@ jobs:
           -Dhibernate.version=6.6.55.Final
           -Dpostgresql.version=42.7.13
           -Dpostgres.version=18.4-alpine
+      - name: Audit JDBC starter dependency isolation
+        run: >-
+          ./mvnw --batch-mode --no-transfer-progress -DskipTests
+          -Dpostgresql.version=42.7.13
+          -pl postgres-bulk-spring-boot-starter-data-jdbc -am dependency:tree
+          -Dincludes=org.springframework:spring-core,org.springframework:spring-jdbc,org.springframework.data:spring-data-jdbc,org.springframework.data:spring-data-relational,org.hibernate.orm:hibernate-core,org.springframework.data:spring-data-jpa,jakarta.persistence:jakarta.persistence-api,org.springframework.boot:spring-boot-starter-actuator,org.testcontainers:*,io.github.yravelo:postgres-bulk-benchmarks,org.postgresql:postgresql
 
   hibernate-adapter:
     name: Hibernate adapter ${{ matrix.hibernate }}
