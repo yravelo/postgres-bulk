@@ -14,7 +14,7 @@ import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Spring Data infrastructure loaded through external repository-fragment registration. */
-final class DefaultPostgresBulkJdbcOperations<T>
+class DefaultPostgresBulkJdbcOperations<T>
     implements PostgresBulkJdbcRepository<T>, RepositoryMetadataAccess {
 
   private static final String JPA_FRAGMENT =

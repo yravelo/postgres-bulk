@@ -50,8 +50,9 @@ jobs:
         run: >-
           ./mvnw --batch-mode --no-transfer-progress
           -Dspring-boot.version=3.5.0 -DskipTests
-          -pl postgres-bulk-spring-boot-starter -am dependency:tree
-          -Dincludes=org.springframework:spring-core,org.springframework.data:spring-data-jpa,org.hibernate.orm:hibernate-core,io.micrometer:micrometer-core,org.postgresql:postgresql
+          -pl postgres-bulk-spring-boot-starter,postgres-bulk-spring-boot-starter-data-jdbc
+          -am dependency:tree
+          -Dincludes=org.springframework:spring-core,org.springframework.data:spring-data-jpa,org.springframework.data:spring-data-jdbc,org.hibernate.orm:hibernate-core,io.micrometer:micrometer-core,org.postgresql:postgresql
       - name: Verify Boot 3.5.0
         run: ./mvnw --batch-mode --no-transfer-progress clean verify -Dspring-boot.version=3.5.0
 

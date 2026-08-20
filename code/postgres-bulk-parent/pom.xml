@@ -48,6 +48,8 @@
     <module>postgres-bulk-spring-data-jdbc</module>
     <module>postgres-bulk-spring-boot-autoconfigure</module>
     <module>postgres-bulk-spring-boot-starter</module>
+    <module>postgres-bulk-spring-boot-autoconfigure-jdbc</module>
+    <module>postgres-bulk-spring-boot-starter-data-jdbc</module>
     <module>postgres-bulk-benchmarks</module>
     <module>../../examples/spring-boot-basic</module>
   </modules>
@@ -148,6 +150,11 @@
       <dependency>
         <groupId>${project.groupId}</groupId>
         <artifactId>postgres-bulk-spring-boot-autoconfigure</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>postgres-bulk-spring-boot-autoconfigure-jdbc</artifactId>
         <version>${project.version}</version>
       </dependency>
     </dependencies>

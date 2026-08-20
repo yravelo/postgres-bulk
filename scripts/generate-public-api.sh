@@ -15,6 +15,8 @@ MODULES=(
   postgres-bulk-spring-data
   postgres-bulk-spring-boot-autoconfigure
   postgres-bulk-spring-boot-starter
+  postgres-bulk-spring-boot-autoconfigure-jdbc
+  postgres-bulk-spring-boot-starter-data-jdbc
 )
 
 temporary=$(mktemp)
@@ -26,7 +28,8 @@ trap 'rm -f "${temporary}"' EXIT
   for module in "${MODULES[@]}"; do
     classes=${MAVEN_PROJECT}/${module}/target/classes
     if [[ ! -d "${classes}" ]]; then
-      if [[ "${module}" == "postgres-bulk-spring-boot-starter" ]]; then
+      if [[ "${module}" == "postgres-bulk-spring-boot-starter" ||
+            "${module}" == "postgres-bulk-spring-boot-starter-data-jdbc" ]]; then
         echo
         echo "## ${module}"
         echo "# Dependency-only starter: no production classes."

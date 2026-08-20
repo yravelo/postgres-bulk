@@ -143,3 +143,11 @@ public final class io.ybr.postgresbulk.autoconfigure.PostgresBulkProperties exte
 
 ## postgres-bulk-spring-boot-starter
 # Dependency-only starter: no production classes.
+
+## postgres-bulk-spring-boot-autoconfigure-jdbc
+Compiled from "PostgresBulkJdbcAutoConfiguration.java"
+public final class io.ybr.postgresbulk.autoconfigure.jdbc.PostgresBulkJdbcAutoConfiguration {
+}
+
+## postgres-bulk-spring-boot-starter-data-jdbc
+# Dependency-only starter: no production classes.

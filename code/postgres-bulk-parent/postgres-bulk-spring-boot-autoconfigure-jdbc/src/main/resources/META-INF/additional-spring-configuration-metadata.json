@@ -1,0 +1,10 @@
+{
+  "properties": [
+    {
+      "name": "postgres-bulk.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether PostgreSQL Bulk auto-configuration is enabled.",
+      "defaultValue": true
+    }
+  ]
+}
