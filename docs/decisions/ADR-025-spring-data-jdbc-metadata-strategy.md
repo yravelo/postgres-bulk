@@ -1,6 +1,6 @@
 # ADR-025: Metadata y conversiones de Spring Data JDBC
 
-- **Estado:** PROPOSED
+- **Estado:** ACCEPTED
 - **Fecha:** 2026-08-19
 
 ## Contexto
@@ -152,3 +152,15 @@ pública no expone metadata adicional ni altera los gates pendientes de este ADR
 - [Spring Data JDBC sequences](https://docs.spring.io/spring-data/relational/reference/3.5/jdbc/sequences.html)
 - [`RelationalPersistentProperty` 3.5 API](https://docs.spring.io/spring-data/relational/reference/3.5/api/java/org/springframework/data/relational/core/mapping/RelationalPersistentProperty.html)
 - [`SqlIdentifier` 3.5 API](https://docs.spring.io/spring-data/relational/reference/3.5/api/java/org/springframework/data/relational/core/sql/SqlIdentifier.html)
+
+## Evidencia J7 y revisión J8 (2026-08-20)
+
+La matriz J7 probó el resolver en Spring Data JDBC/Relational 3.5.0 y 3.5.13, Java 17/21,
+pgJDBC 42.7.5/42.7.13 y PostgreSQL 15–18. El converter directo a `JdbcValue` quedó resuelto como
+mapping explícitamente unsupported porque la API pública no expone un tipo interno estático para
+null; no es una promesa pendiente. Los tests cubren converters a tipos relacionales, embedded,
+`AggregateReference`, identifiers, IDs y rechazo de graphs en el subset aceptado.
+
+J8 reutilizó el resolver con metadata caliente y confirmó round-trip de los escalares
+representativos fuera del timing. No añadió mapping ni cambió la estrategia. Con los gates del
+subset soportado cerrados, este ADR pasa a `ACCEPTED`.

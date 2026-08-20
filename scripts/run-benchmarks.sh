@@ -34,7 +34,7 @@ case "${profile}" in
     ;;
   large)
     "${java_bin}" "${common[@]}" \
-      'InsertBenchmarks\.(jdbcBatch|postgresBulkCopy)' \
+      '(InsertBenchmarks\.(jdbcBatch|postgresBulkCopy)|JdbcInsertBenchmarks\.(jdbcBatch|postgresBulkJdbc|lowLevelCopy))' \
       -wi 1 -i 3 -f 1 -p size=1000000 -prof gc \
       -rf json -rff "${results_dir}/${label}.json"
     ;;

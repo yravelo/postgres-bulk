@@ -68,3 +68,9 @@ SQLState ni semántica cross-stack.
 - [Spring Data JDBC: transacciones](https://docs.spring.io/spring-data/relational/reference/3.5/jdbc/transactions.html)
 - [PostgreSQL: códigos de error](https://www.postgresql.org/docs/current/errcodes-appendix.html)
 - [PostgreSQL: rollback a savepoint](https://www.postgresql.org/docs/current/sql-rollback-to.html)
+
+## Revisión J8 (2026-08-20)
+
+Cada operación medida incluyó commit y usó una transacción write comparable; fixtures y checks
+quedaron fuera del timing. La ejecución repetida no detectó pérdida de conexión, estado contaminado
+ni fallo productivo. No se añadió retry ni se alteró ownership. El ADR permanece `ACCEPTED`.

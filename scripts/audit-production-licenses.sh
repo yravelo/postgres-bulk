@@ -12,9 +12,12 @@ MODULES=(
   postgres-bulk-core
   postgres-bulk-pgjdbc
   postgres-bulk-hibernate
+  postgres-bulk-spring-data-jdbc
   postgres-bulk-spring-data
   postgres-bulk-spring-boot-autoconfigure
   postgres-bulk-spring-boot-starter
+  postgres-bulk-spring-boot-autoconfigure-jdbc
+  postgres-bulk-spring-boot-starter-data-jdbc
 )
 
 mkdir -p "${AUDIT_DIRECTORY}"

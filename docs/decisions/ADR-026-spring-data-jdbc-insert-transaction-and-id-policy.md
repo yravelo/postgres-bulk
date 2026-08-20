@@ -81,3 +81,9 @@ independiente en ambas direcciones.
 | Permitir autocommit | Puede confirmar batches previos antes de descubrir mismatch/fallo |
 | Crear/commit/rollback transacciones en el adapter | Viola ownership y composición Spring |
 | Usar `DataSource.getConnection()` | Puede escapar de la conexión transaction-bound |
+
+## Revisión J8 (2026-08-20)
+
+Los cuatro contenders usaron UUID assigned y commit dentro del límite medido; los checks de
+correctness quedaron fuera. La API pública conservó la conexión transaccional y la política por
+llamada. No hubo bug ni cambio productivo; el ADR permanece `ACCEPTED`.

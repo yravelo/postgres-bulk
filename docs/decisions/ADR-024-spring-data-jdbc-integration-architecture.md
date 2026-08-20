@@ -155,3 +155,9 @@ J7 y no reabren esta decisión arquitectónica.
 - [Spring Data JDBC transactions](https://docs.spring.io/spring-data/relational/reference/3.5/jdbc/transactions.html)
 - [Spring Data repository fragments](https://docs.spring.io/spring-data/commons/reference/repositories/custom-implementations.html)
 - [Spring Framework JDBC connections](https://docs.spring.io/spring-framework/reference/6.2/data-access/jdbc/connections.html)
+
+## Revisión J8 (2026-08-20)
+
+Los benchmarks ejercitaron el fragmento público JDBC y el engine low-level con metadata caliente,
+misma tabla y misma transacción. No apareció razón para cambiar boundaries, crear módulo common o
+mezclar starters. Core/pgJDBC y API pública no cambiaron. El ADR permanece `ACCEPTED`.

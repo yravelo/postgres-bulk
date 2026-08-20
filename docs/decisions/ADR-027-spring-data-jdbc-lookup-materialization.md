@@ -66,3 +66,10 @@ al savepoint del manager retira el estado temporal y permite continuar al outer.
 | Resultado lazy/`Stream<T>` | Sobrevive al DROP y retiene recursos caller-owned |
 | Cargar relations/children | Cambia root-only y puede introducir N+1 |
 | Materializar keys | Rompe el contrato one-shot/O(1) del engine |
+
+## Revisión J8 (2026-08-20)
+
+El benchmark comparó SQL `IN` y temporary-table COPY/JOIN con el mismo target, índice,
+`EntityRowMapper`, transacción y shape. SQL `IN` ganó los point estimates hasta 10K, mientras el
+lookup compuesto confirmó viabilidad de la estrategia existente. No existe evidencia para un
+threshold universal, index/ANALYZE automático o adaptive lookup. El ADR permanece `ACCEPTED`.

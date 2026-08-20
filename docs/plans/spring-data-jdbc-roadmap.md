@@ -9,7 +9,7 @@ security baseline. Spring Boot/Data 4, R2DBC, otros motores y aggregate graphs q
 ```text
 Original roadmap 0-16: complete
 Publication activation: frozen/deferred
-Current evolution: Spring Data JDBC
+Spring Data JDBC roadmap J0–J8: COMPLETE
 Security baseline: deferred until after functional evolution
 ```
 
@@ -253,7 +253,7 @@ Las fases preservan estas invariantes:
   reproducible quedan alineados. Build `32351155913` y Compatibility `32351155919` pasaron sobre
   el primer HEAD remoto de cierre. J8 conserva benchmarks comparativos y cierre técnico.
 
-## J8 — Benchmarks y cierre de línea JDBC
+## J8 — Benchmarks y cierre de línea JDBC — DONE (2026-08-20)
 
 - **Goal:** medir el beneficio y cerrar readiness técnico de Spring Data JDBC sin publicar.
 - **Scope:** benchmark insert/lookup root-only, regression gates razonables, revisión ADR/risk/API y
@@ -278,6 +278,23 @@ Las fases preservan estas invariantes:
   autorización/roadmap separado.
 - **Definition of Done:** baseline/public reports versionados, nueva línea técnicamente cerrada y
   publicación todavía congelada hasta autorización separada.
+- **Cierre:** se reutilizó JMH/Phase 14 y se midieron `CrudRepository.saveAll`, batch JDBC, la API
+  pública JDBC y COPY low-level entre 10 y 100K, más 1M razonable, batch sizes, allocations y
+  lookup simple/compuesto. Dos baselines y un large profile conservaron raw JSON/CSV separado. En
+  esta máquina COPY público redujo el point estimate frente a `saveAll`, sin overhead consistente
+  frente al engine; SQL `IN` ganó hasta 10K. Se mantiene default 1.000, no se introduce estrategia
+  adaptativa y no apareció bug productivo. ADR-024..030 quedan ACCEPTED, API/core/pgJDBC intactos,
+  benchmark aislado y J0–J8 técnicamente cerrado sin publicación.
+
+## Estado posterior al cierre
+
+```text
+Spring Data JDBC roadmap J0–J8: COMPLETE
+```
+
+Quedan registrados, sin implementar: runtime multi-schema/schema-per-tenant; Security & Supply
+Chain Baseline; publication activation; Boot 4 / Spring Data 4 future generation; additional
+performance experiments. Cualquier continuación requiere un roadmap y autorización separados.
 
 ## Dependencias del roadmap
 

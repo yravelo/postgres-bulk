@@ -8,6 +8,7 @@ core <- hibernate
 core + pgjdbc + hibernate <- spring-data
 spring-data + hibernate <- boot-autoconfigure <- boot-starter
 spring-data-jdbc <- boot-autoconfigure-jdbc <- boot-starter-data-jdbc
+core + pgjdbc + spring-data + spring-data-jdbc <- benchmarks (no publicable)
 ```
 
 Las flechas apuntan hacia la dependencia. Es un DAG, no una jerarquía estricta. Ningún módulo productivo depende del starter.
@@ -114,6 +115,16 @@ configuración de negocio o lógica Java.
   módulos. El BOM del consumidor puede gobernar los mismos artefactos transitivos.
 - pgJDBC debe estar confinado al adapter; que el starter lo agregue no convierte sus tipos en API pública.
 - Testcontainers, JUnit, ArchUnit y benchmarks nunca serán dependencias transitivas productivas.
+
+## `postgres-bulk-benchmarks`
+
+**Puede conocer:** todos los módulos productivos necesarios como contenders, JMH, Testcontainers,
+Hikari y fixtures Spring JPA/JDBC. Los contextos JPA y JDBC están aislados para impedir que una
+repository factory descubra fixtures del otro store.
+
+**No puede contener:** API productiva, cambios de comportamiento, dependencias transitivas para
+consumidores ni artefactos publicables. Tiene `maven.deploy.skip=true`; `verify` sólo compila y
+empaqueta el arnés. JMH se ejecuta manualmente por script o `workflow_dispatch`.
 
 ## Reglas verificables
 

@@ -37,6 +37,13 @@ correctness ya cubierta por integration tests.
 El caso de observabilidad compara COPY con `postgres-bulk.observability.enabled=true/false` para
 100 y 1.000 filas. Actuator aporta registries reales; no se sustituye la instrumentación por mocks.
 
+J8 conserva exactamente ese arnés y añade cuatro contenders Spring Data JDBC con una configuración
+JDBC aislada del contexto JPA: `CrudRepository.saveAll`, batch JDBC preparado, la API pública
+`PostgresBulkJdbcRepository.bulkInsert` y `PostgresBulkJdbcOperations` low-level. Comparten tabla,
+filas, UUID asignado, pool, transacción e índices. La comparación pública/low-level precalienta
+metadata. El lookup J8 compara SQL `IN` construido fuera del timing con temporary-table COPY/JOIN;
+ambos materializan con `EntityRowMapper` y confirman la transacción dentro del timing.
+
 ## Dataset y esquema
 
 Semilla fija: `0x5EED14`. Cada fila contiene UUID asignado, `code`, descripción UTF-8,
@@ -49,6 +56,11 @@ Tamaños baseline insert: 10, 100, 1K, 10K y 100K. El perfil suplementario ejecu
 COPY. JPA 1M se excluye: a 100K ya asignó aproximadamente 410 MB con batching y 530 MB sin batching,
 y extrapolar el dataset administrado compromete el heap de 3 GB y la estabilidad del host. El
 perfil de batch COPY fija 100K filas y prueba 100, 1K, 10K y all-in-one (100K).
+
+J8 repite 10–100K para los cuatro contenders JDBC. Su perfil 1M ejecuta batch JDBC, API pública y
+COPY low-level; omite `saveAll` porque a 100K ya asignó cerca de 1,87 GB con heap de 3 GB. Lookup
+cubre 10, 100, 1K y 10K y añade temporary-table composite a 100, 1K y 10K. No incluye `IN` a 100K
+por el límite práctico de parámetros del protocolo pgJDBC.
 
 ## PostgreSQL y aislamiento
 
@@ -105,8 +117,18 @@ La baseline y `large` conservan forks reales.
 El equipo no se aisló, no se fijó frecuencia de CPU y tenía carga interactiva. Los resultados
 sirven como baseline de este host, no como promesa de producción ni comparación entre máquinas.
 
+## Extensión Spring Data JDBC J8, 2026-08-20
+
+J8 se ejecutó en la misma máquina, imagen PostgreSQL/digest, Docker 29.7.0 y JVM Temurin
+21.0.12+8. Las dependencias efectivas fueron Boot 3.5.16, Framework 6.2.19, Spring Data
+JDBC/Relational 3.5.13, pgJDBC 42.7.11 y JMH 1.37. Conservó heap, threads, forks, warmups,
+iterations y profiler anteriores. El host seguía interactivo, sin aislamiento ni frecuencia fija.
+El informe y las nuevas evidencias están en
+[`j8-spring-data-jdbc.md`](j8-spring-data-jdbc.md); Phase 14 no fue sobrescrita.
+
 ## Fuentes
 
 - [OpenJDK JMH](https://openjdk.org/projects/code-tools/jmh/)
 - [Repositorio y guía de ejecución JMH](https://github.com/openjdk/jmh)
 - [Baseline medida](baseline.md)
+- [Baseline Spring Data JDBC J8](j8-spring-data-jdbc.md)

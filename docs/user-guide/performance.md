@@ -1,9 +1,10 @@
 # Performance
 
-The existing numbers measure the JPA integration, JDBC batch and direct COPY workloads defined by
-the current benchmark module. J7 did not run new benchmarks and does not claim a Spring Data JDBC
-comparison. A controlled Spring Data JDBC versus `JdbcTemplate`/JDBC batch/COPY comparison is
-deferred to J8.
+J8 adds a controlled Spring Data JDBC comparison to the historical Phase 14 JPA evidence. On the
+measured local host, the public JDBC bulk API used 51–73% less time than Spring Data JDBC
+`CrudRepository.saveAll` by point estimate from 10 through 100K rows. It also used 17–45% less time
+than JDBC batch by point estimate. JMH intervals were often broad, so these figures describe this
+environment and are not a guarantee that COPY always wins.
 
 The benchmark suite measures complete public persistence calls against PostgreSQL 15.18 on one
 local machine. It includes transaction commit and excludes dataset construction, table reset and
@@ -31,11 +32,17 @@ reduced round trips and improved throughput. Larger batches also mean:
 Do not change the default or recommend one value globally from this run. Benchmark representative
 rows, constraints, network and transaction policy.
 
+J8 therefore explicitly keeps the production default at 1,000. On its 100K JDBC workload,
+all-in-one and 10K were faster point estimates than 1K, but the evidence is limited to one host and
+does not outweigh failure granularity, resource usage and low-level autocommit exposure.
+
 ## Lookup
 
-The observed winner changed with cardinality: SQL `IN` won at 10, 100 and 10K keys; temporary
-COPY/JOIN won at 1K. There is no monotonic crossover or supported heuristic. Query planning,
-indexes, target size, key distribution and network all influence the result.
+Phase 14 JPA results had no monotonic crossover. In the separate J8 JDBC baseline, SQL `IN` won
+the point estimates at 10, 100, 1K and 10K keys. Neither baseline supports a universal heuristic;
+query planning, indexes, target size, key distribution, parameter limits and network all matter.
+Temporary COPY/JOIN remains useful for very large and composite key sets, but the library does not
+choose strategies adaptively.
 
 ## Observability
 
@@ -52,6 +59,7 @@ JAVA_HOME=/path/to/jdk-21 ./scripts/run-benchmarks.sh smoke smoke-local
 JAVA_HOME=/path/to/jdk-21 ./scripts/run-benchmarks.sh baseline baseline-local
 ```
 
-Read [methodology](../benchmarks/methodology.md), [baseline](../benchmarks/baseline.md) and raw JSON
-before making a tuning decision. The suite has no performance thresholds and never runs as part of
-normal `verify`.
+Read [methodology](../benchmarks/methodology.md), the historical [Phase 14 baseline](../benchmarks/baseline.md),
+the [J8 Spring Data JDBC report](../benchmarks/j8-spring-data-jdbc.md) and raw JSON before making a
+tuning decision. The suite has no performance thresholds and never runs as part of normal
+`verify`.

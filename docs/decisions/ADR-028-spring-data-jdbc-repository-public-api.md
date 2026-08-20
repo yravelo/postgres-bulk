@@ -74,3 +74,9 @@ Spring Data Commons 3.5 documenta `spring.factories`, `RepositoryMetadataAccess`
 repositories reales sin implementations locales y prueba PostgreSQL, transacciones y domain types
 con la clase package-private. El test de candidates demuestra fallo determinista ante dos
 `JdbcOperations`; Enforcer mantiene JPA/Hibernate/Boot fuera del módulo.
+
+## Revisión J8 (2026-08-20)
+
+J8 midió directamente `PostgresBulkJdbcRepository.bulkInsert`; el adapter warm no mostró coste
+temporal o de allocation consistente frente a low-level COPY. No se añadió método, tipo o promesa
+de rendimiento. La API baseline permanece estable y el ADR `ACCEPTED`.

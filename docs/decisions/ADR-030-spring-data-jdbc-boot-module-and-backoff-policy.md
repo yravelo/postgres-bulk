@@ -60,3 +60,9 @@ JDBC/Relational 3.5.0/3.5.13, Java 17/21, pgJDBC 42.7.5/42.7.13 y PostgreSQL 15�
 standalone repite discovery, insert, lookup y transacciones con una sola dependencia directa de
 postgres-bulk. Los BOM mínimo/actual mantienen el starter libre de JPA, Hibernate, Actuator
 obligatorio, Testcontainers productivo y benchmarks.
+
+## Revisión J8 (2026-08-20)
+
+El benchmark declara el adapter JDBC como dependencia directa de un módulo no publicable; no
+modifica el starter ni su grafo runtime. JMH, Testcontainers y fixtures no alcanzan ningún artifact
+productivo. No cambió el back-off y el ADR permanece `ACCEPTED`.

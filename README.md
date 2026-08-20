@@ -308,15 +308,16 @@ Actuator example are in [Observability](docs/user-guide/observability.md).
 
 ## Performance
 
-In the documented local environment, COPY outperformed JPA `saveAll` at all measured sizes and
-was 3.8–33.7% faster than JDBC batch. That is evidence for one host, dataset and schema—not a
-universal production claim. At one million rows, COPY and JDBC batch were close, and COPY allocated
-more memory than JDBC.
+In the documented J8 local environment, the public Spring Data JDBC bulk API used 51–73% less time
+than `CrudRepository.saveAll` and 17–45% less time than JDBC batch by point estimate from 10 through
+100K rows. Its warmed adapter overhead versus low-level COPY was not consistent across sizes.
+That is evidence for one host, dataset and schema—not a universal production claim.
 
-Lookup performance was non-monotonic: SQL `IN` won at 10, 100 and 10,000 keys, while temporary
-COPY/JOIN won at 1,000. Schema, data distribution and query plan matter; there is no automatic or
-recommended key-count threshold. See the [performance guide](docs/user-guide/performance.md) and
-[raw benchmark baseline](docs/benchmarks/baseline.md).
+SQL `IN` won the J8 point estimates from 10 through 10K keys. Historical JPA results were
+non-monotonic. Schema, data distribution and query plan matter; there is no automatic or
+recommended key-count threshold. See the [performance guide](docs/user-guide/performance.md),
+[J8 report](docs/benchmarks/j8-spring-data-jdbc.md) and historical
+[Phase 14 baseline](docs/benchmarks/baseline.md).
 
 ## Limitations
 
@@ -349,7 +350,7 @@ Spring Data adapter
 - [Executable Spring Boot example](examples/spring-boot-basic/README.md)
 - [Architecture](docs/architecture/overview.md)
 - [Compatibility and evidence](docs/architecture/compatibility.md)
-- [Benchmarks](docs/benchmarks/baseline.md)
+- [Spring Data JDBC benchmarks](docs/benchmarks/j8-spring-data-jdbc.md)
 - [Contributing](CONTRIBUTING.md)
 
 ## License

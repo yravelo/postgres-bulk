@@ -4,6 +4,10 @@
 
 La librería ofrecerá inserción y lookup masivos de alto rendimiento para entidades mapeadas a PostgreSQL. El caso principal es Spring Data JPA, pero el motor no dependerá de Spring. La primera versión soportará COPY CSV e Hibernate como proveedor de metadata.
 
+La línea Spring Data JDBC J0–J8 está técnicamente completa: añade un adapter hermano root-only,
+fragmento público y starter propios sin introducir JPA/Hibernate en su grafo. Ambos adapters
+reutilizan core/pgJDBC, pero preservan metadata, materialización y semántica de lifecycle distintas.
+
 No es un ORM, no administra el ciclo de vida de entidades, no sustituye `saveAll`, no genera DDL permanente y no promete portabilidad a otras bases de datos. COPY no sincroniza automáticamente persistence context, callbacks JPA, auditoría ni IDs generados; estas diferencias deberán formar parte del contrato público.
 
 ## Arquitectura objetivo evaluada
@@ -204,3 +208,15 @@ finales publican rows y batches sólo en success. Los únicos tags propios son o
 tag estándar de error se normaliza a un conjunto bounded. No existen tags de entidad, repository,
 tabla, SQLState o excepción concreta, y nunca se copian filas, keys, SQL ni valores. El contrato
 completo vive en [`observability.md`](observability.md).
+
+## Cierre de rendimiento Spring Data JDBC
+
+J8 no modifica la arquitectura productiva. El módulo JMH no publicable depende de ambos adapters
+sólo para comparar `saveAll`, JDBC batch, API pública y low-level COPY contra la misma tabla. En el
+host medido, la API pública JDBC redujo el tiempo frente a `saveAll`, no mostró overhead consistente
+frente al engine y no aportó evidencia para cambiar el default 1.000 ni añadir lookup adaptativo.
+La evidencia, limitaciones y raw data están en
+[`j8-spring-data-jdbc.md`](../benchmarks/j8-spring-data-jdbc.md).
+
+Runtime multi-schema/schema-per-tenant, security baseline, publicación y Boot/Data 4 permanecen
+deferidos; no forman parte de la arquitectura implementada.

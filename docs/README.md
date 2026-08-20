@@ -42,6 +42,7 @@ This index separates adoption guidance from implementation details.
 - [Architecture decision records](decisions/)
 - [Benchmark methodology](benchmarks/methodology.md)
 - [Benchmark baseline](benchmarks/baseline.md)
+- [Spring Data JDBC J8 benchmark baseline](benchmarks/j8-spring-data-jdbc.md)
 - [0.1.0 release notes](releases/0.1.0.md)
 - [0.1.0 release readiness](releases/release-readiness.md)
 - [0.1.0 public API baseline](releases/0.1.0-public-api.txt)

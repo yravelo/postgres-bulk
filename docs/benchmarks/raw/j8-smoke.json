@@ -1,0 +1,975 @@
+[
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.CopyBatchSizeBenchmarks.copyBatchSize",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "batchSize" : "10",
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 10.32698725,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 10.32698725,
+                "50.0" : 10.32698725,
+                "90.0" : 10.32698725,
+                "95.0" : 10.32698725,
+                "99.0" : 10.32698725,
+                "99.9" : 10.32698725,
+                "99.99" : 10.32698725,
+                "99.999" : 10.32698725,
+                "99.9999" : 10.32698725,
+                "100.0" : 10.32698725
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    10.32698725
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.InsertBenchmarks.jdbcBatch",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 3.355290176470588,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 3.355290176470588,
+                "50.0" : 3.355290176470588,
+                "90.0" : 3.355290176470588,
+                "95.0" : 3.355290176470588,
+                "99.0" : 3.355290176470588,
+                "99.9" : 3.355290176470588,
+                "99.99" : 3.355290176470588,
+                "99.999" : 3.355290176470588,
+                "99.9999" : 3.355290176470588,
+                "100.0" : 3.355290176470588
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    3.355290176470588
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.InsertBenchmarks.jpaSaveAllBatched",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 7.331418909090909,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 7.331418909090909,
+                "50.0" : 7.331418909090909,
+                "90.0" : 7.331418909090909,
+                "95.0" : 7.331418909090909,
+                "99.0" : 7.331418909090909,
+                "99.9" : 7.331418909090909,
+                "99.99" : 7.331418909090909,
+                "99.999" : 7.331418909090909,
+                "99.9999" : 7.331418909090909,
+                "100.0" : 7.331418909090909
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    7.331418909090909
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.InsertBenchmarks.jpaSaveAllDefault",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 6.396785,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 6.396785,
+                "50.0" : 6.396785,
+                "90.0" : 6.396785,
+                "95.0" : 6.396785,
+                "99.0" : 6.396785,
+                "99.9" : 6.396785,
+                "99.99" : 6.396785,
+                "99.999" : 6.396785,
+                "99.9999" : 6.396785,
+                "100.0" : 6.396785
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    6.396785
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.InsertBenchmarks.postgresBulkCopy",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 2.7389719545454545,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 2.7389719545454545,
+                "50.0" : 2.7389719545454545,
+                "90.0" : 2.7389719545454545,
+                "95.0" : 2.7389719545454545,
+                "99.0" : 2.7389719545454545,
+                "99.9" : 2.7389719545454545,
+                "99.99" : 2.7389719545454545,
+                "99.999" : 2.7389719545454545,
+                "99.9999" : 2.7389719545454545,
+                "100.0" : 2.7389719545454545
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    2.7389719545454545
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.LookupBenchmarks.sqlIn",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 111.375685,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 111.375685,
+                "50.0" : 111.375685,
+                "90.0" : 111.375685,
+                "95.0" : 111.375685,
+                "99.0" : 111.375685,
+                "99.9" : 111.375685,
+                "99.99" : 111.375685,
+                "99.999" : 111.375685,
+                "99.9999" : 111.375685,
+                "100.0" : 111.375685
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    111.375685
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.LookupBenchmarks.temporaryCopyJoin",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 7.894486153846154,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 7.894486153846154,
+                "50.0" : 7.894486153846154,
+                "90.0" : 7.894486153846154,
+                "95.0" : 7.894486153846154,
+                "99.0" : 7.894486153846154,
+                "99.9" : 7.894486153846154,
+                "99.99" : 7.894486153846154,
+                "99.999" : 7.894486153846154,
+                "99.9999" : 7.894486153846154,
+                "100.0" : 7.894486153846154
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    7.894486153846154
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.ObservabilityBenchmarks.disabled",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 1.7692584444444444,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.7692584444444444,
+                "50.0" : 1.7692584444444444,
+                "90.0" : 1.7692584444444444,
+                "95.0" : 1.7692584444444444,
+                "99.0" : 1.7692584444444444,
+                "99.9" : 1.7692584444444444,
+                "99.99" : 1.7692584444444444,
+                "99.999" : 1.7692584444444444,
+                "99.9999" : 1.7692584444444444,
+                "100.0" : 1.7692584444444444
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    1.7692584444444444
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.ObservabilityBenchmarks.enabled",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 1.9872378965517241,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.9872378965517241,
+                "50.0" : 1.9872378965517241,
+                "90.0" : 1.9872378965517241,
+                "95.0" : 1.9872378965517241,
+                "99.0" : 1.9872378965517241,
+                "99.9" : 1.9872378965517241,
+                "99.99" : 1.9872378965517241,
+                "99.999" : 1.9872378965517241,
+                "99.9999" : 1.9872378965517241,
+                "100.0" : 1.9872378965517241
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    1.9872378965517241
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.jdbc.JdbcCompositeLookupBenchmarks.temporaryCompositeCopyJoin",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 19.403046333333332,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 19.403046333333332,
+                "50.0" : 19.403046333333332,
+                "90.0" : 19.403046333333332,
+                "95.0" : 19.403046333333332,
+                "99.0" : 19.403046333333332,
+                "99.9" : 19.403046333333332,
+                "99.99" : 19.403046333333332,
+                "99.999" : 19.403046333333332,
+                "99.9999" : 19.403046333333332,
+                "100.0" : 19.403046333333332
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    19.403046333333332
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.jdbc.JdbcCopyBatchSizeBenchmarks.postgresBulkJdbcBatchSize",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "batchSize" : "10",
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 1.40584375,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.40584375,
+                "50.0" : 1.40584375,
+                "90.0" : 1.40584375,
+                "95.0" : 1.40584375,
+                "99.0" : 1.40584375,
+                "99.9" : 1.40584375,
+                "99.99" : 1.40584375,
+                "99.999" : 1.40584375,
+                "99.9999" : 1.40584375,
+                "100.0" : 1.40584375
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    1.40584375
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.jdbc.JdbcInsertBenchmarks.jdbcBatch",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 1.5585884347826087,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.5585884347826087,
+                "50.0" : 1.5585884347826087,
+                "90.0" : 1.5585884347826087,
+                "95.0" : 1.5585884347826087,
+                "99.0" : 1.5585884347826087,
+                "99.9" : 1.5585884347826087,
+                "99.99" : 1.5585884347826087,
+                "99.999" : 1.5585884347826087,
+                "99.9999" : 1.5585884347826087,
+                "100.0" : 1.5585884347826087
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    1.5585884347826087
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.jdbc.JdbcInsertBenchmarks.lowLevelCopy",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 1.1408052692307693,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.1408052692307693,
+                "50.0" : 1.1408052692307693,
+                "90.0" : 1.1408052692307693,
+                "95.0" : 1.1408052692307693,
+                "99.0" : 1.1408052692307693,
+                "99.9" : 1.1408052692307693,
+                "99.99" : 1.1408052692307693,
+                "99.999" : 1.1408052692307693,
+                "99.9999" : 1.1408052692307693,
+                "100.0" : 1.1408052692307693
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    1.1408052692307693
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.jdbc.JdbcInsertBenchmarks.postgresBulkJdbc",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 1.1835640666666667,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.1835640666666667,
+                "50.0" : 1.1835640666666667,
+                "90.0" : 1.1835640666666667,
+                "95.0" : 1.1835640666666667,
+                "99.0" : 1.1835640666666667,
+                "99.9" : 1.1835640666666667,
+                "99.99" : 1.1835640666666667,
+                "99.999" : 1.1835640666666667,
+                "99.9999" : 1.1835640666666667,
+                "100.0" : 1.1835640666666667
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    1.1835640666666667
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.jdbc.JdbcInsertBenchmarks.springDataJdbcSaveAll",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 6.227977166666666,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 6.227977166666666,
+                "50.0" : 6.227977166666666,
+                "90.0" : 6.227977166666666,
+                "95.0" : 6.227977166666666,
+                "99.0" : 6.227977166666666,
+                "99.9" : 6.227977166666666,
+                "99.99" : 6.227977166666666,
+                "99.999" : 6.227977166666666,
+                "99.9999" : 6.227977166666666,
+                "100.0" : 6.227977166666666
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    6.227977166666666
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.jdbc.JdbcLookupBenchmarks.jdbcTemplateSqlIn",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 1.008997469387755,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 1.008997469387755,
+                "50.0" : 1.008997469387755,
+                "90.0" : 1.008997469387755,
+                "95.0" : 1.008997469387755,
+                "99.0" : 1.008997469387755,
+                "99.9" : 1.008997469387755,
+                "99.99" : 1.008997469387755,
+                "99.999" : 1.008997469387755,
+                "99.9999" : 1.008997469387755,
+                "100.0" : 1.008997469387755
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    1.008997469387755
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    },
+    {
+        "jmhVersion" : "1.37",
+        "benchmark" : "io.ybr.postgresbulk.benchmarks.jdbc.JdbcLookupBenchmarks.temporaryCopyJoin",
+        "mode" : "avgt",
+        "threads" : 1,
+        "forks" : 0,
+        "jvm" : "/tmp/postgres-bulk-jdks/jdk21/bin/java",
+        "jvmArgs" : [
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN",
+            "-Dbenchmark.jdbc.url=jdbc:postgresql://localhost:34053/test?loggerLevel=OFF&reWriteBatchedInserts=true",
+            "-Dbenchmark.jdbc.username=test",
+            "-Dbenchmark.jdbc.password=test",
+            "-Dbenchmark.postgres.image=15.18-alpine",
+            "-Dlogging.level.root=WARN"
+        ],
+        "jdkVersion" : "21.0.12",
+        "vmName" : "OpenJDK 64-Bit Server VM",
+        "vmVersion" : "21.0.12+8-LTS",
+        "warmupIterations" : 0,
+        "warmupTime" : "1 s",
+        "warmupBatchSize" : 1,
+        "measurementIterations" : 1,
+        "measurementTime" : "100 ms",
+        "measurementBatchSize" : 1,
+        "params" : {
+            "size" : "10"
+        },
+        "primaryMetric" : {
+            "score" : 4.01883964,
+            "scoreError" : "NaN",
+            "scoreConfidence" : [
+                "NaN",
+                "NaN"
+            ],
+            "scorePercentiles" : {
+                "0.0" : 4.01883964,
+                "50.0" : 4.01883964,
+                "90.0" : 4.01883964,
+                "95.0" : 4.01883964,
+                "99.0" : 4.01883964,
+                "99.9" : 4.01883964,
+                "99.99" : 4.01883964,
+                "99.999" : 4.01883964,
+                "99.9999" : 4.01883964,
+                "100.0" : 4.01883964
+            },
+            "scoreUnit" : "ms/op",
+            "rawData" : [
+                [
+                    4.01883964
+                ]
+            ]
+        },
+        "secondaryMetrics" : {
+        }
+    }
+]
+
+
