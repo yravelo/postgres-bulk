@@ -180,4 +180,8 @@ Java 21/25, Boot 3.5.0, PostgreSQL 16.14/17.10, newest, Hibernate 6.6.15/6.6.55 
 42.7.5/42.7.13. PostgreSQL 15.18 y Boot 3.5.16 quedan cubiertos por baseline; PostgreSQL 18.4 por
 newest. Todos los full reactors conservan JPA y añaden la evidencia JDBC; el job newest audita
 explícitamente aislamiento del starter. Ambos workflows disparan en pull request y push a `main`.
-Los run IDs remotos de J7 se registrarán sólo después de completar esas ejecuciones.
+
+La primera ejecución remota de cierre J7 sobre `2717f10` terminó verde el 2026-08-20:
+
+- Build [`32351155913`](https://github.com/yravelo/postgres-bulk/actions/runs/32351155913): PASS;
+- Compatibility [`32351155919`](https://github.com/yravelo/postgres-bulk/actions/runs/32351155919): PASS en sus 10 jobs.

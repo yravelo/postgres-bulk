@@ -223,7 +223,7 @@ Las fases preservan estas invariantes:
 
 ## J7 — Compatibilidad, documentación y ejemplo
 
-**Status: IN PROGRESS (2026-08-20).**
+**Status: DONE (2026-08-20).**
 
 - **Goal:** convertir la baseline JDBC en una capacidad adoptable y respaldada por matrix remota.
 - **Scope:** min/current BOM, Java/PostgreSQL/pgJDBC lanes, ejemplo separado, guía completa,
@@ -245,12 +245,13 @@ Las fases preservan estas invariantes:
 - **Dependencies:** J6 y ADR-021.
 - **Deferred decisions:** Boot/Data 4, Java posterior y nuevos PostgreSQL quedan para otro roadmap.
 - **Definition of Done:** evidencia remota archivada, docs completas y ningún claim sin test.
-- **Cierre condicionado a CI remoto:** la policy boundary/pairwise cubre Java 17/21, Boot y Data JDBC/Relational
+- **Cierre:** la policy boundary/pairwise cubre Java 17/21, Boot y Data JDBC/Relational
   3.5.0/3.5.13, Framework 6.2.7/6.2.19, pgJDBC 42.7.5/42.7.13 y PostgreSQL
   15.18/16.14/17.10/18.4. La suite conserva regresión JPA, coexistencia y aislamiento del starter.
   `examples/spring-boot-data-jdbc` demuestra adopción con una sola dependencia directa, Docker
   Compose y Testcontainers. README, user guide, mapping/transacciones, ADR-021/030 y evidencia
-  reproducible quedan alineados. J8 conserva benchmarks comparativos y cierre técnico.
+  reproducible quedan alineados. Build `32351155913` y Compatibility `32351155919` pasaron sobre
+  el primer HEAD remoto de cierre. J8 conserva benchmarks comparativos y cierre técnico.
 
 ## J8 — Benchmarks y cierre de línea JDBC
 
