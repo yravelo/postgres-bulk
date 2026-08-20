@@ -52,6 +52,7 @@
     <module>postgres-bulk-spring-boot-starter-data-jdbc</module>
     <module>postgres-bulk-benchmarks</module>
     <module>../../examples/spring-boot-basic</module>
+    <module>../../examples/spring-boot-data-jdbc</module>
   </modules>
 
   <properties>

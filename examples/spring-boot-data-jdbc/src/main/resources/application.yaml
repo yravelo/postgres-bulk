@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres_bulk_jdbc
+    username: postgres_bulk
+    password: postgres_bulk
+  sql:
+    init:
+      mode: always

@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:15.18-alpine
+    environment:
+      POSTGRES_DB: postgres_bulk_jdbc
+      POSTGRES_USER: postgres_bulk
+      POSTGRES_PASSWORD: postgres_bulk
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres_bulk -d postgres_bulk_jdbc"]
+      interval: 2s
+      timeout: 3s
+      retries: 15

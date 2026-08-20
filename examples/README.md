@@ -1,3 +1,8 @@
 # Examples
 
-Directorio reservado para aplicaciones consumidoras ejecutables. Se añadirá un ejemplo mínimo en Phase 15, no antes de que la API y la auto-configuración estén validadas.
+- [`spring-boot-basic`](spring-boot-basic/README.md): Spring Data JPA/Hibernate adoption.
+- [`spring-boot-data-jdbc`](spring-boot-data-jdbc/README.md): Spring Data JDBC adoption with the
+  dedicated JDBC-only starter.
+
+Both are standalone Boot applications whose direct postgres-bulk dependency is the starter for
+their persistence stack. Their Testcontainers tests use PostgreSQL rather than H2.

@@ -6,9 +6,10 @@ REPOSITORY_ROOT=$(cd -- "${SCRIPT_DIR}/.." && pwd)
 
 python3 "${SCRIPT_DIR}/check-markdown-links.py" "${REPOSITORY_ROOT}"
 
-if rg -n '<artifactId>postgres-bulk-(core|pgjdbc|hibernate|spring-data|spring-boot-autoconfigure)</artifactId>' \
-  "${REPOSITORY_ROOT}/examples/spring-boot-basic/pom.xml"; then
-  echo "The standalone example must consume only the PostgreSQL Bulk starter." >&2
+if rg -n '<artifactId>postgres-bulk-(core|pgjdbc|hibernate|spring-data(-jdbc)?|spring-boot-autoconfigure(-jdbc)?|benchmarks)</artifactId>' \
+  "${REPOSITORY_ROOT}/examples/spring-boot-basic/pom.xml" \
+  "${REPOSITORY_ROOT}/examples/spring-boot-data-jdbc/pom.xml"; then
+  echo "Standalone examples must consume only their PostgreSQL Bulk starter." >&2
   exit 1
 fi
 

@@ -31,6 +31,7 @@ jobs:
             code/postgres-bulk-parent/pom.xml
             code/postgres-bulk-parent/*/pom.xml
             examples/spring-boot-basic/pom.xml
+            examples/spring-boot-data-jdbc/pom.xml
             verification/spring-boot-jdbc-consumer/pom.xml
 
       - name: Verify reactor
@@ -41,6 +42,9 @@ jobs:
 
       - name: Verify standalone adoption example
         run: ./mvnw --batch-mode --no-transfer-progress -f ../../examples/spring-boot-basic/pom.xml clean verify
+
+      - name: Verify standalone Spring Data JDBC example
+        run: ./mvnw --batch-mode --no-transfer-progress -f ../../examples/spring-boot-data-jdbc/pom.xml clean verify
 
       - name: Verify isolated JDBC starter consumer
         run: ./mvnw --batch-mode --no-transfer-progress -f ../../verification/spring-boot-jdbc-consumer/pom.xml clean verify
