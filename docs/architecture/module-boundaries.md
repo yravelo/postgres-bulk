@@ -39,17 +39,19 @@ Paquete candidato: `metadata`. Si soportar dos majors de Hibernate exige interna
 
 **Puede conocer:** core, pgJDBC, Spring JDBC y las APIs públicas de Spring Data
 JDBC/Relational/Commons. Traduce el mapping context y las conversiones configuradas a metadata core
-y, desde J2, coordina internamente `JdbcOperations.execute(ConnectionCallback)` con
-`PostgresBulkJdbcOperations` para insertar sólo la fila root.
+y, desde J2/J3, coordina `JdbcOperations.execute(ConnectionCallback)` con
+`PostgresBulkJdbcOperations` para insert/lookup de la fila root. Desde J4 publica un fragmento
+repository JDBC opt-in y lo registra como extensión externa.
 
-**No puede conocer:** JPA, Hibernate, Spring Data JPA, Spring Boot, Actuator, repository fragments,
-lookup/materialization ni auto-configuración. El driver PostgreSQL entra productivamente sólo a
+**No puede conocer:** JPA, Hibernate, Spring Data JPA, Spring Boot, Actuator, auto-configuración ni
+observability. El driver PostgreSQL entra productivamente sólo a
 través de `postgres-bulk-pgjdbc`; Testcontainers y Hikari son test-only. Enforcer prohíbe
 JPA/Hibernate/Boot.
 
 La cache pertenece a una instancia de resolver y, por tanto, al converter/mapping context de una
-aplicación. El coordinador es package-private, exige transacción JDBC write activa y nunca adquiere
-o completa una transacción. No existe cache global ni dependencia desde core hacia Spring.
+aplicación. Coordinador e implementación externa son package-private; el fragmento público crea o
+une una transacción `REQUIRED`, mientras el coordinador exige conexión write activa y nunca la
+completa. No existe cache global ni dependencia desde core hacia Spring.
 
 ## `postgres-bulk-spring-data`
 

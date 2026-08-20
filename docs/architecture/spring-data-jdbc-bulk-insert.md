@@ -1,12 +1,15 @@
 # Bulk insert root-only con Spring Data JDBC
 
-## Alcance J2
+## Alcance J2 y exposición J4
 
 J2 añade ejecución interna de bulk insert para la fila de una aggregate root. No es
-`CrudRepository.save`, no persiste un aggregate graph y todavía no publica repository fragment.
+`CrudRepository.save` ni persiste un aggregate graph. J4 expone ese mismo coordinador, sin copiar
+lógica, mediante `PostgresBulkJdbcRepository<T>`.
 
 ```text
-root entity Iterable
+Spring Data JDBC repository proxy (desde J4)
+    -> external repository fragment
+    -> root entity Iterable
     -> DefaultSpringDataJdbcBulkOperations (package-private)
     -> SpringDataJdbcEntityMetadataResolver.resolveFor(row)
     -> JdbcOperations.execute(ConnectionCallback)
@@ -101,7 +104,6 @@ ni añade una key global por entity class.
 ## Non-goals
 
 - lookup o materialización;
-- repository fragment/API pública;
 - Spring Boot autoconfiguration/starter;
 - observability/Micrometer;
 - sequences, callbacks, version o children;

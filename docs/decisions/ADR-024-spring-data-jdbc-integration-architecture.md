@@ -89,6 +89,18 @@ SELECT sin consultas laterales para roots. PID, propagaciones, read-only, cleanu
 concurrencia quedan probados. No se añaden fragmento, Boot ni tipos públicos; por ello el ADR sigue
 `PROPOSED` hasta discovery J4, coexistencia completa y auto-configuración.
 
+## Evidencia J4 (2026-08-20)
+
+`PostgresBulkJdbcRepository<T>` se descubre desde un JAR externo mediante `spring.factories`; la
+implementación package-private usa `RepositoryMetadataAccess`/`RepositoryMethodContext` y delega
+sin duplicación al coordinador J2/J3. PostgreSQL confirma llamadas desde repositories reales para
+insert/lookup, transacciones, converters, dos domain types y concurrencia. Enforcer conserva el
+módulo sin JPA/Hibernate/Boot y el fragmento JPA no cambia. Un repository que declare ambos
+fragments falla explícitamente y varios `JdbcOperations` fallan por DI estándar. El ADR permanece
+`PROPOSED` hasta la selección multi-manager/coexistencia completa J5 y auto-configuración J6. Como
+smoke de both-classpath, el suite JPA carga también el JAR JDBC y confirma que su fragmento sigue
+descubriéndose y operando sin selección accidental.
+
 ## Alternativas evaluadas
 
 | Alternativa | Resultado |

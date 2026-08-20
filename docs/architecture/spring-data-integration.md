@@ -1,4 +1,13 @@
-# Integración Spring Data JPA
+# Integración Spring Data
+
+## Variantes
+
+El proyecto ofrece fragments opt-in separados: `PostgresBulkRepository<T, ID>` para JPA y
+`PostgresBulkJdbcRepository<T>` para JDBC. No comparten FQCN ni implementación y no debe extenderse
+ambos desde el mismo repository. La guía JDBC explícita está en
+[`spring-data-jdbc-repository-integration.md`](spring-data-jdbc-repository-integration.md).
+
+## JPA
 
 ## Uso
 

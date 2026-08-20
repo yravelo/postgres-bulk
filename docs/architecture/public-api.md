@@ -15,9 +15,9 @@ de ejecucion. Los archivos `package-info.java` documentan packages y no constitu
 publicos.
 
 J1 de la evolución Spring Data JDBC añade un único tipo público experimental al release line
-todavía no publicado: `SpringDataJdbcEntityMetadataResolver`. J2 añade ejecución root-only
-package-private y **cero tipos públicos**: todavía no existen operaciones públicas, repository
-fragments, configuración Boot ni tipos públicos de ejecución JDBC.
+todavía no publicado: `SpringDataJdbcEntityMetadataResolver`. J2/J3 añaden ejecución root-only
+package-private y cero tipos públicos. J4 añade la primera API de operaciones JDBC:
+`PostgresBulkJdbcRepository<T>`. No añade configuración Boot ni tipos públicos de implementación.
 
 ## `BulkOperations<T>`
 
@@ -234,6 +234,33 @@ public final class SpringDataJdbcEntityMetadataResolver
 }
 ```
 
+## Fragmento público añadido en Spring Data JDBC J4
+
+- `PostgresBulkJdbcRepository<T>`: fragmento opt-in específico de Spring Data JDBC. Extiende
+  `BulkOperations<T>` y añade lookup tipado con la misma `BulkKeyMetadata<K>` core.
+- Usa sólo `<T>` porque las operaciones no consumen el tipo de identifier. El `ID` permanece en el
+  `CrudRepository<T, ID>` del consumidor.
+- Mantiene un FQCN distinto del fragmento JPA para imports claros y coexistencia de artifacts.
+- Su implementación externa permanece package-private y no forma parte de la API binaria.
+
+API exacta:
+
+```java
+public interface PostgresBulkJdbcRepository<T> extends BulkOperations<T> {
+    default BulkWriteResult bulkInsert(Iterable<? extends T> items);
+
+    BulkWriteResult bulkInsert(
+        Iterable<? extends T> items,
+        BulkInsertOptions options
+    );
+
+    <K> List<T> findAllByBulkKey(
+        Iterable<? extends K> keys,
+        BulkKeyMetadata<K> keyMetadata
+    );
+}
+```
+
 ## Fuera de la API publica
 
 No se exponen `PGConnection`, `CopyIn`, CSV, nombres de temporales, internals Hibernate ni
@@ -250,9 +277,9 @@ executor pgJDBC y coordinadores bulk insert y temporary-table lookup.
 `CopyExecutionException` son subtipos internos de la raíz pública `BulkException`; no se
 compromete una API de transporte antes de tener una operación pública que la necesite.
 
-En el adapter Spring Data JDBC, `DefaultSpringDataJdbcBulkOperations<T>` y sus seams de test son
-package-private. J2 no adelanta el fragmento previsto para J4 ni convierte esta clase en API de
-aplicación.
+En el adapter Spring Data JDBC, `DefaultSpringDataJdbcBulkOperations<T>`,
+`DefaultPostgresBulkJdbcOperations<T>` y sus seams de test son package-private. Spring Data carga
+la segunda por `spring.factories`, pero sólo `PostgresBulkJdbcRepository<T>` es API de aplicación.
 
 ## `HibernateEntityMetadataResolver`
 

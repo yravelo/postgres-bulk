@@ -112,6 +112,13 @@ su `BulkKeyMetadata` declara y entrega directamente `BigDecimal` relacional, sin
 El guard root-only evita relation SQL y el conteo permanece en un SELECT. El estado del ADR no
 cambia porque sus gates de compatibilidad J7 siguen pendientes.
 
+## Evidencia J4 (2026-08-20)
+
+El fragmento obtiene el domain type desde `RepositoryMetadata` y reutiliza la misma instancia
+inyectada de `SpringDataJdbcEntityMetadataResolver`; no crea mapping contexts, converters o caches
+globales. Repositories de dos roots y llamadas concurrentes confirman aislamiento por tipo. La API
+pública no expone metadata adicional ni altera los gates pendientes de este ADR.
+
 ## Alternativas evaluadas
 
 | Alternativa | Resultado |

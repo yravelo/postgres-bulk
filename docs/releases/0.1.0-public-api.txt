@@ -93,6 +93,12 @@ public final class io.ybr.postgresbulk.springdata.jdbc.SpringDataJdbcEntityMetad
   public <T> io.ybr.postgresbulk.core.metadata.EntityMetadata<T> resolve(java.lang.Class<T>);
   public <T> io.ybr.postgresbulk.core.metadata.EntityMetadata<T> resolveFor(T);
 }
+Compiled from "PostgresBulkJdbcRepository.java"
+public interface io.ybr.postgresbulk.springdata.jdbc.repository.PostgresBulkJdbcRepository<T> extends io.ybr.postgresbulk.core.BulkOperations<T> {
+  public default io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.lang.Iterable<? extends T>);
+  public abstract io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.lang.Iterable<? extends T>, io.ybr.postgresbulk.core.BulkInsertOptions);
+  public abstract <K> java.util.List<T> findAllByBulkKey(java.lang.Iterable<? extends K>, io.ybr.postgresbulk.core.metadata.BulkKeyMetadata<K>);
+}
 
 ## postgres-bulk-spring-data
 Compiled from "DefaultPostgresBulkOperations.java"

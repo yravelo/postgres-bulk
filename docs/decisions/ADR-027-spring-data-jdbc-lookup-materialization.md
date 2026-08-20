@@ -41,6 +41,13 @@ REQUIRED/REQUIRES_NEW/read-only/NESTED, un solo SELECT, fallos `42P01`/`25P02`, 
 interoperabilidad insert/lookup y concurrencia. Unit tests prueban empty, one-shot, delegación,
 ownership y validación posicional.
 
+## Evidencia J4
+
+Repositories reales resuelven su domain type mediante `RepositoryMethodContext` y delegan lookup
+simple/compuesto al materializador J3. PostgreSQL confirma converters de lectura, duplicate/missing
+keys, resultado completo y empty sin tabla física desde la interface pública. No se añade mapper,
+streaming, key inference ni carga de children.
+
 ## Alternativas rechazadas
 
 | Alternativa | Motivo |

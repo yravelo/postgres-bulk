@@ -1,12 +1,15 @@
 # Bulk lookup root-only con Spring Data JDBC
 
-## Alcance J3
+## Alcance J3 y exposición J4
 
 J3 añade lookup interno por `BulkKeyMetadata<K>` al coordinador package-private de Spring Data
-JDBC. No publica fragmento de repository ni API adicional.
+JDBC. J4 publica `findAllByBulkKey` en `PostgresBulkJdbcRepository<T>` y delega intacto a ese
+coordinador.
 
 ```text
-Iterable<K> + BulkKeyMetadata<K>
+Spring Data JDBC repository proxy (desde J4)
+    -> external repository fragment
+    -> Iterable<K> + BulkKeyMetadata<K>
     -> DefaultSpringDataJdbcBulkOperations
     -> JdbcOperations.execute(ConnectionCallback)
     -> PostgresBulkJdbcOperations.findAllByBulkKey
@@ -99,7 +102,7 @@ materializador.
 
 ## Unsupported y diferido
 
-- fragment/API repository pública, Boot, starter y observability JDBC;
+- Boot, starter y observability JDBC;
 - children/aggregate graph loading y N+1 relation loading;
 - custom row mapper público, streaming/lazy results y garantía de orden;
 - derivación automática de keys o conversiones domain dentro de `BulkKeyMetadata`;

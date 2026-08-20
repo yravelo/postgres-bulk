@@ -264,13 +264,14 @@ puede materializar de forma estable con el SQL actual, J3 se detiene: no se reem
 
 ## Repository fragments y API pública
 
-Se propone un fragmento JDBC distinto, por ejemplo:
+J4 congela un fragmento JDBC distinto:
 
 ```text
-io.ybr.postgresbulk.springdata.jdbc.repository.JdbcPostgresBulkRepository<T, ID>
+io.ybr.postgresbulk.springdata.jdbc.repository.PostgresBulkJdbcRepository<T>
 ```
 
-El nombre definitivo se congela en J4 tras un prototype test. Extiende `BulkOperations<T>` y
+El nombre coloca JDBC junto al sustantivo repository y elimina `ID` porque las operaciones no lo
+usan. Extiende `BulkOperations<T>` y
 conserva los mismos nombres y tipos de métodos bulk, pero su Javadoc expresa semántica JDBC, no
 estado gestionado JPA. Reutilizar el FQCN actual exigiría mover una API publicada, conservar
 Javadocs falsos o introducir un módulo común sin evidencia; por eso se descarta.
@@ -464,8 +465,8 @@ con los artifacts nuevos. No se reabre `0.1.0` ni se publica nada durante J0–J
 5. ¿`EntityRowMapper` materializa todos los root-only mappings objetivo sin lifecycle lateral?
 6. ¿Cómo seleccionar explícitamente el transaction manager del repository JDBC cuando ambos
    stacks están activos?
-7. ¿Debe el fragmento final llamarse `JdbcPostgresBulkRepository` o
-   `PostgresBulkJdbcRepository`? J4 resolverá ergonomía y consistencia antes de congelar API.
+7. **Resuelta J4:** `PostgresBulkJdbcRepository<T>` ofrece el import más legible y evita un `ID`
+   genérico sin uso; ADR-028 congela la decisión.
 8. ¿NESTED conserva temp table/COPY correctamente tras rollback a savepoint en PostgreSQL 15–18?
 
 ## Evidencia oficial

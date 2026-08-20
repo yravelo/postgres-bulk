@@ -56,6 +56,13 @@ J3 reutiliza los mismos guards de transacción lógica/física y el mismo
 `JdbcOperations.execute(ConnectionCallback)` para lookup. No cambia la decisión de IDs/insert ni
 amplía NESTED; la estrategia de materialización y cleanup se acepta separadamente en ADR-027.
 
+## Evidencia J4
+
+El proxy repository crea una transacción `REQUIRED` para llamadas directas y conserva outer
+rollback, `REQUIRES_NEW` y rechazo read-only al atravesar el fragmento externo. PostgreSQL prueba
+IDs generated/assigned, mixed rejection, batching explícito y SQLState desde esa API. El fragmento
+no crea boundaries ni modifica la política single-pass/homogénea aceptada aquí.
+
 ## Alternativas rechazadas
 
 | Alternativa | Motivo |

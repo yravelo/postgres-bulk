@@ -1,8 +1,9 @@
 # PostgreSQL Bulk
 
 PostgreSQL Bulk uses PostgreSQL `COPY` for high-throughput bulk insert and temporary-table bulk
-lookup while preserving a Spring Data JPA repository experience. It integrates with Spring Boot
-3.5 and Hibernate 6.6; it is not an ORM replacement.
+lookup while preserving an opt-in Spring Data repository experience. It integrates with Spring
+Data JPA/Hibernate and offers an explicitly configured Spring Data JDBC fragment; it is not an ORM
+replacement.
 
 The project is currently `0.1.0-SNAPSHOT`. Coordinates and API may change before the first release,
 and the artifacts are **not published to Maven Central**.
@@ -22,6 +23,7 @@ directly with PostgreSQL COPY.
 - Typed bulk lookup through a temporary table, COPY and JOIN.
 - Simple and composite lookup keys through `BulkKeyMetadata`.
 - Opt-in Spring Data repository fragment and Spring Boot starter.
+- Opt-in Spring Data JDBC repository fragment with root-only semantics.
 - Transaction-aware access to the Hibernate connection and runtime mapping metadata.
 - Operation-level Micrometer observations and bounded metrics.
 - Contractual support for PostgreSQL 15–18 and Java 17/21.
@@ -33,6 +35,7 @@ directly with PostgreSQL COPY.
 | Java | 17 and 21 |
 | Spring Boot | 3.5.0–3.5.16 |
 | Spring Data JPA | 3.5.0–3.5.13, through the Boot BOM |
+| Spring Data JDBC | 3.5.x baseline; full compatibility matrix deferred |
 | Hibernate ORM | 6.6.15–6.6.55 |
 | pgJDBC | 42.7.5–42.7.13 |
 | PostgreSQL | 15–18 |

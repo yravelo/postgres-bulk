@@ -180,7 +180,7 @@ arrancarlo, `verify` falla visiblemente.
 ## Riesgos diferidos
 
 - J3 decidirá materialización de lookup, sin usar internals.
-- J4 congelará repository fragment/API de operaciones.
+- J4 congeló `PostgresBulkJdbcRepository<T>` y reutiliza este resolver por inyección.
 - J5/J6 cerrarán transacciones, coexistencia y Boot.
 - El lane mínimo Spring Data JDBC 3.5.0 y la matrix completa pertenecen a fases de compatibilidad.
 - Schema runtime por tenant requiere un boundary explícito por operación, no otra cache global.

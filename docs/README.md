@@ -26,6 +26,7 @@ This index separates adoption guidance from implementation details.
 - [Spring Data JDBC J1 metadata](architecture/spring-data-jdbc-metadata.md)
 - [Spring Data JDBC J2 root-only bulk insert](architecture/spring-data-jdbc-bulk-insert.md)
 - [Spring Data JDBC J3 root-only bulk lookup](architecture/spring-data-jdbc-bulk-lookup.md)
+- [Spring Data JDBC J4 repository integration](architecture/spring-data-jdbc-repository-integration.md)
 
 ## Compatibility
 

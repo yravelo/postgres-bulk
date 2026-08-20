@@ -118,9 +118,9 @@ Las fases preservan estas invariantes:
   duplicates/missing/null, 2.503 keys, converters/embedded/reference/record, schema quoted, PID,
   REQUIRED/REQUIRES_NEW/read-only/NESTED characterization, exactamente un SELECT, fallos
   `42P01`/`25P02`, cleanup, pool reuse, interoperabilidad y concurrencia. Core/pgJDBC y la API
-  pública permanecen sin cambios; ADR-027 acepta la estrategia y J4 sigue sin iniciar.
+  pública permanecían sin cambios; ADR-027 aceptó la estrategia antes de iniciar J4.
 
-## J4 — Repository fragment y public API JDBC
+## J4 — Repository fragment y public API JDBC — DONE (2026-08-20)
 
 - **Goal:** ofrecer insert/lookup opt-in desde repositories Spring Data JDBC sin ambigüedad JPA.
 - **Scope:** interface JDBC, implementación, `spring.factories`, `RepositoryMethodContext`,
@@ -144,6 +144,13 @@ Las fases preservan estas invariantes:
 - **Deferred decisions:** API común entre stores y lifecycle opt-in permanecen fuera del roadmap.
 - **Definition of Done:** public API revisada, Javadocs completos, spring.factories probado y
   ADR-024 aceptable salvo gates Boot/dual-stack explícitamente diferidos.
+- **Cierre:** se publica `PostgresBulkJdbcRepository<T>` sin `ID`, con implementation
+  package-private registrada por `spring.factories` y domain type obtenido mediante
+  `RepositoryMethodContext`. Un contexto Spring real prueba discovery, transacciones y PostgreSQL
+  para insert/lookup, converters, IDs, errores, dos repositories y concurrencia. La ambigüedad de
+  `JdbcOperations` falla por DI estándar y combinar fragments JPA/JDBC se rechaza explícitamente.
+  Core/pgJDBC y el fragmento JPA permanecen intactos; Boot, starter, observability y selección
+  multi-manager siguen diferidos.
 
 ## J5 — Transacciones, coexistencia y robustez
 
