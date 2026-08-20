@@ -99,6 +99,16 @@ class PostgresBulkRepositoryIT {
   }
 
   @Test
+  void jpaFragmentRemainsOperationalWhenJdbcFragmentJarIsPresent() throws ClassNotFoundException {
+    assertNotNull(
+        Class.forName("io.ybr.postgresbulk.springdata.jdbc.repository.PostgresBulkJdbcRepository"));
+    assertEquals(
+        new BulkWriteResult(1, 1),
+        products.bulkInsert(List.of(new Product(77L, "both-jars", "coexistence"))));
+    assertEquals("both-jars", products.findById(77L).orElseThrow().sku);
+  }
+
+  @Test
   void externalFragmentSupportsTwoRepositoriesAndExplicitBatching() {
     BulkWriteResult productResult =
         products.bulkInsert(

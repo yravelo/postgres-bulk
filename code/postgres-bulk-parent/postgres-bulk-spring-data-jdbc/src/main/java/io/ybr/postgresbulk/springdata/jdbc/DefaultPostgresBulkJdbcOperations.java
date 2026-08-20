@@ -57,7 +57,7 @@ final class DefaultPostgresBulkJdbcOperations<T>
     return (Class<T>) metadata.getDomainType();
   }
 
-  private static void rejectMixedStoreRepository(RepositoryMetadata metadata) {
+  static void rejectMixedStoreRepository(RepositoryMetadata metadata) {
     Class<?> repositoryInterface =
         Objects.requireNonNull(metadata.getRepositoryInterface(), "repository interface missing");
     if (inherits(repositoryInterface, JPA_FRAGMENT)) {

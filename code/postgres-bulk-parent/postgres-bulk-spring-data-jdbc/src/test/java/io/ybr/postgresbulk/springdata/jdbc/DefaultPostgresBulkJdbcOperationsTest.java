@@ -2,21 +2,46 @@ package io.ybr.postgresbulk.springdata.jdbc;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.ybr.postgresbulk.springdata.jdbc.repository.PostgresBulkJdbcRepository;
 import java.lang.reflect.Proxy;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.beans.factory.UnsatisfiedDependencyException;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.data.jdbc.core.convert.JdbcCustomConversions;
 import org.springframework.data.jdbc.core.convert.JdbcTypeFactory;
 import org.springframework.data.jdbc.core.convert.MappingJdbcConverter;
 import org.springframework.data.jdbc.core.mapping.JdbcMappingContext;
 import org.springframework.data.relational.core.mapping.DefaultNamingStrategy;
+import org.springframework.data.repository.core.RepositoryMetadata;
 import org.springframework.jdbc.core.JdbcOperations;
 
 class DefaultPostgresBulkJdbcOperationsTest {
+
+  @Test
+  void repositoryCombiningJdbcAndJpaFragmentsFailsExplicitly() {
+    RepositoryMetadata metadata =
+        (RepositoryMetadata)
+            Proxy.newProxyInstance(
+                RepositoryMetadata.class.getClassLoader(),
+                new Class<?>[] {RepositoryMetadata.class},
+                (proxy, method, arguments) -> {
+                  if (method.getName().equals("getRepositoryInterface")) {
+                    return MixedRepository.class;
+                  }
+                  throw new AssertionError("Unexpected metadata call: " + method);
+                });
+
+    InvalidDataAccessApiUsageException failure =
+        assertThrows(
+            InvalidDataAccessApiUsageException.class,
+            () -> DefaultPostgresBulkJdbcOperations.rejectMixedStoreRepository(metadata));
+    assertTrue(failure.getMessage().contains(MixedRepository.class.getName()));
+  }
 
   @Test
   void multipleJdbcOperationsCandidatesFailInsteadOfSelectingArbitrarily() {
@@ -65,4 +90,8 @@ class DefaultPostgresBulkJdbcOperationsTest {
             JdbcTypeFactory.unsupported());
     return new SpringDataJdbcEntityMetadataResolver(converter, conversions);
   }
+
+  interface MixedRepository
+      extends PostgresBulkJdbcRepository<Object>,
+          io.ybr.postgresbulk.springdata.repository.PostgresBulkRepository<Object, Long> {}
 }
