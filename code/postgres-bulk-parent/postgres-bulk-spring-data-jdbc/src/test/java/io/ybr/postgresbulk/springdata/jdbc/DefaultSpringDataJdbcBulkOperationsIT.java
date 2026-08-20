@@ -18,13 +18,21 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -48,8 +56,11 @@ import org.springframework.data.relational.core.mapping.DefaultNamingStrategy;
 import org.springframework.data.relational.core.mapping.Embedded;
 import org.springframework.data.relational.core.mapping.Table;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.support.JdbcTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -456,6 +467,400 @@ class DefaultSpringDataJdbcBulkOperationsIT {
             status -> operations().bulkInsert(List.of(new BatchRow(70_002L, "healthy"))));
     assertEquals(1, count("batch_rows"));
     assertEquals(0, dataSource.getHikariPoolMXBean().getActiveConnections());
+  }
+
+  @Test
+  void caughtParticipatingRequiredFailureMarksRollbackOnlyAndFailsOuterCompletion() {
+    TransactionTemplate outer = transaction();
+    TransactionTemplate participating = transaction();
+    List<Throwable> failures = new ArrayList<>();
+
+    UnexpectedRollbackException completion =
+        assertThrows(
+            UnexpectedRollbackException.class,
+            () ->
+                outer.executeWithoutResult(
+                    outerStatus -> {
+                      operations().bulkInsert(List.of(new BatchRow(71_001L, "outer-before")));
+                      BulkException primary =
+                          assertThrows(
+                              BulkException.class,
+                              () ->
+                                  participating.executeWithoutResult(
+                                      innerStatus ->
+                                          operations()
+                                              .bulkInsert(
+                                                  List.of(
+                                                      new BatchRow(71_002L, "duplicate-a"),
+                                                      new BatchRow(71_002L, "duplicate-b")))));
+                      failures.add(primary);
+                      assertTrue(outerStatus.isRollbackOnly());
+                      failures.add(
+                          assertThrows(
+                              DataAccessException.class,
+                              () -> jdbc.queryForObject("SELECT 1", Integer.class)));
+                    }));
+
+    assertTrue(completion.getMessage().contains("rolled back"));
+    assertEquals("23505", sqlState(failures.get(0)));
+    assertEquals("25P02", sqlState(failures.get(1)));
+    assertEquals(0, count("batch_rows"));
+  }
+
+  @Test
+  void failedRequiresNewRollsBackInnerAndAllowsOuterToCommit() {
+    TransactionTemplate outer = transaction();
+    TransactionTemplate requiresNew = transaction();
+    requiresNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    List<Integer> pids = new ArrayList<>();
+
+    outer.executeWithoutResult(
+        outerStatus -> {
+          pids.add(jdbc.queryForObject("SELECT pg_backend_pid()", Integer.class));
+          operations().bulkInsert(List.of(new BatchRow(72_001L, "outer-before")));
+          BulkException failure =
+              assertThrows(
+                  BulkException.class,
+                  () ->
+                      requiresNew.executeWithoutResult(
+                          innerStatus -> {
+                            pids.add(jdbc.queryForObject("SELECT pg_backend_pid()", Integer.class));
+                            operations()
+                                .bulkInsert(
+                                    List.of(
+                                        new BatchRow(72_002L, "inner-a"),
+                                        new BatchRow(72_002L, "inner-b")));
+                          }));
+          assertEquals("23505", sqlState(failure));
+          operations().bulkInsert(List.of(new BatchRow(72_003L, "outer-after")));
+        });
+
+    assertFalse(pids.get(0).equals(pids.get(1)));
+    assertEquals(1, countWhere("batch_rows", "id = 72001"));
+    assertEquals(0, countWhere("batch_rows", "id = 72002"));
+    assertEquals(1, countWhere("batch_rows", "id = 72003"));
+  }
+
+  @Test
+  void nestedInsertUsesManagerOwnedSavepointsAndRecoversFromCopyFailure() {
+    assertNestedInsert(new JdbcTransactionManager(dataSource), 73_000L);
+    assertNestedInsert(new DataSourceTransactionManager(dataSource), 74_000L);
+  }
+
+  @Test
+  void nestedLookupUsesManagerOwnedSavepointsAndRemovesFailedTemporaryState() {
+    assertNestedLookup(new JdbcTransactionManager(dataSource), 75_000L);
+    assertNestedLookup(new DataSourceTransactionManager(dataSource), 76_000L);
+  }
+
+  @Test
+  void singleConnectionPoolRecoversFromFailureWithoutLeakingConnectionState() throws Exception {
+    try (HikariDataSource isolated = pool(1, "j5-state")) {
+      JdbcTemplate isolatedJdbc = new JdbcTemplate(isolated);
+      JdbcTransactionManager manager = new JdbcTransactionManager(isolated);
+      DefaultSpringDataJdbcBulkOperations<BatchRow> isolatedOperations =
+          new DefaultSpringDataJdbcBulkOperations<>(isolatedJdbc, metadataResolver);
+      ConnectionSnapshot before = connectionSnapshot(isolated);
+
+      for (long index = 0; index < 100; index++) {
+        long current = index;
+        long id = 80_000L + current;
+        new TransactionTemplate(manager)
+            .executeWithoutResult(
+                status -> {
+                  isolatedOperations.bulkInsert(List.of(new BatchRow(id, "repeat-" + current)));
+                  if (current % 10 == 0) {
+                    assertEquals(
+                        1,
+                        isolatedOperations
+                            .findAllByBulkKey(
+                                BatchRow.class, List.of("repeat-" + current), stringKey("value"))
+                            .size());
+                  }
+                });
+      }
+
+      assertThrows(
+          BulkException.class,
+          () ->
+              new TransactionTemplate(manager)
+                  .executeWithoutResult(
+                      status ->
+                          isolatedOperations.bulkInsert(
+                              List.of(
+                                  new BatchRow(81_000L, "failed-a"),
+                                  new BatchRow(81_000L, "failed-b")))));
+      new TransactionTemplate(manager)
+          .executeWithoutResult(
+              status -> {
+                isolatedOperations.bulkInsert(List.of(new BatchRow(81_001L, "after-failure")));
+                assertEquals(
+                    1,
+                    isolatedOperations
+                        .findAllByBulkKey(
+                            BatchRow.class, List.of("after-failure"), stringKey("value"))
+                        .size());
+              });
+
+      ConnectionSnapshot after = connectionSnapshot(isolated);
+      assertEquals(before.backendPid(), after.backendPid());
+      assertEquals(before.autoCommit(), after.autoCommit());
+      assertEquals(before.readOnly(), after.readOnly());
+      assertEquals(before.isolation(), after.isolation());
+      assertEquals(before.schema(), after.schema());
+      assertEquals(before.searchPath(), after.searchPath());
+      assertEquals(0L, after.temporaryTables());
+      assertEquals(1L, after.probe());
+      assertEquals(0, isolated.getHikariPoolMXBean().getActiveConnections());
+    }
+  }
+
+  @Test
+  void terminatedBackendIsDiscardedAndNextBorrowerIsHealthy() throws Exception {
+    try (HikariDataSource isolated = pool(1, "j5-backend-loss")) {
+      JdbcTemplate isolatedJdbc = new JdbcTemplate(isolated);
+      JdbcTransactionManager manager = new JdbcTransactionManager(isolated);
+      DefaultSpringDataJdbcBulkOperations<BatchRow> isolatedOperations =
+          new DefaultSpringDataJdbcBulkOperations<>(isolatedJdbc, metadataResolver);
+      AtomicInteger terminatedPid = new AtomicInteger();
+
+      RuntimeException visible =
+          assertThrows(
+              RuntimeException.class,
+              () ->
+                  new TransactionTemplate(manager)
+                      .executeWithoutResult(
+                          status -> {
+                            int pid =
+                                isolatedJdbc.queryForObject(
+                                    "SELECT pg_backend_pid()", Integer.class);
+                            terminatedPid.set(pid);
+                            terminateBackend(pid);
+                            isolatedOperations.bulkInsert(
+                                List.of(new BatchRow(82_001L, "must-fail")));
+                          }));
+      SQLException sqlFailure = findCause(visible, SQLException.class);
+      assertTrue(sqlFailure != null && sqlFailure.getSQLState() != null);
+
+      new TransactionTemplate(manager)
+          .executeWithoutResult(
+              status ->
+                  isolatedOperations.bulkInsert(
+                      List.of(new BatchRow(82_002L, "replacement-connection"))));
+      ConnectionSnapshot replacement = connectionSnapshot(isolated);
+      assertFalse(replacement.backendPid() == terminatedPid.get());
+      assertEquals(1L, replacement.probe());
+      assertEquals(1, countWhere("batch_rows", "id = 82002"));
+      assertEquals(0, isolated.getHikariPoolMXBean().getActiveConnections());
+    }
+  }
+
+  @Test
+  void concurrentInsertAndLookupDoNotShareMutableOrTemporaryState() throws Exception {
+    int threads = 8;
+    CountDownLatch ready = new CountDownLatch(threads);
+    CountDownLatch start = new CountDownLatch(1);
+    ExecutorService executor = Executors.newFixedThreadPool(threads);
+    List<Future<Long>> futures = new ArrayList<>();
+    try {
+      for (int index = 0; index < threads; index++) {
+        int current = index;
+        futures.add(
+            executor.submit(
+                () -> {
+                  ready.countDown();
+                  assertTrue(start.await(20, TimeUnit.SECONDS));
+                  long id = 83_000L + current;
+                  String value = "parallel-" + current;
+                  return transaction()
+                      .execute(
+                          status -> {
+                            DefaultSpringDataJdbcBulkOperations<BatchRow> operations = operations();
+                            operations.bulkInsert(List.of(new BatchRow(id, value)));
+                            List<BatchRow> found =
+                                operations.findAllByBulkKey(
+                                    BatchRow.class, List.of(value), stringKey("value"));
+                            assertEquals(0L, currentSessionTemporaryTables());
+                            return found.get(0).id();
+                          });
+                }));
+      }
+      assertTrue(ready.await(20, TimeUnit.SECONDS));
+      start.countDown();
+      for (int index = 0; index < threads; index++) {
+        assertEquals(83_000L + index, futures.get(index).get(30, TimeUnit.SECONDS));
+      }
+    } finally {
+      executor.shutdownNow();
+    }
+    assertEquals(threads, countWhere("batch_rows", "id BETWEEN 83000 AND 83007"));
+  }
+
+  private void assertNestedInsert(PlatformTransactionManager manager, long base) {
+    TransactionTemplate outer = new TransactionTemplate(manager);
+    TransactionTemplate nested = new TransactionTemplate(manager);
+    nested.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
+
+    outer.executeWithoutResult(
+        outerStatus -> {
+          operations().bulkInsert(List.of(new BatchRow(base + 1, "nested-outer-" + base)));
+          nested.executeWithoutResult(
+              nestedStatus ->
+                  operations()
+                      .bulkInsert(List.of(new BatchRow(base + 2, "nested-success-" + base))));
+          BulkException copyFailure =
+              assertThrows(
+                  BulkException.class,
+                  () ->
+                      nested.executeWithoutResult(
+                          nestedStatus ->
+                              operations()
+                                  .bulkInsert(
+                                      List.of(
+                                          new BatchRow(base + 3, "nested-duplicate-a-" + base),
+                                          new BatchRow(base + 3, "nested-duplicate-b-" + base)))));
+          assertEquals("23505", sqlState(copyFailure));
+          assertEquals(1, jdbc.queryForObject("SELECT 1", Integer.class));
+          operations().bulkInsert(List.of(new BatchRow(base + 4, "nested-after-" + base)));
+        });
+
+    assertEquals(1, countWhere("batch_rows", "id = " + (base + 1)));
+    assertEquals(1, countWhere("batch_rows", "id = " + (base + 2)));
+    assertEquals(0, countWhere("batch_rows", "id = " + (base + 3)));
+    assertEquals(1, countWhere("batch_rows", "id = " + (base + 4)));
+  }
+
+  private void assertNestedLookup(PlatformTransactionManager manager, long base) {
+    TransactionTemplate outer = new TransactionTemplate(manager);
+    TransactionTemplate nested = new TransactionTemplate(manager);
+    nested.setPropagationBehavior(TransactionDefinition.PROPAGATION_NESTED);
+    String value = "nested-lookup-" + base;
+
+    outer.executeWithoutResult(
+        outerStatus -> {
+          operations().bulkInsert(List.of(simpleRichRow(base + 1, value)));
+          nested.executeWithoutResult(
+              nestedStatus ->
+                  assertEquals(
+                      List.of(base + 1),
+                      sortedIds(
+                          DefaultSpringDataJdbcBulkOperationsIT.<RichRow>operations()
+                              .findAllByBulkKey(
+                                  RichRow.class, List.of(value), stringKey("value")))));
+
+          BulkException selectFailure =
+              assertThrows(
+                  BulkException.class,
+                  () ->
+                      nested.executeWithoutResult(
+                          nestedStatus ->
+                              failingSelectOperations()
+                                  .findAllByBulkKey(
+                                      RichRow.class, List.of(value), stringKey("value"))));
+          assertEquals("42P01", sqlState(selectFailure));
+          assertTrue(
+              java.util.Arrays.stream(selectFailure.getSuppressed())
+                  .anyMatch(failure -> "25P02".equals(sqlStateOrNull(failure))));
+          assertEquals(
+              List.of(base + 1),
+              sortedIds(
+                  DefaultSpringDataJdbcBulkOperationsIT.<RichRow>operations()
+                      .findAllByBulkKey(RichRow.class, List.of(value), stringKey("value"))));
+          assertEquals(0L, currentSessionTemporaryTables());
+          operations().bulkInsert(List.of(simpleRichRow(base + 2, value + "-after")));
+        });
+
+    assertEquals(1, countWhere("root_rows", "id = " + (base + 1)));
+    assertEquals(1, countWhere("root_rows", "id = " + (base + 2)));
+  }
+
+  private static DefaultSpringDataJdbcBulkOperations<RichRow> failingSelectOperations() {
+    DefaultSpringDataJdbcBulkOperations.ResultMaterializerFactory materializer =
+        new DefaultSpringDataJdbcBulkOperations.ResultMaterializerFactory() {
+          @Override
+          public <E> DefaultSpringDataJdbcBulkOperations.LookupResultMaterializer<E> prepare(
+              org.springframework.data.relational.core.mapping.RelationalPersistentEntity<E> entity,
+              org.springframework.data.jdbc.core.convert.JdbcConverter converter) {
+            return (connection, sql, copiedKeys) -> {
+              try (java.sql.PreparedStatement statement =
+                  connection.prepareStatement("SELECT * FROM missing_nested_lookup_relation")) {
+                statement.executeQuery();
+              }
+              return List.of();
+            };
+          }
+        };
+    return new DefaultSpringDataJdbcBulkOperations<>(jdbc, metadataResolver, materializer);
+  }
+
+  private static HikariDataSource pool(int maximumPoolSize, String applicationName) {
+    HikariConfig pool = new HikariConfig();
+    pool.setJdbcUrl(jdbcUrl(applicationName));
+    pool.setUsername(POSTGRES.getUsername());
+    pool.setPassword(POSTGRES.getPassword());
+    pool.setMaximumPoolSize(maximumPoolSize);
+    pool.setMinimumIdle(0);
+    pool.setConnectionTimeout(10_000);
+    return new HikariDataSource(pool);
+  }
+
+  private static String jdbcUrl(String applicationName) {
+    String jdbcUrl = POSTGRES.getJdbcUrl();
+    return jdbcUrl + (jdbcUrl.contains("?") ? "&" : "?") + "ApplicationName=" + applicationName;
+  }
+
+  private static ConnectionSnapshot connectionSnapshot(HikariDataSource source)
+      throws SQLException {
+    try (Connection connection = source.getConnection()) {
+      return new ConnectionSnapshot(
+          scalarLong(connection, "SELECT pg_backend_pid()"),
+          connection.getAutoCommit(),
+          connection.isReadOnly(),
+          connection.getTransactionIsolation(),
+          connection.getSchema(),
+          scalarString(connection, "SHOW search_path"),
+          scalarLong(
+              connection,
+              "SELECT count(*) FROM pg_catalog.pg_class "
+                  + "WHERE relnamespace = pg_my_temp_schema() AND relname LIKE 'pgbulk_keys_%'"),
+          scalarLong(connection, "SELECT 1"));
+    }
+  }
+
+  private static long scalarLong(Connection connection, String sql) throws SQLException {
+    try (Statement statement = connection.createStatement();
+        ResultSet result = statement.executeQuery(sql)) {
+      assertTrue(result.next());
+      return result.getLong(1);
+    }
+  }
+
+  private static String scalarString(Connection connection, String sql) throws SQLException {
+    try (Statement statement = connection.createStatement();
+        ResultSet result = statement.executeQuery(sql)) {
+      assertTrue(result.next());
+      return result.getString(1);
+    }
+  }
+
+  private static void terminateBackend(int backendPid) {
+    try (Connection killer =
+            DriverManager.getConnection(
+                POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
+        Statement statement = killer.createStatement()) {
+      assertTrue(statement.execute("SELECT pg_terminate_backend(" + backendPid + ")"));
+    } catch (SQLException failure) {
+      throw new AssertionError("Could not terminate PostgreSQL backend " + backendPid, failure);
+    }
+  }
+
+  private static <E extends Throwable> E findCause(Throwable failure, Class<E> type) {
+    for (Throwable current = failure; current != null; current = current.getCause()) {
+      if (type.isInstance(current)) {
+        return type.cast(current);
+      }
+    }
+    return null;
   }
 
   @Test
@@ -993,6 +1398,16 @@ class DefaultSpringDataJdbcBulkOperationsIT {
   record MoneyKey(BigDecimal relationalValue) {}
 
   record ValueStatusKey(String value, String status) {}
+
+  private record ConnectionSnapshot(
+      long backendPid,
+      boolean autoCommit,
+      boolean readOnly,
+      int isolation,
+      String schema,
+      String searchPath,
+      long temporaryTables,
+      long probe) {}
 
   record GeoPoint(Double latitude, Double longitude) {}
 

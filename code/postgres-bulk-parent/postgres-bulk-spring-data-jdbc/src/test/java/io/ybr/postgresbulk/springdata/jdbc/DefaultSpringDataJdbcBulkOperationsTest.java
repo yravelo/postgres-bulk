@@ -601,7 +601,9 @@ class DefaultSpringDataJdbcBulkOperationsTest {
                       "setAutoCommit",
                       "setReadOnly",
                       "setTransactionIsolation",
-                      "setSchema" -> {
+                      "setSchema",
+                      "setSavepoint",
+                      "releaseSavepoint" -> {
                     forbiddenCalls.incrementAndGet();
                     throw new AssertionError("connection ownership violation: " + method.getName());
                   }
