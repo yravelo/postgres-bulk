@@ -292,9 +292,10 @@ Las fases preservan estas invariantes:
 Spring Data JDBC roadmap J0–J8: COMPLETE
 ```
 
-Quedan registrados, sin implementar: runtime multi-schema/schema-per-tenant; Security & Supply
-Chain Baseline; publication activation; Boot 4 / Spring Data 4 future generation; additional
-performance experiments. Cualquier continuación requiere un roadmap y autorización separados.
+Runtime multi-schema/schema-per-tenant continúa sin implementar, pero MS0 ya cerró su
+[investigación y roadmap separados](multi-schema-roadmap.md). Security & Supply Chain Baseline,
+publication activation, Boot 4 / Spring Data 4 future generation y experimentos de performance
+adicionales permanecen sin iniciar y requieren autorización separada.
 
 ## Dependencias del roadmap
 

@@ -1,0 +1,70 @@
+# ADR-032: SQL target-qualified sin mutar schema de conexión
+
+- **Estado:** PROPOSED
+- **Fecha:** 2026-08-20
+
+## Contexto
+
+PostgreSQL permite iguales nombres de tabla en schemas distintos. Un nombre no cualificado se
+resuelve por `search_path`: gana el primer match, y cualquier schema writable incluido en ese path
+amplía la frontera de confianza. pgJDBC ofrece `currentSchema`/`Connection.setSchema` como formas
+de influir en ese estado. En una conexión pooled o compartida por JPA/JDBC, cambiarlo exige
+restauración correcta en éxito, fallo, transacción abortada y pérdida de backend.
+
+Los contratos aceptados ADR-013/019/026/029 prohíben que postgres-bulk reconfigure una conexión
+caller-owned. El quoter actual ya construye identifiers a partir de componentes separados y puede
+emitir `"schema"."table"` sin estado de sesión.
+
+Fuentes primarias:
+
+- [PostgreSQL: schemas y search path](https://www.postgresql.org/docs/current/ddl-schemas.html)
+- [pgJDBC: `currentSchema`](https://jdbc.postgresql.org/documentation/use/)
+- [Spring Framework: recursos JDBC transaction-aware](https://docs.spring.io/spring-framework/reference/6.2/data-access/jdbc/connections.html)
+
+## Decisión propuesta
+
+- Cada target runtime debe ser schema-qualified y cada sentencia target-specific debe usar ese
+  nombre: COPY INSERT, CTAS y JOIN.
+- Reutilizar `PostgresIdentifierQuoter`: schema, tabla y columnas permanecen componentes
+  estructurados, se citan por separado, duplican quotes internas y rechazan NUL.
+- No aceptar SQL libre, un `schema.table` preconcatenado, templates ni identifiers derivados por la
+  librería desde tenant ids.
+- No invocar `Connection.setSchema`, `SET SCHEMA`, `SET search_path`, `SET LOCAL search_path` ni
+  configuración pgJDBC `currentSchema`. No implementar restore best-effort.
+- Un mapping existente sin schema y sin target explícito conserva su resolución histórica por el
+  ambiente de conexión. Se clasifica como compatibilidad/default, no como mecanismo multi-schema.
+- Las tablas temporales internas permanecen session-local y no convierten `search_path` en selector
+  del target de negocio.
+- La misma conexión/transacción puede ejecutar A→B porque cada SQL es autocontenido. La librería no
+  limita varias schemas en una transacción ni cambia ownership, propagación o cleanup.
+- La aplicación debe autorizar/mapear el target; quoting previene inyección sintáctica pero no
+  autoriza acceso. PostgreSQL conserva `USAGE`/privilegios de objetos como control efectivo.
+- Schema/target no aparece en tags de observabilidad ni logs propios. La causa `SQLException` se
+  preserva aunque el servidor pueda incluir nombres físicos.
+
+## Alternativas
+
+| Alternativa | Evaluación |
+| --- | --- |
+| `Connection.setSchema` + restore | rechazada: mutación compartida, leakage y restore bajo fallo |
+| `SET LOCAL search_path` | rechazada: sigue siendo estado transaccional ambiental y afecta otras sentencias |
+| datasource/pool por schema dentro de la librería | rechazada: routing y credentials pertenecen a aplicación |
+| SQL no cualificado con path preconfigurado | sólo compatibilidad existente; no garantiza target explícito |
+| SQL qualified por componentes | propuesta: determinista, local y coherente con ownership |
+
+## Consecuencias
+
+El coste es repetir el schema citado en SQL. A cambio, no hay estado que restaurar, un repository
+singleton es seguro entre targets y database-per-tenant externo sigue funcionando sin interferencia.
+La librería no provisiona schemas, no consulta privilegios y no soporta row-level tenancy.
+
+## Evidencia requerida para ACCEPTED
+
+- todos los SQL target-specific qualified en tests unitarios;
+- schemas quoted/reserved/mixed-case y NUL rejection;
+- A→B/B→A en la misma conexión con `getSchema`/`search_path` sin cambios;
+- pool size one tras éxito, rollback y fallo `25P02`;
+- concurrency sobre singleton y conexiones separadas;
+- ausencia estática/dinámica de mutadores y `SET search_path`;
+- metrics/tags sin schema/target;
+- privilege failures preservan SQLState sin fallback a otro schema.

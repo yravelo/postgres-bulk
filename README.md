@@ -327,6 +327,8 @@ recommended key-count threshold. See the [performance guide](docs/user-guide/per
   collection-table insert, or Hibernate soft-delete literal generation.
 - No built-in JSON/JSONB, array or arbitrary custom-type encoder.
 - No automatic retry, adaptive lookup strategy, index/`ANALYZE` tuning or guaranteed result order.
+- Runtime multi-schema/schema-per-tenant is designed but not implemented; current operations use
+  the table resolved by mapping metadata and the connection environment.
 - Spring Boot 4, Spring Data 4 and Hibernate 7 are unsupported in this artifact generation.
 
 ## How it fits
@@ -351,6 +353,7 @@ Spring Data adapter
 - [Architecture](docs/architecture/overview.md)
 - [Compatibility and evidence](docs/architecture/compatibility.md)
 - [Spring Data JDBC benchmarks](docs/benchmarks/j8-spring-data-jdbc.md)
+- [Multi-schema investigation and roadmap](docs/architecture/multi-schema-investigation.md)
 - [Contributing](CONTRIBUTING.md)
 
 ## License

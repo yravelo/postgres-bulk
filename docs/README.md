@@ -31,6 +31,7 @@ This index separates adoption guidance from implementation details.
 - [Spring Data JDBC J4 repository integration](architecture/spring-data-jdbc-repository-integration.md)
 - [Spring Data JDBC J5 transactions and robustness](architecture/spring-data-jdbc-transactions-and-robustness.md)
 - [Spring Data JDBC J6 Boot auto-configuration](architecture/spring-data-jdbc-boot-autoconfiguration.md)
+- [Multi-schema MS0 investigation](architecture/multi-schema-investigation.md)
 
 ## Compatibility
 
@@ -52,3 +53,4 @@ This index separates adoption guidance from implementation details.
 - [Implementation plan](plans/implementation-plan.md)
 - [Release acceptance criteria](plans/release-acceptance-criteria.md)
 - [Spring Data JDBC roadmap](plans/spring-data-jdbc-roadmap.md)
+- [Multi-schema roadmap](plans/multi-schema-roadmap.md)
