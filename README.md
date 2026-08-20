@@ -35,7 +35,7 @@ directly with PostgreSQL COPY.
 | Java | 17 and 21 |
 | Spring Boot | 3.5.0–3.5.16 |
 | Spring Data JPA | 3.5.0–3.5.13, through the Boot BOM |
-| Spring Data JDBC | 3.5.x baseline; full compatibility matrix deferred |
+| Spring Data JDBC / Relational | 3.5.0–3.5.13, through the Boot BOM |
 | Hibernate ORM | 6.6.15–6.6.55 |
 | pgJDBC | 42.7.5–42.7.13 |
 | PostgreSQL | 15–18 |
@@ -90,7 +90,56 @@ For a Spring Data JDBC application, use the JDBC-only starter instead:
 
 It does not bring JPA or Hibernate. Normal Boot datasource and repository configuration is enough;
 the metadata resolver is auto-configured when the JDBC infrastructure has one unambiguous
-candidate. See the [JDBC Boot architecture](docs/architecture/spring-data-jdbc-boot-autoconfiguration.md).
+candidate. See the [Spring Data JDBC user guide](docs/user-guide/spring-data-jdbc.md).
+
+## Spring Data JDBC adoption
+
+Use Spring Data annotations and extend both repository interfaces; no postgres-bulk configuration
+class is needed for a normal single-datasource Boot application:
+
+```java
+@Table("product")
+public record Product(@Id UUID id, String sku, String category) {}
+
+public interface ProductRepository
+        extends CrudRepository<Product, UUID>,
+                PostgresBulkJdbcRepository<Product> {
+}
+```
+
+Run non-empty operations inside a write-capable transaction. Repository fragment methods use
+`REQUIRED`; an outer transaction controls commit or rollback:
+
+```java
+@Transactional
+public BulkWriteResult importProducts(List<Product> input) {
+    return products.bulkInsert(input, BulkInsertOptions.ofBatchSize(5_000));
+}
+```
+
+Lookup uses explicit physical key columns and may be simple or composite:
+
+```java
+BulkKeyMetadata<String> skuKey = BulkKeyMetadata.of(
+    String.class,
+    List.of(ColumnMetadata.of("sku", String.class, sku -> sku))
+);
+
+@Transactional
+public List<Product> findBySkus(List<String> skus) {
+    return products.findAllByBulkKey(skus, skuKey);
+}
+```
+
+The JDBC path writes only aggregate-root columns: it does not persist child collections, invoke
+callbacks/auditing, or populate generated identifiers. Assigned IDs are copied; generated numeric
+IDs are omitted and remain unset in the input object. Read-only and unproxied no-transaction calls
+are invalid for non-empty work. Choose the JPA starter for JPA/Hibernate repositories and the JDBC
+starter for Spring Data JDBC repositories; both share the same pgJDBC COPY engine but use different
+metadata, materialization, lifecycle and transaction integration.
+
+The complete executable application is
+[`examples/spring-boot-data-jdbc`](examples/spring-boot-data-jdbc/README.md).
 
 ## Quick Start
 

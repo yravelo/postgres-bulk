@@ -17,8 +17,9 @@ el adapter pgJDBC depende directamente de la API COPY; son los dos límites más
   son `SUPPORTED` y se ejecutan con la suite completa. JDK 25 se conserva como validación adicional,
   sin convertirlo en compromiso contractual.
 - La línea Spring soportada por el artefacto actual es Boot 3.5.0–3.5.16. Sus stacks gestionados
-  mínimo y actual se validan completos; Spring Framework, Spring Data, Hibernate, Micrometer y
-  pgJDBC se alinean mediante el BOM, no mediante combinaciones inventadas.
+  mínimo y actual se validan completos; Spring Framework, Spring Data JPA, Spring Data
+  JDBC/Relational, Hibernate, Micrometer y pgJDBC se alinean mediante el BOM, no mediante
+  combinaciones inventadas.
 - Hibernate se soporta en 6.6.15.Final–6.6.55.Final. Se prueban ambos límites directamente sobre el
   adapter, incluido `ToOneAttributeMapping`; la integración completa se prueba con los dos stacks
   Boot gestionados y con el límite nuevo.
@@ -46,10 +47,20 @@ mezcla versiones que ningún BOM soportado produce.
 No cambia la API pública, no se añaden dependencias productivas y no existe detección runtime de
 versión. El build local sigue probando una única baseline PostgreSQL; CI amplía los ejes.
 
+## Progresión Spring Data JDBC J7
+
+J7 aplica la misma política boundary/pairwise a la integración JDBC. Boot 3.5.0 y 3.5.16 validan
+respectivamente Data JDBC/Relational 3.5.0 y 3.5.13; Java 17/21, pgJDBC 42.7.5/42.7.13 y
+PostgreSQL 15.18/16.14/17.10/18.4 mantienen sus límites existentes. Los full reactors incluyen
+resolver, fragment discovery, `EntityRowMapper`, transacciones, autoconfiguration, starter,
+JDBC-only, coexistencia JPA y el ejemplo ejecutable. No se infieren Boot/Data 4 ni patches no
+ejecutados.
+
 ## Fuentes upstream
 
 - [Spring Boot system requirements](https://docs.spring.io/spring-boot/system-requirements.html)
 - [Spring Boot 3.5 managed coordinates](https://docs.spring.io/spring-boot/3.5/appendix/dependency-versions/coordinates.html)
+- [Spring Data Relational 3.5](https://docs.spring.io/spring-data/relational/reference/3.5/)
 - [Hibernate ORM 6.6](https://hibernate.org/orm/releases/6.6/)
 - [Hibernate integrations](https://hibernate.org/community/integrations/)
 - [pgJDBC downloads](https://jdbc.postgresql.org/download/)

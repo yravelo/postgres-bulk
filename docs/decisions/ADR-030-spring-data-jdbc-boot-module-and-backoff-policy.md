@@ -54,3 +54,9 @@ ambos starters carga simultáneamente los resolvers JPA/JDBC. Enforcer y `depend
 que el grafo productivo JDBC no contiene JPA, Hibernate, Actuator, Testcontainers ni benchmarks.
 Un consumidor aislado fuera del reactor verifica el snapshot instalado usando el starter JDBC como
 su única dependencia directa de postgres-bulk.
+
+J7 conserva la decisión sin cambios de producción y la valida en Boot 3.5.0/3.5.16, Data
+JDBC/Relational 3.5.0/3.5.13, Java 17/21, pgJDBC 42.7.5/42.7.13 y PostgreSQL 15–18. El ejemplo
+standalone repite discovery, insert, lookup y transacciones con una sola dependencia directa de
+postgres-bulk. Los BOM mínimo/actual mantienen el starter libre de JPA, Hibernate, Actuator
+obligatorio, Testcontainers productivo y benchmarks.

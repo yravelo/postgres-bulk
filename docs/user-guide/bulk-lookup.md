@@ -53,8 +53,9 @@ constraint.
 - Empty input returns an empty list without metadata, connection or database work.
 
 The method must run in a write-capable transaction. `@Transactional(readOnly = true)` is invalid
-because PostgreSQL must create and load a temporary table. Results are materialized as JPA entities
-before cleanup, but pending ORM writes are not flushed automatically.
+because PostgreSQL must create and load a temporary table. The JPA fragment materializes through
+Hibernate; the JDBC fragment uses Spring Data's `EntityRowMapper` and effective `JdbcConverter`.
+Both finish materialization before cleanup. Pending JPA writes are not flushed automatically.
 
 ## Performance guidance
 

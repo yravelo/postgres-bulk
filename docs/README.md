@@ -5,6 +5,7 @@ This index separates adoption guidance from implementation details.
 ## User guide
 
 - [Getting started](user-guide/getting-started.md)
+- [Spring Data JDBC](user-guide/spring-data-jdbc.md)
 - [Transactions](user-guide/transactions.md)
 - [Mapping support](user-guide/mapping-support.md)
 - [Bulk lookup](user-guide/bulk-lookup.md)
@@ -12,6 +13,7 @@ This index separates adoption guidance from implementation details.
 - [Performance](user-guide/performance.md)
 - [Error handling and retry](user-guide/error-handling.md)
 - [Executable Spring Boot example](../examples/spring-boot-basic/README.md)
+- [Executable Spring Boot Data JDBC example](../examples/spring-boot-data-jdbc/README.md)
 
 ## Architecture
 

@@ -320,3 +320,12 @@ explícitamente como tipo Java persistence-facing/relacional cuando lo produce e
 El example externo compila únicamente contra `postgres-bulk-spring-boot-starter`; no importa
 internals, clases package-private ni módulos sibling directamente. El inventario reproducible se
 imprime con `scripts/check-documentation.sh`.
+
+## Auditoría Spring Data JDBC J7
+
+J7 no añade tipos, métodos ni firmas públicas a los artifacts de la librería. El nuevo ejemplo
+compila sólo contra `postgres-bulk-spring-boot-starter-data-jdbc` y las APIs públicas ya aceptadas:
+`PostgresBulkJdbcRepository<T>`, `SpringDataJdbcEntityMetadataResolver`,
+`PostgresBulkJdbcAutoConfiguration`, core metadata/options/results y Spring Data JDBC. Sus clases
+de dominio y servicio pertenecen al artifact de ejemplo, no a la API de postgres-bulk. El baseline
+binario de `0.1.0-SNAPSHOT` permanece sin cambios.

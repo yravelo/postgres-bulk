@@ -54,3 +54,28 @@ are deliberate differences from `persist`/`saveAll`, not mapping bugs.
 
 The implementation-level matrix and evidence are in
 [Hibernate metadata](../architecture/hibernate-metadata.md).
+
+## Spring Data JDBC root mapping
+
+The JDBC fragment copies and materializes only aggregate-root columns resolved by the effective
+`JdbcConverter`, `RelationalMappingContext`, naming strategy and custom conversions.
+
+| Feature | Status | JDBC behavior |
+|---|---|---|
+| Scalar String/numeric/boolean/UUID/`byte[]`/Java Time | SUPPORTED | Uses the relational value and COPY encoder for the declared type. |
+| Assigned `Long`/`UUID` ID | SUPPORTED | Included in COPY. |
+| Generated numeric ID | PARTIAL | Column is omitted; PostgreSQL generates it, but the value is not returned or populated. |
+| Default enum conversion | SUPPORTED | Spring Data JDBC writes the configured/default String representation. |
+| Custom single-column converter | SUPPORTED | Static relational targets such as `Money -> BigDecimal` are tested. |
+| Converter directly to `JdbcValue` | UNSUPPORTED | The wrapped Java type cannot be known statically for null input. |
+| `@Embedded`, prefixes and nullable nested values | SUPPORTED | Root columns are flattened through official persistent paths. |
+| `AggregateReference<T, ID>` | SUPPORTED | Scalar ID conversion is tested with UUID. |
+| Child entities, collections, sets and maps | UNSUPPORTED | Root-only contract rejects aggregate graph persistence/materialization. |
+| `@Version` | UNSUPPORTED | Optimistic-lock lifecycle is not emulated. |
+| `@Sequence` | UNSUPPORTED | Sequence/callback ID generation is outside the bulk path. |
+| Callbacks, events and auditing | UNSUPPORTED | COPY does not invoke Spring Data lifecycle hooks. |
+| Quoted schema/table/column, spaces and reserved words | SUPPORTED | Exact mapped identifiers are always quoted by the engine. |
+| Plain mixed-case name relying on PostgreSQL folding | UNSUPPORTED | Mapping cannot preserve quoted-vs-plain intent; use an exact quoted/lowercase physical name. |
+
+The complete JDBC evidence and rationale are in
+[Spring Data JDBC metadata](../architecture/spring-data-jdbc-metadata.md).

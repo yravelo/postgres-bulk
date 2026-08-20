@@ -1,5 +1,10 @@
 # Performance
 
+The existing numbers measure the JPA integration, JDBC batch and direct COPY workloads defined by
+the current benchmark module. J7 did not run new benchmarks and does not claim a Spring Data JDBC
+comparison. A controlled Spring Data JDBC versus `JdbcTemplate`/JDBC batch/COPY comparison is
+deferred to J8.
+
 The benchmark suite measures complete public persistence calls against PostgreSQL 15.18 on one
 local machine. It includes transaction commit and excludes dataset construction, table reset and
 correctness checks from the timed region. Results are evidence for that environment, not service

@@ -2,7 +2,8 @@
 
 ## Spring repository methods
 
-All `PostgresBulkRepository` methods use Spring `REQUIRED`, read-write semantics:
+All `PostgresBulkRepository` and `PostgresBulkJdbcRepository` methods use Spring `REQUIRED`,
+read-write semantics:
 
 ```java
 @Transactional
@@ -57,6 +58,9 @@ read-only flag for the caller.
   independent physical transaction.
 - `NESTED` is **unsupported** in the validated Hibernate 6.6 + `JpaTransactionManager` baseline.
   Enabling `nestedTransactionAllowed` does not add savepoint support to `HibernateJpaDialect`.
+- For Spring Data JDBC, `NESTED` is **supported with conditions** when
+  `JdbcTransactionManager`/`DataSourceTransactionManager` controls the same `DataSource` and has
+  savepoint support enabled. postgres-bulk does not create or own savepoints.
 
 Size the connection pool carefully when using `REQUIRES_NEW`; the suspended outer scope may retain
 one connection while the inner scope acquires another.
@@ -81,3 +85,10 @@ transaction when atomicity matters.
 After a SQL error PostgreSQL may remain in state `25P02` until rollback. The owner must roll back
 before reusing the connection. The complete maintainer matrix is in
 [transactions and failures](../architecture/transactions-and-failures.md).
+
+## Multiple JDBC managers and data sources
+
+postgres-bulk does not select a transaction manager, datasource or `JdbcOperations` by name or
+declaration order. Multiple managers require the application's normal `@Primary`, qualifier or
+`transactionManagerRef` configuration. The repository, manager and `JdbcOperations` must target
+the same datasource. Two local JPA/JDBC managers do not create cross-store atomicity.

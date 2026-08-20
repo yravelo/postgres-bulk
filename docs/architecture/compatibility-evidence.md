@@ -1,6 +1,6 @@
 # Evidencia de compatibilidad
 
-**Corte de evidencia:** 2026-08-19. Todos los comandos se ejecutaron desde
+**Corte de evidencia:** 2026-08-20. Todos los comandos se ejecutaron desde
 `code/postgres-bulk-parent` en Linux, con Maven Wrapper 3.9.16, Docker 29.7.0 y sin omitir
 Enforcer ni tests de integración.
 
@@ -12,12 +12,15 @@ Enforcer ni tests de integración.
 | Spring Boot | 3.5.0–3.5.16 | 3.5.16 | 3.5.0, 3.5.16 | `spring-boot.version`, BOM y B01/J01 |
 | Spring Framework | gobernado por Boot | 6.2.19 | 6.2.7, 6.2.19 | dependency tree de B01/J01 |
 | Spring Data JPA | gobernado por Boot | 3.5.13 | 3.5.0, 3.5.13 | dependency tree y starter IT |
+| Spring Data JDBC | gobernado por Boot | 3.5.13 | 3.5.0, 3.5.13 | dependency tree, resolver/fragment/starter/example tests |
+| Spring Data Relational | gobernado por Boot | 3.5.13 | 3.5.0, 3.5.13 | dependency tree, mapping/materialization tests |
 | Hibernate ORM | 6.6.15–6.6.55 | 6.6.53.Final | 6.6.15, 6.6.53, 6.6.55 | BOM y H01/H02/full stack |
 | Micrometer | gobernado por Boot | 1.15.12 | 1.15.0, 1.15.12 | dependency tree y observability tests |
 | pgJDBC | 42.7.5–42.7.13 | 42.7.11 | 42.7.5, 42.7.11, 42.7.13 | BOM y D01/D02/full stack |
 | PostgreSQL | majors 15–18 | `15.18-alpine` | 15.18, 16.14, 17.10, 18.4 | parent `postgres.version` y Testcontainers |
 
-La baseline real del POM es Boot 3.5.16, Spring Framework 6.2.19, Spring Data JPA 3.5.13,
+La baseline real del POM es Boot 3.5.16, Spring Framework 6.2.19, Spring Data
+JPA/JDBC/Relational 3.5.13,
 Hibernate 6.6.53.Final, Micrometer 1.15.12, pgJDBC 42.7.11 y PostgreSQL 15.18. Esto corrige
 referencias históricas de fases anteriores que usaron manualmente Hibernate 6.6.55/pgJDBC 42.7.13
 antes de integrar el BOM Boot.
@@ -29,30 +32,31 @@ Comando, repetido con `3.5.0` y `3.5.16`:
 ```bash
 ./mvnw --batch-mode --no-transfer-progress \
   -Dspring-boot.version=3.5.0 -DskipTests \
-  -pl postgres-bulk-spring-boot-starter -am dependency:tree \
-  -Dincludes=org.springframework:spring-core,org.springframework.data:spring-data-jpa,org.hibernate.orm:hibernate-core,io.micrometer:micrometer-core,org.postgresql:postgresql
+  -pl postgres-bulk-spring-boot-starter,postgres-bulk-spring-boot-starter-data-jdbc \
+  -am dependency:tree \
+  -Dincludes=org.springframework:spring-core,org.springframework:spring-jdbc,org.springframework.data:spring-data-jpa,org.springframework.data:spring-data-jdbc,org.springframework.data:spring-data-relational,org.hibernate.orm:hibernate-core,io.micrometer:micrometer-core,org.postgresql:postgresql
 ```
 
-| Boot | Spring Framework | Spring Data JPA | Hibernate ORM | Micrometer | pgJDBC | Enforcer/resolution |
-|---|---|---|---|---|---|---|
-| 3.5.0 | 6.2.7 | 3.5.0 | 6.6.15.Final | 1.15.0 | 42.7.5 | PASS |
-| 3.5.16 | 6.2.19 | 3.5.13 | 6.6.53.Final | 1.15.12 | 42.7.11 | PASS |
+| Boot | Framework | Data JPA | Data JDBC/Relational | Hibernate | Micrometer | pgJDBC | Resultado |
+|---|---|---|---|---|---|---|---|
+| 3.5.0 | 6.2.7 | 3.5.0 | 3.5.0 | 6.6.15.Final | 1.15.0 | 42.7.5 | PASS |
+| 3.5.16 | 6.2.19 | 3.5.13 | 3.5.13 | 6.6.53.Final | 1.15.12 | 42.7.11 | PASS |
 
 ## Matriz ejecutada
 
-`216` significa 140 unit/context tests y 76 integration tests. Los jobs focalizados Hibernate
-ejecutan 35 tests core + 13 IT del adapter; los focalizados pgJDBC ejecutan 35 core + 83 unit del
-adapter + 40 IT.
+Los jobs `full reactor` ejecutan unit/context tests y todas las integraciones JPA, JDBC,
+autoconfiguration, ambos starters y ambos ejemplos. Los jobs focalizados conservan los contratos
+de los adapters Hibernate y pgJDBC sin crear un producto cartesiano.
 
-| ID | Java | Boot | Spring Data | Hibernate | Micrometer | pgJDBC | PostgreSQL | Tests | Resultado |
+| ID | Java | Boot | Data JPA/JDBC | Hibernate | Micrometer | pgJDBC | PostgreSQL | Tests | Resultado |
 |---|---|---|---|---|---|---|---|---:|---|
-| J01 baseline | 17.0.20 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 15.18 | 216 | PASS |
-| J02 LTS | 21.0.12 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 15.18 | 216 | PASS |
-| J03 newer | 25.0.3 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 15.18 | 216 | PASS |
-| B01 Boot min | 17.0.20 | 3.5.0 | 3.5.0 | 6.6.15 | 1.15.0 | 42.7.5 | 15.18 | 216 | PASS |
-| P16 server | 17.0.20 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 16.14 | 216 | PASS |
-| P17 server | 17.0.20 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 17.10 | 216 | PASS |
-| N01 newest | 21.0.12 | 3.5.16 | 3.5.13 | 6.6.55 | 1.15.12 | 42.7.13 | 18.4 | 216 | PASS |
+| J01 baseline | 17.0.20 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 15.18 | full reactor | PASS |
+| J02 LTS | 21.0.12 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 15.18 | full reactor | PASS |
+| J03 experimental | 25.0.3 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 15.18 | full reactor | PASS |
+| B01 minimum | 17.0.20 | 3.5.0 | 3.5.0 | 6.6.15 | 1.15.0 | 42.7.5 | 15.18 | full reactor | PASS |
+| P16 server | 17.0.20 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 16.14 | full reactor | PASS |
+| P17 server | 17.0.20 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 17.10 | full reactor | PASS |
+| N01 newest | 21.0.12 | 3.5.16 | 3.5.13 | 6.6.55 | 1.15.12 | 42.7.13 | 18.4 | full reactor | PASS |
 | H01 adapter min | 25.0.3 | n/a | n/a | 6.6.15 | n/a | 42.7.11 test | 15.18 | 48 | PASS |
 | H02 adapter max | 25.0.3 | n/a | n/a | 6.6.55 | n/a | 42.7.11 test | 15.18 | 48 | PASS |
 | D01 driver min | 25.0.3 | n/a | n/a | n/a | n/a | 42.7.5 | 15.18 | 158 | PASS |
@@ -75,6 +79,40 @@ JAVA_HOME=/tmp/postgres-bulk-jdks/jdk21 ./mvnw --batch-mode --no-transfer-progre
 ```
 
 `JAVA_HOME` identifica aquí los JDK exactos usados; en CI `setup-java` hace esa selección.
+
+## Evidencia Spring Data JDBC J7
+
+Cada ejecución `full reactor` incluye, además de la regresión JPA:
+
+- resolver de metadata con scalars, IDs assigned/generated, enums, converters, embedded,
+  `AggregateReference`, UUID, `byte[]`, temporal e identificadores/schema quoted;
+- insert y lookup root-only con `EntityRowMapper`, claves simples/compuestas y PostgreSQL real;
+- REQUIRED, rollback, read-only, no-transaction, `REQUIRES_NEW` y `NESTED` condicionado;
+- activation/back-off/single-candidate/user override/JPA-only/JDBC-only/both de autoconfiguration;
+- starter JDBC-only, ambos starters y repositorios JPA/JDBC separados;
+- ejemplo ejecutable con discovery, batch default/explícito, lookup, rollback y read-only.
+
+El stack mínimo B01 cubre Boot/Data JDBC/Relational 3.5.0, Framework 6.2.7 y pgJDBC 42.7.5. N01
+cubre Boot 3.5.16, Data JDBC/Relational 3.5.13, Framework 6.2.19, pgJDBC 42.7.13 y PostgreSQL
+18.4 sobre Java 21. P16/P17 fijan los servidores intermedios; J01 cubre PostgreSQL 15.18. Java 25
+se registra como EXPERIMENTAL, no como una ampliación del soporte 17/21.
+
+La dependencia productiva del starter JDBC se audita en los BOM mínimo y actual. Contiene
+core/pgjdbc/spring-data-jdbc/autoconfigure y no contiene Hibernate, Spring Data JPA,
+`jakarta.persistence`, Actuator obligatorio, Testcontainers ni benchmarks. El ejemplo declara ese
+starter como única dependencia directa de postgres-bulk.
+
+Comandos adicionales reproducibles:
+
+```bash
+./mvnw --batch-mode --no-transfer-progress -DskipTests \
+  -pl postgres-bulk-spring-boot-starter-data-jdbc -am dependency:tree
+./mvnw --batch-mode --no-transfer-progress install
+./mvnw --batch-mode --no-transfer-progress \
+  -f ../../examples/spring-boot-data-jdbc/pom.xml clean verify
+./mvnw --batch-mode --no-transfer-progress \
+  -f ../../verification/spring-boot-jdbc-consumer/pom.xml clean verify
+```
 
 ## PostgreSQL y semántica crítica
 
@@ -99,7 +137,9 @@ servidores porque el mismo `TemporaryTableBulkLookupIT` forma parte de cada ejec
 |---|---|---|---|---|
 | Hibernate adapter | SPI runtime y `ToOneAttributeMapping` internal | metamodelo 6.6 | 6.6.15, 6.6.53, 6.6.55 | PASS |
 | Spring Data fragment | descubrimiento de fragment externo y transacción JPA | Spring Data JPA | 3.5.0, 3.5.13 | PASS |
+| Spring Data JDBC metadata/fragment | mapping público, discovery, `EntityRowMapper` y transacciones | Spring Data JDBC/Relational | 3.5.0, 3.5.13 | PASS |
 | Boot auto-config/starter | conditions, metadata, back-off y aplicación consumidora | Boot auto-config | 3.5.0, 3.5.16 | PASS |
+| Boot JDBC auto-config/starter | conditions, single candidates, override, JDBC-only y both | Boot/Data JDBC | 3.5.0, 3.5.16 | PASS |
 | Micrometer | ObservationRegistry, MeterRegistry y MeterFilter | Micrometer Observation/Core | 1.15.0, 1.15.12 | PASS |
 | pgJDBC COPY | unwrap PGConnection, CopyManager/CopyIn, cancel/end | pgJDBC COPY API | 42.7.5, 42.7.11, 42.7.13 | PASS |
 | PostgreSQL SQL | COPY CSV, CTAS, ON COMMIT DROP, quoting | servidor vanilla | 15.18, 16.14, 17.10, 18.4 | PASS |
@@ -134,8 +174,10 @@ y [descargas pgJDBC](https://jdbc.postgresql.org/download/).
 
 ## CI
 
-`build.yml` mantiene una baseline única. `compatibility.yml` declara 10 ejecuciones adicionales:
+`build.yml` mantiene una baseline única y verifica ambos ejemplos como consumidores instalados.
+`compatibility.yml` declara 10 ejecuciones adicionales:
 Java 21/25, Boot 3.5.0, PostgreSQL 16.14/17.10, newest, Hibernate 6.6.15/6.6.55 y pgJDBC
 42.7.5/42.7.13. PostgreSQL 15.18 y Boot 3.5.16 quedan cubiertos por baseline; PostgreSQL 18.4 por
-newest. Ambos workflows disparan en pull request y push a `main`. El YAML y sus comandos se
-validaron localmente; no se afirma una ejecución remota de GitHub Actions.
+newest. Todos los full reactors conservan JPA y añaden la evidencia JDBC; el job newest audita
+explícitamente aislamiento del starter. Ambos workflows disparan en pull request y push a `main`.
+Los run IDs remotos de J7 se registrarán sólo después de completar esas ejecuciones.
