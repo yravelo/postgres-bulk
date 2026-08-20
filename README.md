@@ -2,8 +2,8 @@
 
 PostgreSQL Bulk uses PostgreSQL `COPY` for high-throughput bulk insert and temporary-table bulk
 lookup while preserving an opt-in Spring Data repository experience. It integrates with Spring
-Data JPA/Hibernate and offers an explicitly configured Spring Data JDBC fragment; it is not an ORM
-replacement.
+Data JPA/Hibernate and Spring Data JDBC through separate starters and repository fragments; it is
+not an ORM replacement.
 
 The project is currently `0.1.0-SNAPSHOT`. Coordinates and API may change before the first release,
 and the artifacts are **not published to Maven Central**.
@@ -23,7 +23,7 @@ directly with PostgreSQL COPY.
 - Typed bulk lookup through a temporary table, COPY and JOIN.
 - Simple and composite lookup keys through `BulkKeyMetadata`.
 - Opt-in Spring Data repository fragment and Spring Boot starter.
-- Opt-in Spring Data JDBC repository fragment with root-only semantics.
+- Opt-in Spring Data JDBC repository fragment and dedicated Boot starter with root-only semantics.
 - Transaction-aware access to the Hibernate connection and runtime mapping metadata.
 - Operation-level Micrometer observations and bounded metrics.
 - Contractual support for PostgreSQL 15–18 and Java 17/21.
@@ -53,7 +53,8 @@ cd code/postgres-bulk-parent
 ./mvnw clean install
 ```
 
-Then use the starter. It already brings Spring Data JPA, Hibernate and pgJDBC.
+Then choose the starter for the application's persistence stack. The JPA starter brings Spring Data
+JPA, Hibernate and pgJDBC:
 
 Maven:
 
@@ -76,6 +77,20 @@ dependencies {
     implementation("io.github.yravelo:postgres-bulk-spring-boot-starter:0.1.0-SNAPSHOT")
 }
 ```
+
+For a Spring Data JDBC application, use the JDBC-only starter instead:
+
+```xml
+<dependency>
+  <groupId>io.github.yravelo</groupId>
+  <artifactId>postgres-bulk-spring-boot-starter-data-jdbc</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+</dependency>
+```
+
+It does not bring JPA or Hibernate. Normal Boot datasource and repository configuration is enough;
+the metadata resolver is auto-configured when the JDBC infrastructure has one unambiguous
+candidate. See the [JDBC Boot architecture](docs/architecture/spring-data-jdbc-boot-autoconfiguration.md).
 
 ## Quick Start
 

@@ -43,6 +43,14 @@ backend termination, Hikari size-one, 100 repeticiones y ocho threads. El audit 
 close/commit/rollback/mutadores/savepoints. La matriz completa está en
 [`spring-data-jdbc-transactions-and-robustness.md`](../architecture/spring-data-jdbc-transactions-and-robustness.md).
 
+## Evidencia Boot J6
+
+El starter no crea ni selecciona transaction manager. Con el manager JDBC normal de Boot, el smoke
+PostgreSQL conserva `REQUIRED`, rollback exterior, rechazo read-only, `REQUIRES_NEW` independiente y
+rollback `NESTED` a savepoint. El guard no-transaction permanece cubierto por J5. La
+autoconfiguración retrocede ante ambigüedad de infraestructura y no altera ownership, retry,
+SQLState ni semántica cross-stack.
+
 ## Alternativas rechazadas
 
 | Alternativa | Motivo |

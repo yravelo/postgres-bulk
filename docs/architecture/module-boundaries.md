@@ -7,6 +7,7 @@ core <- pgjdbc <- spring-data-jdbc
 core <- hibernate
 core + pgjdbc + hibernate <- spring-data
 spring-data + hibernate <- boot-autoconfigure <- boot-starter
+spring-data-jdbc <- boot-autoconfigure-jdbc <- boot-starter-data-jdbc
 ```
 
 Las flechas apuntan hacia la dependencia. Es un DAG, no una jerarquía estricta. Ningún módulo productivo depende del starter.
@@ -53,6 +54,10 @@ aplicación. Coordinador e implementación externa son package-private; el fragm
 une una transacción `REQUIRED`, mientras el coordinador exige conexión write activa y nunca la
 completa. No existe cache global ni dependencia desde core hacia Spring.
 
+La implementación externa permanece package-private pero no final: Boot usa por defecto proxies
+transaccionales class-based y necesita poder crear la subclase de infraestructura. Esto no la
+convierte en API pública.
+
 ## `postgres-bulk-spring-data`
 
 **Puede conocer:** core, pgjdbc, Spring Framework, Spring JDBC, Spring TX, Spring Data JPA, JPA,
@@ -83,6 +88,24 @@ exporters.
 `postgres-bulk-spring-boot-autoconfigure`. No tiene `src/main`, clases ni recursos productivos.
 
 **No puede contener:** código Java, configuración de negocio, properties ni tests de lógica.
+
+## `postgres-bulk-spring-boot-autoconfigure-jdbc`
+
+**Puede conocer:** Boot Autoconfigure, el adapter Spring Data JDBC, Spring JDBC/Relational y
+pgJDBC. Registra únicamente el resolver JDBC después de que Boot declare la infraestructura de
+mapping y exige candidato único o `@Primary` para cada dependencia.
+
+**No puede conocer:** JPA, Hibernate, Spring Data JPA, Actuator, repositories de aplicación ni
+lógica COPY/mapping. No crea datasource, operations, transaction manager o repositorios y no abre
+conexiones al arrancar.
+
+## `postgres-bulk-spring-boot-starter-data-jdbc`
+
+**Contiene:** sólo el POM que agrega `spring-boot-starter-data-jdbc` y
+`postgres-bulk-spring-boot-autoconfigure-jdbc`. No tiene clases ni recursos productivos.
+
+**No puede contener:** Hibernate/JPA, Actuator obligatorio, Testcontainers productivo, benchmarks,
+configuración de negocio o lógica Java.
 
 ## Dependencias y scopes previstos
 

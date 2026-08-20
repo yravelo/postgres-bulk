@@ -1,6 +1,6 @@
 # ADR-024: Arquitectura de integración Spring Data JDBC
 
-- **Estado:** PROPOSED
+- **Estado:** ACCEPTED
 - **Fecha:** 2026-08-19
 
 ## Contexto
@@ -113,6 +113,19 @@ incluso con `DataSource` compartido. Ownership, backend loss, pool, repetición 
 El ADR permanece `PROPOSED` únicamente por el gate de auto-configuración/back-off J6; las preguntas
 transaccionales y de coexistencia quedan resueltas por ADR-029.
 
+## Evidencia J6 (2026-08-20)
+
+Dos artifacts Boot separados completan el grafo sin dependencias JPA/Hibernate. La
+autoconfiguración crea sólo el resolver JDBC cuando todas las dependencias tienen candidato único o
+`@Primary`, retrocede ante override/ambigüedad y no crea repositories, manager ni conexiones. Un
+starter JDBC sin código levanta una aplicación Boot real y prueba insert, lookup, conversiones,
+embedded y propagaciones PostgreSQL. La caracterización both-starters carga ambos resolvers sin
+colisión; el repository dual continúa rechazado por J5.
+
+Todos los gates de aceptación enumerados abajo tienen evidencia en J1–J6. Este ADR pasa a
+`ACCEPTED`; compatibilidad min/current y documentación/example de adopción completos pertenecen a
+J7 y no reabren esta decisión arquitectónica.
+
 ## Alternativas evaluadas
 
 | Alternativa | Resultado |
@@ -126,7 +139,7 @@ transaccionales y de coexistencia quedan resueltas por ADR-029.
 | `JdbcAggregateTemplate`/`DataAccessStrategy` para lookup | Rechazada: no expresan el exact-connection temp-table callback |
 | Implementación con clases internas Spring Data | Rechazada: incompatibilidad de mantenimiento |
 
-## Evidencia requerida para ACCEPTED
+## Evidencia satisfecha para ACCEPTED
 
 - prototype JDBC-only que demuestra identidad física de conexión con `pg_backend_pid()`;
 - discovery del fragmento externo en Spring Data JDBC 3.5.0 y 3.5.13;

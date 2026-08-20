@@ -190,10 +190,12 @@ Las fases preservan estas invariantes:
 
 ## J6 — Spring Boot auto-configuration y starter JDBC
 
+**Status: DONE (2026-08-20).**
+
 - **Goal:** bootstrap JDBC idiomático, aislado y con back-off correcto.
 - **Scope:** artifacts `postgres-bulk-spring-boot-autoconfigure-jdbc` y
   `postgres-bulk-spring-boot-starter-data-jdbc`, conditions, user overrides y configuración
-  opcional de observability.
+  Boot mínima. No se añadió observability JDBC.
 - **Out of scope:** unificación de starters, cambio de artifacts JPA y Boot 4.
 - **Architecture changes:** añade dos leaf modules; ninguna dependencia inversa hacia Boot.
 - **Architecture constraints:** conditions por stack, back-off ante ambigüedad y cero dependencia
@@ -213,6 +215,11 @@ Las fases preservan estas invariantes:
 - **Deferred decisions:** starter unificado, renombre del starter JPA y soporte Boot 4.
 - **Definition of Done:** context tests y smoke PostgreSQL verdes; module graph auditado y starter
   documentado sin alterar los existentes.
+- **Cierre:** los dos artifacts están en el reactor; el starter no contiene código productivo. Las
+  conditions, override, candidatos únicos/`@Primary`, JDBC-only, JPA-only y both-starters están
+  probados. PostgreSQL valida discovery, insert/lookup, IDs, converters, embedded y transacciones.
+  El grafo runtime excluye JPA/Hibernate/Actuator/Testcontainers/benchmarks, ADR-024 queda ACCEPTED
+  y ADR-030 fija el back-off. J7 conserva matrix completa, ejemplo y documentación de adopción.
 
 ## J7 — Compatibilidad, documentación y ejemplo
 

@@ -17,7 +17,9 @@ publicos.
 J1 de la evolución Spring Data JDBC añade un único tipo público experimental al release line
 todavía no publicado: `SpringDataJdbcEntityMetadataResolver`. J2/J3 añaden ejecución root-only
 package-private y cero tipos públicos. J4 añade la primera API de operaciones JDBC:
-`PostgresBulkJdbcRepository<T>`. No añade configuración Boot ni tipos públicos de implementación.
+`PostgresBulkJdbcRepository<T>`. J6 añade sólo `PostgresBulkJdbcAutoConfiguration` como
+infraestructura pública de framework; el starter JDBC no tiene clases y no cambia las firmas de
+operaciones.
 
 ## `BulkOperations<T>`
 
@@ -280,6 +282,13 @@ compromete una API de transporte antes de tener una operación pública que la n
 En el adapter Spring Data JDBC, `DefaultSpringDataJdbcBulkOperations<T>`,
 `DefaultPostgresBulkJdbcOperations<T>` y sus seams de test son package-private. Spring Data carga
 la segunda por `spring.factories`, pero sólo `PostgresBulkJdbcRepository<T>` es API de aplicación.
+
+## Infraestructura pública Boot JDBC añadida en J6
+
+`PostgresBulkJdbcAutoConfiguration` es pública porque Boot debe cargarla desde
+`AutoConfiguration.imports`; su constructor y bean factory method no son API invocable. No publica
+properties types, executors, managers ni selectors. El artifact
+`postgres-bulk-spring-boot-starter-data-jdbc` es dependency-only y aporta cero tipos binarios.
 
 ## `HibernateEntityMetadataResolver`
 

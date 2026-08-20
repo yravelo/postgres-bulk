@@ -49,6 +49,13 @@ adivina. Los Javadocs documentan NESTED condicionado y ausencia de retry. La coe
 fragmento JPA funciona para repositories separados, pero no promete atomicidad al anidar managers
 locales distintos.
 
+## Evidencia J6
+
+Boot descubre el fragmento sin `@EnableJdbcRepositories` propio de postgres-bulk. La implementación
+sigue package-private y queda no-final para admitir el proxy class-based transaccional por defecto;
+no aparece en el baseline `javap -public`. El único tipo público nuevo de J6 es la clase de
+infraestructura `PostgresBulkJdbcAutoConfiguration`; las firmas del fragmento no cambian.
+
 ## Alternativas
 
 | Alternativa | Resultado |

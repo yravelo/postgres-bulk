@@ -61,3 +61,17 @@ acotado exclusivamente al timer de la librería normaliza el tag estándar `erro
 El starter real, sus conditions/back-off y Micrometer pasan con los stacks gestionados completos
 de Boot 3.5.0 y 3.5.16. ADR-021 limita la línea actual a ese intervalo. Boot 4 exige otra generación
 Spring Data/Hibernate y no se intenta compatibilidad condicional en runtime.
+
+## Extensión Spring Data JDBC J6
+
+J6 añade una composición hermana, no amplía la JPA: el artifact
+`postgres-bulk-spring-boot-autoconfigure-jdbc` registra
+`PostgresBulkJdbcAutoConfiguration` mediante su propio `AutoConfiguration.imports`. Se ordena
+después de `JdbcRepositoriesAutoConfiguration`, crea sólo
+`SpringDataJdbcEntityMetadataResolver`, reutiliza `postgres-bulk.enabled` y no incorpora la
+property de observability JPA.
+
+La variante JDBC exige candidatos únicos o un `@Primary` para datasource, operations, converter,
+mapping context y conversions; hace back-off ante resolver del usuario o ambigüedad. No habilita
+repositories, no crea transaction manager y no abre conexiones. ADR-030 fija el module split y esa
+política. Los artifacts y el comportamiento productivo JPA permanecen iguales.
