@@ -61,6 +61,7 @@ public final class io.ybr.postgresbulk.core.metadata.TableName {
   public static io.ybr.postgresbulk.core.metadata.TableName of(java.lang.String, java.lang.String);
   public java.util.Optional<java.lang.String> schema();
   public java.lang.String table();
+  public io.ybr.postgresbulk.core.metadata.TableName resolveRuntimeTarget(io.ybr.postgresbulk.core.metadata.TableName);
   public boolean equals(java.lang.Object);
   public int hashCode();
   public java.lang.String toString();

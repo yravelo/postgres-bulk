@@ -63,6 +63,37 @@ public final class TableName {
     return table;
   }
 
+  /**
+   * Resolves a complete operation-scoped target against this mapped table.
+   *
+   * <p>The runtime target must include a schema and must retain the mapped table component. When
+   * this mapped table already has a schema, the runtime target must equal it completely. An
+   * unqualified mapping may therefore select a schema per operation without changing the mapped
+   * metadata. Callers that do not supply a runtime target continue to use this instance directly.
+   *
+   * <p>This method only resolves neutral identifiers. It does not quote names, build SQL, inspect a
+   * connection, mutate metadata, or retain the returned target.
+   *
+   * @param runtimeTarget complete physical target selected for one operation
+   * @return {@code runtimeTarget} when it is compatible with this mapped table
+   * @throws NullPointerException if {@code runtimeTarget} is {@code null}
+   * @throws IllegalArgumentException if {@code runtimeTarget} is unqualified, changes the mapped
+   *     table, or conflicts with an explicitly mapped schema
+   */
+  public TableName resolveRuntimeTarget(TableName runtimeTarget) {
+    Objects.requireNonNull(runtimeTarget, "runtimeTarget must not be null");
+    if (runtimeTarget.schema == null) {
+      throw new IllegalArgumentException("runtimeTarget must be schema-qualified");
+    }
+    if (!table.equals(runtimeTarget.table)) {
+      throw new IllegalArgumentException("runtimeTarget table must match mapped table");
+    }
+    if (schema != null && !schema.equals(runtimeTarget.schema)) {
+      throw new IllegalArgumentException("runtimeTarget schema must match mapped schema");
+    }
+    return runtimeTarget;
+  }
+
   @Override
   public boolean equals(Object other) {
     if (this == other) {

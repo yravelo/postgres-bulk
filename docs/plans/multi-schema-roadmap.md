@@ -9,7 +9,8 @@ introducir `TenantContext`, tenant ids, ThreadLocal, `search_path`, `Connection.
 global Boot, cache por tenant, provisioning, publicación o security baseline sin autorización y
 ADR separados.
 
-Los ADR-031/032 permanecen `PROPOSED` hasta la evidencia indicada. "Multi-schema" en este roadmap
+ADR-031 está `ACCEPTED` con evidencia Java pura de MS1; ADR-032 permanece `PROPOSED` hasta la
+evidencia SQL de MS2/MS3. "Multi-schema" en este roadmap
 significa target `schema + table` explícito por operación dentro de una conexión ya elegida; no
 significa database routing, row-level tenancy ni Hibernate multi-tenancy.
 
@@ -39,12 +40,12 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
   accessors, conversiones, ID variants y encoders son reusables. COPY/lookup SQL quedan hoy ligados
   al target y deben hacerse operation-local. No se tocó código productivo.
 
-## MS1 — Operation-Scoped Physical Target Contract
+## MS1 — Operation-Scoped Physical Target Contract — DONE (2026-08-20)
 
 - **Objective:** prototipar y congelar el contrato neutral que entrega un `TableName` completo a
   una invocación sin mutar repository, metadata o conexión.
-- **Scope:** API/seams mínimos en core/pgjdbc, resolución default/runtime, política de conflicto y
-  comparación ejecutable de argumento directo frente a vista inmutable `forTarget`.
+- **Scope:** API mínima en core, resolución default/runtime, política de conflicto y comparación de
+  argumento directo frente a vista inmutable `forTarget`.
 - **Non-goals:** repository Spring público, Boot, soporte end-to-end multi-schema, resolver tenant,
   table provisioning o cache SQL por target.
 - **Modules/files:** core sólo si el contrato común lo exige; pgjdbc prototype/tests; ADR-031/032 y
@@ -53,16 +54,19 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
 - **Architecture constraints:** target completo y schema-qualified en el nuevo path; mapping sin
   schema permite runtime; schema estático distinto rechaza; empty input mantiene no-op.
 - **Tasks:** diseñar signatures; probar source/binary compatibility; centralizar validación;
-  separar shape preparado de target; asegurar que no queda field mutable; revisar Javadocs.
-- **Tests:** value/validation, static conflict matrix, empty/null, metadata reuse, A→B/B→A en
-  doubles, concurrent target selection y API baseline.
+  verificar que shape/target ya son separables; asegurar que no queda field mutable; revisar Javadocs.
+- **Tests:** value/validation, matriz de conflicto estático, null/unqualified, metadata reuse,
+  concurrent target selection y API baseline.
 - **Documentation:** decisión final de ergonomía, examples conceptuales y migration/no-migration.
 - **Acceptance criteria:** una única abstracción de target sirve insert/lookup; cero estado tenant;
   no overload explosion; ADR-031 aceptable o fase detenida con evidencia.
 - **Risks:** API redundante con `TableName`, default methods incompatibles, facade retenida como
   pseudo-cache.
 - **Dependencies:** MS0 y ADR-011/017/024/028.
-- **Deferred:** SQL real cross-schema, adapters Spring y compatibility matrix.
+- **Deferred:** SQL real cross-schema, métodos ejecutables, adapters Spring y compatibility matrix.
+- **Closure:** se reutiliza `TableName`; `resolveRuntimeTarget` exige target calificado, tabla igual
+  y schema igual cuando el mapping lo fija. Se eligen futuros argumentos explícitos, no vista. La
+  metadata y API operativa legacy permanecen intactas; no se añadió SQL ni integración downstream.
 
 ## MS2 — pgJDBC Multi-Schema Bulk Insert
 
@@ -77,7 +81,7 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
   schema explícito; connection caller-owned y sin mutadores.
 - **Tasks:** refactor preparación; construir COPY SQL por llamada; conservar count/error/cancel;
   auditar que metadata.table no se usa accidentalmente cuando existe target.
-- **Tests:** schemas A/B con misma tabla, quoted identifiers, tabla runtime distinta, multibatch,
+- **Tests:** schemas A/B con misma tabla, quoted identifiers, tabla runtime distinta rechazada, multibatch,
   rollback/autocommit low-level, A→B en misma conexión, singleton concurrente, failure target A sin
   contaminar B y cero cache growth.
 - **Documentation:** insert flow, performance model y security requirements.
@@ -251,5 +255,5 @@ MS0 investigation
                 -> MS8 compatibility/docs/benchmarks/closure
 ```
 
-La única siguiente fase autorizable después de MS0 es
-**MS1 — Operation-Scoped Physical Target Contract**.
+La única siguiente fase autorizable después de MS1 es
+**MS2 — pgJDBC Multi-Schema Bulk Insert**.

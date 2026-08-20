@@ -1,6 +1,6 @@
 # ADR-031: Destino físico completo y explícito por operación
 
-- **Estado:** PROPOSED
+- **Estado:** ACCEPTED
 - **Fecha:** 2026-08-20
 
 ## Contexto
@@ -16,7 +16,7 @@ invocación. Incorporar tenant ids o schema runtime a las caches multiplicaría 
 identidad de negocio con infraestructura y permitiría leakage entre threads. Un override sólo de
 schema también dejaría reglas implícitas para combinarlo con tabla/mapping.
 
-## Decisión propuesta
+## Decisión
 
 - La aplicación resuelve tenant/autorización/routing y entrega únicamente un destino físico. La
   librería no conoce tenant ids ni su contexto.
@@ -29,16 +29,15 @@ schema también dejaría reglas implícitas para combinarlo con tabla/mapping.
   por estructura; el target runtime no entra en esas caches.
 - Una invocación con target explícito usa ese target tanto para insert como para lookup. No puede
   haber resolver o política distinta por operación.
-- Mapping sin schema + target qualified es válido. Mapping con schema estático + target del mismo
-  schema es válido. Un schema runtime distinto de un schema estático se rechaza antes de JDBC. El
-  camino sin target conserva exactamente el comportamiento actual.
-- Una tabla runtime distinta es válida si el caller garantiza el mismo shape. PostgreSQL valida
-  columnas, tipos, privileges y constraints; la librería no consulta catálogo ni migra schemas.
-- El target es argumento/local de invocación o se encapsula en una vista inmutable nueva. Nunca se
-  implementa `repository.setSchema` ni un field mutable compartido.
-- MS1 comparará la mínima forma pública: argumentos `TableName` frente a una vista
-  `forTarget(TableName)`. No se acepta un resolver ambiental como mecanismo primario ni una
-  multiplicación cartesiana de overloads.
+- `TableName.resolveRuntimeTarget(TableName)` centraliza el contrato en core. El target debe estar
+  calificado y conservar la tabla mapeada. Si el mapping declara schema, también debe conservarlo;
+  si no lo declara, el schema runtime puede variar. El camino sin target usa el mapping directamente.
+- Una tabla runtime distinta se rechaza. Cambiar la tabla requeriría una política pública adicional
+  y evidencia separada; no se infiere compatibilidad de shape ni se consulta catálogo.
+- Se eligen argumentos `TableName` locales por invocación para las futuras operaciones. La vista
+  `forTarget` se rechaza porque añade otra fachada y retención posible sin aportar semántica.
+- MS1 no publica aún esos métodos de operación: hacerlo sin consumo SQL sería una API inutilizable.
+  Nunca se implementa `repository.setSchema`, un resolver ambiental ni un field mutable compartido.
 - Cualquier tipo nuevo usará naming físico neutral, nunca `Tenant*`.
 
 ## Alternativas
@@ -50,11 +49,11 @@ schema también dejaría reglas implícitas para combinarlo con tabla/mapping.
 | resolver SPI global | rechazado como primary path: esconde selección y favorece ThreadLocal/context coupling |
 | target dentro de `BulkInsertOptions` | rechazado: mezcla batching/destino y no resuelve lookup |
 | cache/engine por target | rechazada: crecimiento no acotado y retención de identifiers |
-| target explícito completo | propuesta: auditable, thread-safe, reusable y compatible |
+| target explícito completo | aceptada: auditable, thread-safe, reusable y compatible |
 
 ## Consecuencias
 
-Los engines deben separar shape preparado de SQL target-specific. El fragmento JPA no podrá
+Los engines deberán separar shape preparado de SQL target-specific desde MS2. El fragmento JPA no podrá
 cachear una operación que ya contenga COPY SQL de un schema runtime; cacheará sólo el shape. El
 adapter JDBC mantiene sus caches actuales por converter/type. Construir SQL por invocación añade
 coste acotado por columnas y cero coste por fila.
@@ -63,16 +62,16 @@ Las llamadas existentes no cambian. Aplicaciones con `@Table(schema=...)` contin
 quieren target runtime deberán dejar el schema sin fijar o esperar una futura política explícita de
 override, que no forma parte de MS1.
 
-## Evidencia requerida para ACCEPTED
+## Evidencia de aceptación MS1
 
-- prototype API source/binario y revisión de overloads;
-- misma metadata/encoder reutilizados en targets A/B;
-- A→B y B→A sobre la misma conexión sin SQL stale;
-- singleton concurrente con targets distintos;
-- cache size independiente del número de targets;
-- insert y lookup comparten validación/target;
-- matriz de schema estático y empty input;
-- cero imports/tipos tenant/context/routing en producción.
+- API aditiva source/binaria en `TableName`, sin nuevo value object ni overloads inejecutables;
+- matriz ejecutable de mapping sin/con schema, tabla distinta, target unqualified y null;
+- misma `EntityMetadata` y columnas preservadas tras resolver targets A/B;
+- selección concurrente A/B sin estado retenido;
+- cero SQL, JDBC, cache, tenant/context/routing o mutación de conexión en el contrato.
+
+La evidencia A→B/B→A con SQL real, encoder compartido, conexión y ausencia de SQL stale pertenece
+a MS2/MS3 y a ADR-032. No es un requisito fingido para aceptar este contrato neutral.
 
 La investigación que fundamenta la propuesta está en
 [`multi-schema-investigation.md`](../architecture/multi-schema-investigation.md). La secuencia de

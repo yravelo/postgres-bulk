@@ -32,6 +32,7 @@ This index separates adoption guidance from implementation details.
 - [Spring Data JDBC J5 transactions and robustness](architecture/spring-data-jdbc-transactions-and-robustness.md)
 - [Spring Data JDBC J6 Boot auto-configuration](architecture/spring-data-jdbc-boot-autoconfiguration.md)
 - [Multi-schema MS0 investigation](architecture/multi-schema-investigation.md)
+- [Operation-scoped physical target contract](architecture/operation-scoped-physical-target.md)
 
 ## Compatibility
 

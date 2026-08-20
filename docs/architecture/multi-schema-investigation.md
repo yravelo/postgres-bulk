@@ -3,9 +3,9 @@
 ## Estado y alcance
 
 **MS0: DONE (2026-08-20).** Este documento cierra investigación, arquitectura y planificación.
-No añade soporte runtime multi-schema, código Java productivo, properties Boot, publicación ni
-trabajo del security baseline. Las decisiones siguen `PROPOSED` hasta que MS1 aporte un prototype
-ejecutable.
+No añadió soporte runtime multi-schema, código Java productivo, properties Boot, publicación ni
+trabajo del security baseline. MS1 aceptó después el contrato neutral en ADR-031; ADR-032 continúa
+`PROPOSED` hasta disponer de ejecución SQL.
 
 La línea estudia un caso concreto: una misma estructura lógica —tipo, tabla base, columnas y
 conversiones— existe en varios schemas PostgreSQL y cada operación bulk debe dirigirse al destino
@@ -130,10 +130,10 @@ SQL acotadas por el número de columnas.
 | E. options por operación | evolutiva | evita algunos overloads | difícil compartir: insert ya tiene options, lookup no | segura si inmutable | mezcla batching con destino o exige nueva jerarquía | rechazada para MS1 |
 | F. vista inmutable `forTarget(TableName)` | neutral | fluida y evita overloads | sí | thread-safe, sin mutación | añade facade/tipos y puede ser retenida por caller | candidata pública a comparar con A en MS1 |
 
-La recomendación combina A y una prueba de ergonomía F: `TableName` es la representación
-canónica; el engine recibe el target explícitamente. MS1 comparará si las APIs Spring deben exponer
-argumentos directos o una vista inmutable `forTarget`, pero no puede esconder la selección en un
-resolver ambiental. Ninguna forma final llevará `tenant` en su nombre.
+MS1 cerró A: `TableName` es la representación canónica y el engine futuro recibirá el target como
+argumento explícito. La vista F se descartó porque añade otra fachada y posible retención sin
+semántica adicional. La selección no se esconde en un resolver ambiental y ninguna forma final
+lleva `tenant` en su nombre.
 
 ## Destino completo frente a schema-only
 
@@ -157,9 +157,11 @@ La política inicial es conservadora:
 | Mapping estructural | Target runtime | Resultado propuesto |
 | --- | --- | --- |
 | tabla sin schema | ausente | comportamiento actual; tabla no cualificada |
-| tabla sin schema | schema + table explícitos | permitido; target runtime completo |
+| tabla sin schema | schema + misma table explícitos | permitido; target runtime completo |
+| tabla sin schema | schema + otra table | rechazo explícito |
 | schema + tabla estáticos | ausente | comportamiento actual; mapping estático |
-| schema estático | target con el mismo schema | permitido; la tabla explícita puede variar si conserva columnas compatibles |
+| schema estático | target idéntico | permitido |
+| schema estático | mismo schema + otra table | rechazo explícito |
 | schema estático | target con otro schema | rechazo explícito antes de JDBC |
 | cualquier mapping | target runtime sin schema | rechazo en el nuevo API |
 
@@ -168,9 +170,9 @@ Data qualified. Las aplicaciones dinámicas deben dejar el schema sin fijar en e
 override deliberado de un schema estático requeriría una política pública adicional y evidencia;
 queda fuera de MS1.
 
-Una tabla runtime distinta se permite porque el target completo es una capacidad intencional. El
-caller garantiza que comparte la estructura requerida. PostgreSQL seguirá validando columnas,
-tipos, privileges y constraints; la librería no consulta catálogos ni provisiona objetos.
+Una tabla runtime distinta se rechaza de forma conservadora. La tabla está siempre presente en el
+mapping y se trata como restricción estructural; la librería no intenta inferir un shape compatible
+ni consulta catálogos. Una política de tabla dinámica requeriría otra decisión y evidencia.
 
 ## SQL, identifiers y seguridad
 
@@ -308,7 +310,7 @@ El cambio futuro será aditivo:
 - no se modifica el default batch, lookup semantics ni resultados;
 - no aparecen métodos abstractos nuevos sin defaults en interfaces ya implementables por usuarios
   hasta verificar compatibilidad source/binaria;
-- se evitará una combinación cartesiana de overloads; MS1 comparará argumento explícito frente a
+- se evitará una combinación cartesiana de overloads; MS1 eligió argumento explícito y descartó
   una vista inmutable target-bound.
 
 Un tipo público nuevo, si la evidencia obliga a crearlo, usará nombres neutrales como
@@ -346,8 +348,8 @@ duplicar `TableName`.
 
 | Eje | Casos obligatorios |
 | --- | --- |
-| targets | schema A/B, quoted/mixed-case/reserved/espacios, tabla runtime distinta, target ausente |
-| conflicto | mapping sin schema, mismo schema, schema distinto rechazado, target runtime no qualified |
+| targets | schema A/B con misma tabla, quoted/mixed-case/reserved/espacios, target ausente |
+| conflicto | mapping sin schema, mismo schema, schema/tabla distintos rechazados, target runtime no qualified |
 | operaciones | insert default/options/multibatch; lookup simple/compuesto/duplicates/missing/null |
 | stacks | pgjdbc low-level, JPA/Hibernate, Spring Data JDBC, ambos starters |
 | transacción | commit/rollback, REQUIRED, REQUIRES_NEW, NESTED JDBC condicionado, read-only, `25P02` |
@@ -374,23 +376,19 @@ duplicar `TableName`.
 | API crece por overloads | prototype A/F y API review antes de aceptar ADR-031 |
 | target-bound facade retenida por caller | objeto inmutable sin cache interna; documentar scope/reuso seguro |
 
-## Preguntas abiertas para MS1+
+## Preguntas cerradas por MS1 y abiertas para MS2+
 
-1. ¿Argumentos directos o `forTarget(TableName)` producen la menor API coherente en pgjdbc, JPA y
-   JDBC sin romper implementadores externos?
-2. ¿Puede `PostgresBulkJdbcOperations` compartir un encoder preparado y construir COPY/lookup SQL
+MS1 cerró argumentos directos, resolución en `TableName`, método `resolveRuntimeTarget`, tabla
+runtime fija y cero cambios en interfaces implementables. Permanecen abiertas para fases runtime:
+
+1. ¿Puede `PostgresBulkJdbcOperations` compartir un encoder preparado y construir COPY/lookup SQL
    local sin cambios públicos adicionales?
-3. ¿Debe la validación de conflicto vivir en core o en cada adapter que conoce el mapping estático?
-4. ¿La materialización native JPA funciona con una tabla runtime distinta y mismo row shape en
+2. ¿La materialización native JPA funciona con la misma tabla en otro schema y mismo row shape en
    todos los patches Hibernate soportados?
-5. ¿Cómo preservar el empty-input no-op: validar target antes o después del lookahead? La hipótesis
+3. ¿Cómo preservar el empty-input no-op: validar target antes o después del lookahead? La hipótesis
    compatible es después, igual que metadata/conexión actuales.
-6. ¿El nombre final del método debe ser `forTarget`, `forTable` o un argumento `target`? Ninguno
-   puede contener `tenant`.
-7. ¿Hace falta exponer el target efectivo al callback low-level, o basta con que el engine genere
+4. ¿Hace falta exponer el target efectivo al callback low-level, o basta con que el engine genere
    todo el SQL antes de invocarlo?
-8. ¿Qué API-diff/default methods son necesarios para consumidores que implementen directamente
-   interfaces core/repository?
 
 ## Conclusión MS0
 

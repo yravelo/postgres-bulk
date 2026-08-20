@@ -58,6 +58,10 @@ El coste es repetir el schema citado en SQL. A cambio, no hay estado que restaur
 singleton es seguro entre targets y database-per-tenant externo sigue funcionando sin interferencia.
 La librería no provisiona schemas, no consulta privilegios y no soporta row-level tenancy.
 
+MS1 aceptó la resolución neutral mediante `TableName.resolveRuntimeTarget`, pero no construyó ni
+ejecutó SQL. Este ADR permanece `PROPOSED` hasta que MS2/MS3 aporten evidencia real de COPY, CTAS y
+JOIN calificados y ausencia de mutación de conexión.
+
 ## Evidencia requerida para ACCEPTED
 
 - todos los SQL target-specific qualified en tests unitarios;

@@ -2,7 +2,7 @@
 
 ## Alcance
 
-Este documento enumera la superficie pública al cerrar Phase 15. Core añade el puerto
+Este documento enumera la superficie pública al cerrar MS1. Core añade el puerto
 `EntityMetadataResolver`; pgJDBC expone una fachada caller-owned y su callback anidado; Spring
 Data expone fragmento, resolver por persistence unit e implementación de infraestructura externa.
 ADR-008 fija las coordenadas Maven `io.github.yravelo` y el namespace Java
@@ -96,8 +96,8 @@ public class BulkException extends RuntimeException {
 
 - **Purpose:** identidad fisica neutral con schema opcional y tabla como componentes separados.
 - **Visibility:** public SPI value.
-- **Stability:** ACCEPTED por ADR-011; namespace finalizado por ADR-008.
-- **Important invariants:** componentes non-null/non-blank; ausencia de schema no usa string vacio; conserva texto exacto; no parsea, normaliza ni aplica quoting/reglas PostgreSQL; inmutable, thread-safe y con value semantics.
+- **Stability:** ACCEPTED por ADR-011; la resolución runtime se cierra en ADR-031.
+- **Important invariants:** componentes non-null/non-blank; ausencia de schema no usa string vacio; conserva texto exacto; no parsea, normaliza ni aplica quoting/reglas PostgreSQL; inmutable, thread-safe y con value semantics. Un target runtime debe estar calificado, conservar la tabla y respetar cualquier schema mapeado.
 
 API exacta:
 
@@ -110,8 +110,13 @@ public final class TableName {
     public Optional<String> schema();
 
     public String table();
+
+    public TableName resolveRuntimeTarget(TableName runtimeTarget);
 }
 ```
+
+MS1 sólo publica la resolución neutral. No añade operaciones insert/lookup con target ni ejecuta
+SQL dinámico. El camino sin target continúa usando `EntityMetadata.table()` directamente.
 
 ## `ColumnMetadata<T>`
 
