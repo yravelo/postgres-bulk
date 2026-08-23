@@ -4,6 +4,7 @@ import io.ybr.postgresbulk.core.BulkException;
 import io.ybr.postgresbulk.core.BulkInsertOptions;
 import io.ybr.postgresbulk.core.BulkWriteResult;
 import io.ybr.postgresbulk.core.metadata.EntityMetadata;
+import io.ybr.postgresbulk.core.metadata.TableName;
 import java.io.IOException;
 import java.io.Writer;
 import java.sql.Connection;
@@ -14,15 +15,17 @@ import java.util.Objects;
 final class PostgresBulkInserter<T> {
 
   private final Class<T> javaType;
-  private final String copySql;
+  private final EntityMetadata<T> metadata;
+  private final String mappedCopySql;
   private final PreparedCopyCsvRowEncoder<T> rowEncoder;
   private final CopyExecutor copyExecutor;
 
   private PostgresBulkInserter(EntityMetadata<T> metadata, CopyExecutor copyExecutor) {
     Objects.requireNonNull(metadata, "metadata must not be null");
     this.copyExecutor = Objects.requireNonNull(copyExecutor, "copyExecutor must not be null");
+    this.metadata = metadata;
     this.javaType = metadata.javaType();
-    this.copySql = CopySqlBuilder.insert(metadata);
+    this.mappedCopySql = CopySqlBuilder.insert(metadata);
     this.rowEncoder = PreparedCopyCsvRowEncoder.prepare(metadata);
   }
 
@@ -41,16 +44,41 @@ final class PostgresBulkInserter<T> {
 
   BulkWriteResult insert(
       Connection connection, Iterable<? extends T> items, BulkInsertOptions options) {
+    validateArguments(connection, items, options);
+    return insertValidated(connection, items, options, null);
+  }
+
+  BulkWriteResult insert(
+      Connection connection,
+      Iterable<? extends T> items,
+      BulkInsertOptions options,
+      TableName runtimeTarget) {
+    validateArguments(connection, items, options);
+    Objects.requireNonNull(runtimeTarget, "runtimeTarget must not be null");
+    TableName effectiveTarget = metadata.table().resolveRuntimeTarget(runtimeTarget);
+    return insertValidated(connection, items, options, effectiveTarget);
+  }
+
+  private static void validateArguments(
+      Connection connection, Iterable<?> items, BulkInsertOptions options) {
     Objects.requireNonNull(connection, "connection must not be null");
     Objects.requireNonNull(items, "items must not be null");
     Objects.requireNonNull(options, "options must not be null");
+  }
 
+  private BulkWriteResult insertValidated(
+      Connection connection,
+      Iterable<? extends T> items,
+      BulkInsertOptions options,
+      TableName effectiveTarget) {
     Iterator<? extends T> iterator =
         Objects.requireNonNull(items.iterator(), "items.iterator() must not return null");
     if (!iterator.hasNext()) {
       return BulkWriteResult.empty();
     }
 
+    String copySql =
+        effectiveTarget == null ? mappedCopySql : CopySqlBuilder.insert(metadata, effectiveTarget);
     long affectedRows = 0;
     int completedBatches = 0;
     long producedRows = 0;

@@ -203,6 +203,24 @@ public final class BulkKeyMetadata<K> {
 - `DefaultPostgresBulkOperations<T, ID>`: implementación pública por requisito de carga externa
   de Spring Data; es infraestructura proxyable y no se instancia directamente.
 
+## Overload low-level añadido en MS2
+
+`PostgresBulkJdbcOperations<T>` añade un único método target-aware para COPY insert:
+
+```java
+public BulkWriteResult bulkInsert(
+    Connection connection,
+    Iterable<? extends T> items,
+    BulkInsertOptions options,
+    TableName runtimeTarget
+);
+```
+
+El target es completo, schema-qualified y operation-scoped. Las dos firmas anteriores permanecen
+intactas. No se añade el overload corto con `TableName`, porque colisionaría por ambigüedad source
+con llamadas que pasen `null` al overload existente de `BulkInsertOptions`. Tampoco cambia
+`findAllByBulkKey`, `BulkOperations` ni las interfaces Spring; esa propagación queda fuera de MS2.
+
 ## Infraestructura pública añadida en Phase 10
 
 - `PostgresBulkAutoConfiguration`: clase de configuración descubierta por Spring Boot mediante

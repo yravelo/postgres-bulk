@@ -218,8 +218,9 @@ frente al engine y no aportó evidencia para cambiar el default 1.000 ni añadir
 La evidencia, limitaciones y raw data están en
 [`j8-spring-data-jdbc.md`](../benchmarks/j8-spring-data-jdbc.md).
 
-MS0 ha investigado runtime multi-schema/schema-per-tenant y ha creado un
-[roadmap separado](../plans/multi-schema-roadmap.md), sin implementar comportamiento productivo.
-La aplicación resolverá tenant/autorización y entregará un destino físico completo por operación;
-la librería no conocerá tenant ids ni mutará `search_path`. Security baseline, publicación y
-Boot/Data 4 permanecen fuera de la arquitectura implementada.
+MS0 investigó runtime multi-schema/schema-per-tenant y creó un
+[roadmap separado](../plans/multi-schema-roadmap.md). MS1 aceptó el contrato físico y MS2 implementa
+bulk insert únicamente en la fachada low-level pgJDBC con `TableName` explícito; lookup y adapters
+Spring continúan diferidos. La aplicación resuelve tenant/autorización; la librería no conoce tenant
+ids ni muta `search_path`. Security baseline, publicación y Boot/Data 4 permanecen fuera de esta
+línea.

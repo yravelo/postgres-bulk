@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
@@ -197,6 +198,112 @@ class PostgresBulkInserterTest {
     executor.connections.forEach(connection -> assertSame(CONNECTION, connection));
     assertSame(executor.copySql.get(0), executor.copySql.get(1));
     assertSame(executor.copySql.get(0), executor.copySql.get(2));
+    assertTrue(executor.copySql.get(0).startsWith("COPY \"rows\""));
+  }
+
+  @Test
+  void buildsRuntimeTargetSqlOnceAndReusesItAcrossBatchesWithoutMutatingMetadata() {
+    EntityMetadata<Row> metadata = metadata();
+    TableName mapped = metadata.table();
+    List<ColumnMetadata<Row>> columns = metadata.insertColumns();
+    RecordingCopyExecutor executor = new RecordingCopyExecutor();
+    PostgresBulkInserter<Row> inserter = PostgresBulkInserter.prepare(metadata, executor);
+
+    BulkWriteResult result =
+        inserter.insert(
+            CONNECTION,
+            rows(2_500),
+            BulkInsertOptions.ofBatchSize(1_000),
+            TableName.of("Tenant Space", "rows"));
+
+    assertEquals(new BulkWriteResult(2_500, 3), result);
+    assertEquals(3, executor.copySql.size());
+    assertEquals(
+        "COPY \"Tenant Space\".\"rows\" (\"id\", \"value\") FROM STDIN WITH (FORMAT CSV, DELIMITER ',', QUOTE '\"', ESCAPE '\"', NULL E'\\\\N', ENCODING 'UTF8')",
+        executor.copySql.get(0));
+    assertSame(executor.copySql.get(0), executor.copySql.get(1));
+    assertSame(executor.copySql.get(0), executor.copySql.get(2));
+    assertSame(mapped, metadata.table());
+    assertSame(columns, metadata.insertColumns());
+  }
+
+  @Test
+  void validatesRuntimeTargetBeforeInputOrCopy() {
+    RecordingCopyExecutor executor = new RecordingCopyExecutor();
+    PostgresBulkInserter<Row> unqualifiedInserter =
+        PostgresBulkInserter.prepare(metadata(), executor);
+    EntityMetadata<Row> staticMetadata =
+        EntityMetadata.of(Row.class, TableName.of("public", "rows"), metadata().insertColumns());
+    PostgresBulkInserter<Row> staticInserter =
+        PostgresBulkInserter.prepare(staticMetadata, executor);
+    Iterable<Row> mustNotBeConsumed =
+        () -> {
+          throw new AssertionError("target conflict must precede iterator consumption");
+        };
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            unqualifiedInserter.insert(
+                CONNECTION, mustNotBeConsumed, BulkInsertOptions.defaults(), TableName.of("rows")));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            unqualifiedInserter.insert(
+                CONNECTION,
+                mustNotBeConsumed,
+                BulkInsertOptions.defaults(),
+                TableName.of("tenant_a", "archive")));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            staticInserter.insert(
+                CONNECTION,
+                mustNotBeConsumed,
+                BulkInsertOptions.defaults(),
+                TableName.of("tenant_a", "rows")));
+
+    assertEquals(0, executor.calls);
+  }
+
+  @Test
+  void acceptsIdenticalTargetForStaticSchema() {
+    EntityMetadata<Row> staticMetadata =
+        EntityMetadata.of(Row.class, TableName.of("public", "rows"), metadata().insertColumns());
+    RecordingCopyExecutor executor = new RecordingCopyExecutor();
+    PostgresBulkInserter<Row> inserter = PostgresBulkInserter.prepare(staticMetadata, executor);
+
+    assertEquals(
+        new BulkWriteResult(1, 1),
+        inserter.insert(
+            CONNECTION,
+            List.of(new Row(1, "value")),
+            BulkInsertOptions.defaults(),
+            TableName.of("public", "rows")));
+    assertTrue(executor.copySql.get(0).startsWith("COPY \"public\".\"rows\""));
+  }
+
+  @Test
+  void targetAwareEmptyInputValidatesTargetButDoesNotBuildOrExecuteCopy() {
+    RecordingCopyExecutor executor = new RecordingCopyExecutor();
+    PostgresBulkInserter<Row> inserter = PostgresBulkInserter.prepare(metadata(), executor);
+
+    assertEquals(
+        BulkWriteResult.empty(),
+        inserter.insert(
+            CONNECTION, List.of(), BulkInsertOptions.defaults(), TableName.of("tenant_a", "rows")));
+    assertThrows(
+        NullPointerException.class,
+        () ->
+            inserter.insert(CONNECTION, List.of(), BulkInsertOptions.defaults(), (TableName) null));
+    assertEquals(0, executor.calls);
+  }
+
+  @Test
+  void runtimeTargetDoesNotCreateTargetKeyedState() {
+    assertTrue(
+        Arrays.stream(PostgresBulkInserter.class.getDeclaredFields())
+            .noneMatch(field -> Map.class.isAssignableFrom(field.getType())));
   }
 
   @Test
@@ -355,6 +462,43 @@ class PostgresBulkInserterTest {
                     CONNECTION,
                     failingIterator(nextFailure, true),
                     BulkInsertOptions.ofBatchSize(Integer.MAX_VALUE))));
+    assertEquals(1, nextExecutor.calls);
+  }
+
+  @Test
+  void runtimeTargetIteratorFailuresPreserveIdentityAndExecutionBoundary() {
+    TableName target = TableName.of("tenant_a", "rows");
+    IllegalStateException hasNextFailure = new IllegalStateException("target hasNext failed");
+    RecordingCopyExecutor hasNextExecutor = new RecordingCopyExecutor();
+    PostgresBulkInserter<Row> hasNextInserter =
+        PostgresBulkInserter.prepare(metadata(), hasNextExecutor);
+
+    assertSame(
+        hasNextFailure,
+        assertThrows(
+            IllegalStateException.class,
+            () ->
+                hasNextInserter.insert(
+                    CONNECTION,
+                    failingIterator(hasNextFailure, false),
+                    BulkInsertOptions.ofBatchSize(10),
+                    target)));
+    assertEquals(1, hasNextExecutor.calls);
+
+    IllegalArgumentException nextFailure = new IllegalArgumentException("target next failed");
+    RecordingCopyExecutor nextExecutor = new RecordingCopyExecutor();
+    PostgresBulkInserter<Row> nextInserter = PostgresBulkInserter.prepare(metadata(), nextExecutor);
+
+    assertSame(
+        nextFailure,
+        assertThrows(
+            IllegalArgumentException.class,
+            () ->
+                nextInserter.insert(
+                    CONNECTION,
+                    failingIterator(nextFailure, true),
+                    BulkInsertOptions.ofBatchSize(10),
+                    target)));
     assertEquals(1, nextExecutor.calls);
   }
 

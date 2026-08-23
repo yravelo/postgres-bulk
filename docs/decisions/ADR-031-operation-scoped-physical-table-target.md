@@ -70,8 +70,18 @@ override, que no forma parte de MS1.
 - selección concurrente A/B sin estado retenido;
 - cero SQL, JDBC, cache, tenant/context/routing o mutación de conexión en el contrato.
 
-La evidencia A→B/B→A con SQL real, encoder compartido, conexión y ausencia de SQL stale pertenece
-a MS2/MS3 y a ADR-032. No es un requisito fingido para aceptar este contrato neutral.
+La evidencia A→B con SQL real, encoder compartido, conexión y ausencia de SQL stale fue aportada
+para INSERT por MS2 y ADR-032; MS3 hará lo propio para lookup. No era un requisito fingido para
+aceptar este contrato neutral en MS1.
+
+## Evidencia posterior MS2
+
+MS2 implementa el argumento `TableName` en `PostgresBulkJdbcOperations.bulkInsert`, llama al
+resolver central antes de consumir input y reutiliza metadata/columnas/encoder por identidad. COPY
+SQL se construye una vez por invocación runtime no vacía y no se retiene por target. Las pruebas
+PostgreSQL 15.18 confirman aislamiento A/B secuencial/concurrente, misma conexión y backend pooled,
+transacciones y conflictos antes de JDBC. ADR-032 queda `ACCEPTED`; lookup y adapters continúan
+diferidos.
 
 La investigación que fundamenta la propuesta está en
 [`multi-schema-investigation.md`](../architecture/multi-schema-investigation.md). La secuencia de

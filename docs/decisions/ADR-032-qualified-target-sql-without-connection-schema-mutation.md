@@ -1,7 +1,7 @@
 # ADR-032: SQL target-qualified sin mutar schema de conexión
 
-- **Estado:** PROPOSED
-- **Fecha:** 2026-08-20
+- **Estado:** ACCEPTED
+- **Fecha:** 2026-08-24
 
 ## Contexto
 
@@ -21,7 +21,7 @@ Fuentes primarias:
 - [pgJDBC: `currentSchema`](https://jdbc.postgresql.org/documentation/use/)
 - [Spring Framework: recursos JDBC transaction-aware](https://docs.spring.io/spring-framework/reference/6.2/data-access/jdbc/connections.html)
 
-## Decisión propuesta
+## Decisión
 
 - Cada target runtime debe ser schema-qualified y cada sentencia target-specific debe usar ese
   nombre: COPY INSERT, CTAS y JOIN.
@@ -50,7 +50,7 @@ Fuentes primarias:
 | `SET LOCAL search_path` | rechazada: sigue siendo estado transaccional ambiental y afecta otras sentencias |
 | datasource/pool por schema dentro de la librería | rechazada: routing y credentials pertenecen a aplicación |
 | SQL no cualificado con path preconfigurado | sólo compatibilidad existente; no garantiza target explícito |
-| SQL qualified por componentes | propuesta: determinista, local y coherente con ownership |
+| SQL qualified por componentes | aceptada: determinista, local y coherente con ownership |
 
 ## Consecuencias
 
@@ -58,17 +58,25 @@ El coste es repetir el schema citado en SQL. A cambio, no hay estado que restaur
 singleton es seguro entre targets y database-per-tenant externo sigue funcionando sin interferencia.
 La librería no provisiona schemas, no consulta privilegios y no soporta row-level tenancy.
 
-MS1 aceptó la resolución neutral mediante `TableName.resolveRuntimeTarget`, pero no construyó ni
-ejecutó SQL. Este ADR permanece `PROPOSED` hasta que MS2/MS3 aporten evidencia real de COPY, CTAS y
-JOIN calificados y ausencia de mutación de conexión.
+MS1 aceptó la resolución neutral mediante `TableName.resolveRuntimeTarget`. MS2 demuestra la
+estrategia con COPY real: target qualified local, misma conexión A→B, backend físico pooled
+reutilizado, concurrencia, commit/rollback/fallo y ausencia de mutación de schema/search path. Esta
+evidencia acepta la decisión arquitectónica. MS3 deberá conformar CTAS y JOIN a la misma decisión
+antes de publicar lookup target-aware; el lookup actual sin target no se presenta como soporte
+multi-schema.
 
-## Evidencia requerida para ACCEPTED
+## Evidencia de aceptación MS2
 
-- todos los SQL target-specific qualified en tests unitarios;
-- schemas quoted/reserved/mixed-case y NUL rejection;
-- A→B/B→A en la misma conexión con `getSchema`/`search_path` sin cambios;
-- pool size one tras éxito, rollback y fallo `25P02`;
-- concurrency sobre singleton y conexiones separadas;
-- ausencia estática/dinámica de mutadores y `SET search_path`;
-- metrics/tags sin schema/target;
-- privilege failures preservan SQLState sin fallback a otro schema.
+- COPY target-specific qualified y structurally quoted en tests unitarios y PostgreSQL real;
+- schema/tabla/columnas quoted, quotes internas preservadas y NUL rechazado por el quoter común;
+- A→B en la misma conexión con `getSchema`/`search_path` sin cambios;
+- pool con un backend físico reutilizado y ownership preservado;
+- commit/rollback cross-schema y fallo `25P02` recuperable por rollback del caller;
+- concurrencia sobre una fachada preparada y conexiones separadas;
+- ausencia de mutadores, SQL de `SET search_path` y cache target-keyed;
+- tags existentes sin schema/target;
+- fallo de privilegios `42501` y SQLStates de schema/tabla inexistentes preservados, sin fallback.
+
+La evidencia ejecutable y el modelo de coste están en
+[`multi-schema-bulk-insert.md`](../architecture/multi-schema-bulk-insert.md). MS3 añadirá la
+conformance equivalente para CTAS/JOIN sin reabrir la decisión salvo que la evidencia la contradiga.

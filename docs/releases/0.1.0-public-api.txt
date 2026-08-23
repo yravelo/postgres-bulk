@@ -77,6 +77,7 @@ public final class io.ybr.postgresbulk.pgjdbc.copy.PostgresBulkJdbcOperations<T>
   public static <T> io.ybr.postgresbulk.pgjdbc.copy.PostgresBulkJdbcOperations<T> prepare(io.ybr.postgresbulk.core.metadata.EntityMetadata<T>);
   public io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.sql.Connection, java.lang.Iterable<? extends T>);
   public io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.sql.Connection, java.lang.Iterable<? extends T>, io.ybr.postgresbulk.core.BulkInsertOptions);
+  public io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.sql.Connection, java.lang.Iterable<? extends T>, io.ybr.postgresbulk.core.BulkInsertOptions, io.ybr.postgresbulk.core.metadata.TableName);
   public <K, R> R findAllByBulkKey(java.sql.Connection, java.lang.Iterable<? extends K>, io.ybr.postgresbulk.core.metadata.BulkKeyMetadata<K>, R, io.ybr.postgresbulk.pgjdbc.copy.PostgresBulkJdbcOperations$LookupResultMapper<R>);
 }
 

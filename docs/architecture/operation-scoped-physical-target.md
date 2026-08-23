@@ -2,9 +2,10 @@
 
 ## Estado y alcance
 
-**MS1: DONE (2026-08-20).** Esta fase hace representable y valida un destino físico runtime en
-core. No añade overloads ejecutables, SQL dinámico, integración Hibernate/JPA o Spring Data JDBC,
-auto-configuración Boot ni resolución de tenants. Esas capacidades siguen diferidas al roadmap.
+**MS1: DONE (2026-08-20); consumo pgJDBC INSERT: DONE en MS2 (2026-08-24).** MS1 hizo
+representable y validó un destino físico runtime en core. MS2 consume ese contrato sólo en bulk
+insert low-level pgJDBC. Lookup, integración Hibernate/JPA o Spring Data JDBC, auto-configuración
+Boot y resolución de tenants siguen diferidos al roadmap.
 
 ## Contrato elegido
 
@@ -18,8 +19,7 @@ TableName effectiveTarget = metadata.table().resolveRuntimeTarget(runtimeTarget)
 
 El método devuelve el mismo objeto `runtimeTarget`; no crea metadata derivada, no modifica el
 mapping y no retiene estado. La ausencia de target no se representa con `null`: el camino existente
-sigue usando directamente `metadata.table()`. Así no se cambia ninguna firma ejecutable antes de
-que MS2 implemente el consumo real del target.
+sigue usando directamente `metadata.table()`. El overload MS2 exige siempre el argumento explícito.
 
 ## Matriz de resolución
 
@@ -40,21 +40,21 @@ permiten distinguir entre una ausencia deliberada y el schema default del framew
 se basa únicamente en esa representación: ausencia permite seleccionar schema, presencia exige
 igualdad. No se inventan anotaciones, flags ni inferencias del adapter.
 
-Los componentes conservan case, espacios, puntos y quotes tal como se entregan. Esta fase sólo
-compara valores; quoting y rechazo de NUL pertenecen a la futura construcción SQL de MS2/MS3.
+Los componentes conservan case, espacios, puntos y quotes tal como se entregan. El resolver sólo
+compara valores; MS2 cita cada componente para COPY y rechaza NUL durante la construcción SQL.
 
 ## Forma de API
 
-Se elige argumento explícito sobre vista inmutable. Las futuras operaciones usarán el mismo
-`TableName` como argumento final para insert y lookup, por ejemplo conceptualmente:
+Se elige argumento explícito sobre vista inmutable. MS2 publica en pgJDBC:
 
 ```java
-bulkInsert(items, options, target);
-findAllByBulkKey(keys, keyMetadata, target);
+operations.bulkInsert(connection, items, options, target);
 ```
 
-Estas firmas son diseño congelado, no API publicada en MS1. La posición final conserva como
-prefijo las firmas actuales y mantiene la misma forma conceptual en JPA y Spring Data JDBC:
+Se eligió únicamente el overload de cuatro argumentos. Añadir también
+`bulkInsert(Connection, Iterable, TableName)` volvería source-ambigua una llamada histórica con
+tercer argumento `null`, porque ya existe el overload con `BulkInsertOptions`. Las firmas de
+repositories Spring continúan como diseño futuro, no API publicada:
 
 ```java
 BulkWriteResult bulkInsert(Iterable<? extends T> items, TableName target);
@@ -70,15 +70,9 @@ BulkWriteResult bulkInsert(
 );
 ```
 
-Para `PostgresBulkJdbcOperations`, MS2/MS3 usarán la misma regla y conservarán `Connection` como
-primer argumento:
+La API exacta low-level de MS2 conserva `Connection` como primer argumento:
 
 ```java
-BulkWriteResult bulkInsert(
-    Connection connection,
-    Iterable<? extends T> items,
-    TableName target
-);
 BulkWriteResult bulkInsert(
     Connection connection,
     Iterable<? extends T> items,
@@ -95,10 +89,9 @@ BulkWriteResult bulkInsert(
 );
 ```
 
-Añadirlas ahora produciría métodos que no podrían cumplir su contrato sin adelantar SQL dinámico.
-Una vista `forTarget(TableName)` añade otra fachada, puede retenerse accidentalmente y no reduce el
-número de primitivas que los engines necesitan. Tampoco se introduce un resolver ambiental,
-`ThreadLocal` ni estado mutable.
+El lookup mostrado continúa diferido a MS3. Una vista `forTarget(TableName)` añade otra fachada,
+puede retenerse accidentalmente y no reduce el número de primitivas que los engines necesitan.
+Tampoco se introduce un resolver ambiental, `ThreadLocal` ni estado mutable.
 
 `BulkOperations<T>` no crece en MS1. Añadir un método abstracto rompería implementaciones; un
 `default` no puede honrar un target que la implementación desconoce. Las fases de integración
@@ -135,22 +128,23 @@ crecer el heap de la librería.
 
 La ausencia se expresa con el overload legacy, nunca pasando `null`. Un target `null` produce
 `NullPointerException`; un target sin schema o incompatible produce `IllegalArgumentException`
-antes de cualquier futura llamada JDBC. Los mensajes propios describen el componente inválido sin
+antes de cualquier llamada JDBC. Los mensajes propios describen el componente inválido sin
 incluir los identifiers físicos ni una identidad de negocio. Blank/null de componentes conserva la
 validación de las factories `TableName.of`.
 
 ## Compatibilidad y concurrencia
 
-Las llamadas existentes permanecen intactas porque no cambió `BulkOperations` ni ninguna fachada o
-interfaz Spring. El cambio binario es aditivo: un método nuevo en una clase final ya existente.
+Las llamadas existentes permanecen intactas porque no cambió `BulkOperations` ni ninguna interfaz
+Spring. El cambio binario de MS2 es aditivo: un método nuevo en una clase final ya existente.
 Factories, igualdad y serialización textual de `TableName` no cambian.
 
-Las pruebas demuestran resolución A/B concurrente sobre el mismo mapping, preservación exacta de
-identifiers, matriz de conflictos, null/unqualified y que `EntityMetadata` conserva la misma tabla
-y las mismas columnas después de resolver destinos. No existe cache por schema o target.
+Las pruebas demuestran resolución y COPY A/B concurrentes sobre el mismo mapping, preservación
+exacta de identifiers, matriz de conflictos, null/unqualified y que `EntityMetadata` conserva la
+misma tabla y las mismas columnas después de resolver destinos. No existe cache por schema o
+target.
 
 ## Continuación autorizable
 
-MS2 podrá propagar el argumento explícito sólo en pgJDBC y construir COPY SQL local por invocación.
-Hasta entonces, `resolveRuntimeTarget` es un contrato neutral probado pero ninguna operación bulk
-acepta ni ejecuta un target runtime.
+MS2 propaga el argumento explícito sólo en pgJDBC y construye COPY SQL local una vez por invocación
+no vacía. La siguiente extensión autorizable es MS3, que aplicará el mismo target a CTAS y JOIN del
+bulk lookup sin propagarlo todavía a adapters Spring.

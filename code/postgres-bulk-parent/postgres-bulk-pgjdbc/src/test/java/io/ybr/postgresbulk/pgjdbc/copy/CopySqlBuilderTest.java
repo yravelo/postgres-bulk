@@ -40,8 +40,34 @@ class CopySqlBuilderTest {
   }
 
   @Test
+  void buildsCopySqlForExplicitTargetWithoutChangingMetadata() {
+    TableName mapped = TableName.of("Order Items");
+    TableName runtimeTarget = TableName.of("Tenant Space", "Order Items");
+    EntityMetadata<Row> metadata =
+        EntityMetadata.of(
+            Row.class,
+            mapped,
+            List.of(
+                ColumnMetadata.of("second column", String.class, Row::value),
+                ColumnMetadata.of("first\"column", Integer.class, Row::number)));
+
+    assertEquals(
+        "COPY \"Tenant Space\".\"Order Items\" (\"second column\", \"first\"\"column\") FROM STDIN WITH (FORMAT CSV, DELIMITER ',', QUOTE '\"', ESCAPE '\"', NULL E'\\\\N', ENCODING 'UTF8')",
+        CopySqlBuilder.insert(metadata, runtimeTarget));
+    assertEquals(mapped, metadata.table());
+  }
+
+  @Test
   void rejectsNullMetadata() {
     assertThrows(NullPointerException.class, () -> CopySqlBuilder.insert(null));
+    assertThrows(NullPointerException.class, () -> CopySqlBuilder.insert(metadata(), null));
+  }
+
+  private static EntityMetadata<Row> metadata() {
+    return EntityMetadata.of(
+        Row.class,
+        TableName.of("order"),
+        List.of(ColumnMetadata.of("value", String.class, Row::value)));
   }
 
   private record Row(String value, Integer number) {}

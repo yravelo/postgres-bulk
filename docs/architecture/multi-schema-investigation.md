@@ -2,10 +2,10 @@
 
 ## Estado y alcance
 
-**MS0: DONE (2026-08-20).** Este documento cierra investigación, arquitectura y planificación.
-No añadió soporte runtime multi-schema, código Java productivo, properties Boot, publicación ni
-trabajo del security baseline. MS1 aceptó después el contrato neutral en ADR-031; ADR-032 continúa
-`PROPOSED` hasta disponer de ejecución SQL.
+**MS0: DONE (2026-08-20); hipótesis INSERT validada por MS2 (2026-08-24).** MS0 cerró
+investigación, arquitectura y planificación sin código productivo. MS1 aceptó después el contrato
+neutral en ADR-031 y MS2 implementó COPY target-aware low-level, aceptando ADR-032. Lookup,
+properties Boot, adapters Spring, publicación y security baseline continúan fuera de este alcance.
 
 La línea estudia un caso concreto: una misma estructura lógica —tipo, tabla base, columnas y
 conversiones— existe en varios schemas PostgreSQL y cada operación bulk debe dirigirse al destino
@@ -51,8 +51,9 @@ opcional y tabla obligatoria. Conserva texto exacto, no parsea `schema.table`, n
 no genera SQL. Su igualdad incluye ambos componentes. Por tanto, ya representa exactamente un
 destino físico `schema + table`; crear otro value object con la misma forma no aportaría semántica.
 
-La limitación no está en `TableName`, sino en dónde se almacena: hoy forma parte de
-`EntityMetadata<T>` y queda fijado al preparar los motores.
+La limitación original no estaba en `TableName`, sino en dónde se almacenaba: forma parte de
+`EntityMetadata<T>` y quedaba fijado al preparar los motores. MS2 conserva ese default pero permite
+un target explícito local para INSERT.
 
 ### Metadata y caches
 
@@ -76,17 +77,17 @@ invocación puede aportar un destino explícito que se valida y usa sin mutar me
 
 ### Preparación y cache de SQL
 
-El audit encontró dos puntos target-specific:
+El audit MS0 encontró dos puntos target-specific:
 
-1. `PostgresBulkInserter` construye `copySql` una vez desde `EntityMetadata` y lo conserva en un
-   field final. La misma instancia no puede apuntar a otro schema.
+1. `PostgresBulkInserter` construía `copySql` una vez desde `EntityMetadata` y lo conservaba en un
+   field final. MS2 mantiene ese field sólo como SQL default y construye el SQL runtime local.
 2. `TemporaryTableBulkLookup` prepara `BulkLookupSql` desde `metadata.table()`. CTAS y JOIN
    conservan el target cualificado en ese objeto.
 
 En cambio, `PreparedCopyCsvRowEncoder`, `ValueEncoderRegistry`, columnas ordenadas y
 `BulkKeyMetadata` no conocen tabla/schema. Son reutilizables entre todos los destinos compatibles.
 
-No existe hoy una cache global de statements JDBC. El fragmento JPA sí reutiliza
+No existe una cache global de statements JDBC. El fragmento JPA sí reutiliza
 `PostgresBulkJdbcOperations` por identidad de metadata, lo que indirectamente reutiliza el COPY SQL
 target-specific. El diseño futuro debe conservar la reutilización estructural y construir el SQL
 completo como variable local de operación. No se añade `Map<TableName, ...>`: en schema-per-tenant
@@ -376,25 +377,25 @@ duplicar `TableName`.
 | API crece por overloads | prototype A/F y API review antes de aceptar ADR-031 |
 | target-bound facade retenida por caller | objeto inmutable sin cache interna; documentar scope/reuso seguro |
 
-## Preguntas cerradas por MS1 y abiertas para MS2+
+## Preguntas cerradas por MS1/MS2 y abiertas para MS3+
 
 MS1 cerró argumentos directos, resolución en `TableName`, método `resolveRuntimeTarget`, tabla
-runtime fija y cero cambios en interfaces implementables. Permanecen abiertas para fases runtime:
+runtime fija y cero cambios en interfaces implementables. MS2 confirmó que la fachada comparte
+metadata/encoder, genera COPY SQL local una vez por invocación no vacía y no necesita exponer el
+target al callback. También fijó validación del target antes del iterator/lookahead, por lo que un
+input vacío inválido falla sin tocar JDBC. Permanecen abiertas para fases posteriores:
 
-1. ¿Puede `PostgresBulkJdbcOperations` compartir un encoder preparado y construir COPY/lookup SQL
-   local sin cambios públicos adicionales?
+1. ¿Puede el lookup compartir key encoder y construir CTAS/JOIN locales sin alterar lifecycle y
+   cleanup temporal?
 2. ¿La materialización native JPA funciona con la misma tabla en otro schema y mismo row shape en
    todos los patches Hibernate soportados?
-3. ¿Cómo preservar el empty-input no-op: validar target antes o después del lookahead? La hipótesis
-   compatible es después, igual que metadata/conexión actuales.
-4. ¿Hace falta exponer el target efectivo al callback low-level, o basta con que el engine genere
-   todo el SQL antes de invocarlo?
 
-## Conclusión MS0
+## Conclusión actualizada tras MS2
 
 El diseño es viable sin hacer tenant-aware a la librería. `TableName` ya expresa el destino físico
 completo; el cambio necesario es desplazar su selección al scope de invocación y evitar que SQL
 target-specific quede atrapado en caches estructurales. Qualified SQL elimina dependencia de
 `search_path` y mutación de conexión. Metadata, encoders y key descriptors se reutilizan sin
-tenant keys. La línea puede avanzar a **MS1 — Operation-Scoped Physical Target Contract** sin
-implementar todavía integración Spring ni comportamiento multi-schema end-to-end.
+tenant keys. COPY confirma la hipótesis en PostgreSQL 15.18 sin cache target-keyed ni mutación de
+conexión. La línea puede avanzar a **MS3 — pgJDBC Multi-Schema Bulk Lookup** sin implementar todavía
+integración Spring ni comportamiento multi-schema end-to-end.

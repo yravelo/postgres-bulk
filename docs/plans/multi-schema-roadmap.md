@@ -9,8 +9,8 @@ introducir `TenantContext`, tenant ids, ThreadLocal, `search_path`, `Connection.
 global Boot, cache por tenant, provisioning, publicación o security baseline sin autorización y
 ADR separados.
 
-ADR-031 está `ACCEPTED` con evidencia Java pura de MS1; ADR-032 permanece `PROPOSED` hasta la
-evidencia SQL de MS2/MS3. "Multi-schema" en este roadmap
+ADR-031 está `ACCEPTED` con evidencia Java pura de MS1 y COPY real de MS2; ADR-032 está `ACCEPTED`
+con evidencia pgJDBC MS2. "Multi-schema" en este roadmap
 significa target `schema + table` explícito por operación dentro de una conexión ya elegida; no
 significa database routing, row-level tenancy ni Hibernate multi-tenancy.
 
@@ -68,7 +68,7 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
   y schema igual cuando el mapping lo fija. Se eligen futuros argumentos explícitos, no vista. La
   metadata y API operativa legacy permanecen intactas; no se añadió SQL ni integración downstream.
 
-## MS2 — pgJDBC Multi-Schema Bulk Insert
+## MS2 — pgJDBC Multi-Schema Bulk Insert — DONE (2026-08-24)
 
 - **Objective:** ejecutar COPY insert sobre un target físico explícito reutilizando shape y encoder
   preparados.
@@ -90,6 +90,11 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
 - **Risks:** COPY SQL stale, error messages con schema, regression de preparación/performance.
 - **Dependencies:** MS1 y ADR-013/014/019.
 - **Deferred:** lookup y adapters de alto nivel.
+- **Closure:** la fachada low-level publica un overload de cuatro argumentos con `TableName` para
+  evitar ambigüedad source con el overload histórico de opciones. Resuelve el target una vez,
+  conserva metadata/encoder, construye COPY SQL qualified una vez por invocación no vacía y no
+  retiene cache por target. PostgreSQL 15.18 valida A/B secuencial y concurrente, pool de un backend,
+  commit/rollback, quoted identifiers, privilegios y fallos tardíos; legacy permanece intacto.
 
 ## MS3 — pgJDBC Multi-Schema Bulk Lookup
 
@@ -255,5 +260,5 @@ MS0 investigation
                 -> MS8 compatibility/docs/benchmarks/closure
 ```
 
-La única siguiente fase autorizable después de MS1 es
-**MS2 — pgJDBC Multi-Schema Bulk Insert**.
+La única siguiente fase autorizable después de MS2 es
+**MS3 — pgJDBC Multi-Schema Bulk Lookup**.

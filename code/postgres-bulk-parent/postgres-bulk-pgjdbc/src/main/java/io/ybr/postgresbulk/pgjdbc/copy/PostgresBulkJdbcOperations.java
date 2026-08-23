@@ -4,6 +4,7 @@ import io.ybr.postgresbulk.core.BulkInsertOptions;
 import io.ybr.postgresbulk.core.BulkWriteResult;
 import io.ybr.postgresbulk.core.metadata.BulkKeyMetadata;
 import io.ybr.postgresbulk.core.metadata.EntityMetadata;
+import io.ybr.postgresbulk.core.metadata.TableName;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -80,6 +81,38 @@ public final class PostgresBulkJdbcOperations<T> {
   public BulkWriteResult bulkInsert(
       Connection connection, Iterable<? extends T> items, BulkInsertOptions options) {
     return inserter.insert(connection, items, options);
+  }
+
+  /**
+   * Executes a direct PostgreSQL COPY insert against one explicit operation-scoped target.
+   *
+   * <p>The runtime target must be schema-qualified, retain the mapped table, and respect an
+   * explicitly mapped schema. It is resolved once through {@link TableName#resolveRuntimeTarget}
+   * before input is consumed. COPY SQL is then built once for non-empty input and reused by every
+   * batch in this invocation. Metadata, prepared column encoders, and connection state are neither
+   * copied nor changed.
+   *
+   * <p>Empty input is a successful no-op after argument and target validation: it returns {@link
+   * BulkWriteResult#empty()} without building COPY SQL or interacting with JDBC. Transaction,
+   * lifecycle, batching, and failure semantics otherwise match {@link #bulkInsert(Connection,
+   * Iterable, BulkInsertOptions)}.
+   *
+   * @param connection open caller-owned pgJDBC connection
+   * @param items rows consumed sequentially, possibly from a one-shot iterable
+   * @param options validated logical COPY batch policy
+   * @param runtimeTarget complete schema-qualified target for this invocation
+   * @return server row count and completed COPY batch count
+   * @throws NullPointerException if an argument is {@code null}
+   * @throws IllegalArgumentException if the target conflicts with the mapping, is unqualified, or
+   *     an input element is {@code null}
+   * @throws io.ybr.postgresbulk.core.BulkException if COPY cannot complete
+   */
+  public BulkWriteResult bulkInsert(
+      Connection connection,
+      Iterable<? extends T> items,
+      BulkInsertOptions options,
+      TableName runtimeTarget) {
+    return inserter.insert(connection, items, options, runtimeTarget);
   }
 
   /**

@@ -9,12 +9,14 @@ Spring Data, sin cambiar el ownership caller-owned de la conexión.
 
 `PostgresBulkInserter<T>` es package-private y se prepara desde `EntityMetadata<T>`. Su
 operación recibe una `Connection` ya abierta, un `Iterable<? extends T>` y
-`BulkInsertOptions`, y devuelve `BulkWriteResult`:
+`BulkInsertOptions`, y devuelve `BulkWriteResult`. MS2 añade en la fachada low-level un overload
+con `TableName` runtime explícito; su diseño y evidencia están en
+[`multi-schema-bulk-insert.md`](multi-schema-bulk-insert.md):
 
 ```text
-EntityMetadata ──prepare once──> COPY SQL + PreparedCopyCsvRowEncoder
+EntityMetadata ──prepare once──> mapped COPY SQL + PreparedCopyCsvRowEncoder
                                       │
-Connection + Iterable + options ──> PostgresBulkInserter
+Connection + Iterable + options [+ runtime target] ──> PostgresBulkInserter
                                       │ one COPY per non-empty batch
                                       ▼
                               PostgresCopyExecutor
@@ -42,10 +44,15 @@ conoce Spring, JPA ni Hibernate. La decisión y su evidencia están en ADR-017 y
 
 ## Preparación y concurrencia
 
-Al construir el motor se validan metadata y executor, se genera una única sentencia COPY
-y se resuelven una única vez los encoders de las columnas. Un tipo no soportado falla
+Al construir el motor se validan metadata y executor, se genera la sentencia COPY default
+del mapping y se resuelven una única vez los encoders de las columnas. Un tipo no soportado falla
 antes de consumir el iterable. Esos componentes son inmutables y se reutilizan entre
 batches y llamadas.
+
+En el camino runtime, el target se resuelve antes de consumir input. Para una llamada no vacía se
+genera exactamente una sentencia COPY local, reutilizada por todos sus batches; metadata y encoder
+son los mismos objetos preparados. No se retiene SQL por target. El camino legacy continúa usando
+la sentencia default ya preparada.
 
 La instancia no conserva estado mutable por operación: iterator, posiciones y contadores
 son variables locales. Puede compartirse entre threads siempre que los accessors de

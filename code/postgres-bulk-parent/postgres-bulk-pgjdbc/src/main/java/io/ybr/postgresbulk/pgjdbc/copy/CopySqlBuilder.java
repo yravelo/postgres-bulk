@@ -17,12 +17,18 @@ final class CopySqlBuilder {
 
   static String insert(EntityMetadata<?> metadata) {
     Objects.requireNonNull(metadata, "metadata must not be null");
+    return insert(metadata, metadata.table());
+  }
+
+  static String insert(EntityMetadata<?> metadata, TableName target) {
+    Objects.requireNonNull(metadata, "metadata must not be null");
+    Objects.requireNonNull(target, "target must not be null");
     String columns =
         metadata.insertColumns().stream()
             .map(ColumnMetadata::columnName)
             .map(PostgresIdentifierQuoter::quote)
             .collect(Collectors.joining(", "));
-    return "COPY " + qualifiedName(metadata.table()) + " (" + columns + ')' + COPY_OPTIONS;
+    return "COPY " + qualifiedName(target) + " (" + columns + ')' + COPY_OPTIONS;
   }
 
   static String insertTemporary(String tableName, BulkKeyMetadata<?> metadata) {

@@ -16,15 +16,17 @@ caller-owned Connection ──> PostgresCopyExecutor ──> PostgreSQL
 ```
 
 SQL y protocolo están separados: el executor acepta una sentencia ya construida y no
-conoce metadata ni entidades. Phase 6 podrá iterar/batchear sin duplicar quoting,
-encoding o lifecycle.
+conoce metadata ni entidades. Phase 6 itera/batchea sin duplicar quoting, encoding o lifecycle.
+MS2 reutiliza la misma primitive para construir una sentencia target-specific una vez por
+invocación runtime no vacía.
 
 ## SQL e identificadores
 
-`CopySqlBuilder` recibe `EntityMetadata<?>`. Cita schema, tabla y cada columna siempre y
-por separado mediante double quotes; duplica cualquier quote interna y rechaza NUL. No
-parsea nombres qualified, no concatena fragmentos libres y conserva exactamente el orden
-de `insertColumns()`.
+`CopySqlBuilder` recibe `EntityMetadata<?>` y, desde MS2, puede recibir además un `TableName`
+destino explícito. La metadata aporta las columnas y el target aporta sólo schema/tabla; ambos
+permanecen separados. Cita schema, tabla y cada columna siempre y por separado mediante double
+quotes; duplica cualquier quote interna y rechaza NUL. No parsea nombres qualified, no concatena
+fragmentos libres y conserva exactamente el orden de `insertColumns()`.
 
 La forma canónica es:
 
