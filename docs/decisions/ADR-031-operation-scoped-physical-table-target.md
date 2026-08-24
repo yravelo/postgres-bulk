@@ -127,3 +127,12 @@ autorizado se rechaza antes de invocar el repository. Default y targets alternan
 proxies, con lookup y rollback, sin nuevo SPI, facade, property ni API pública. La baseline binaria
 permanece idéntica y la matriz Java/Boot/Hibernate/pgJDBC/PostgreSQL queda verde. ADR-031 permanece
 `ACCEPTED`.
+
+## Evidencia posterior MS8
+
+El arnés compara el mapping default con `public.benchmark_row` explícito sobre el mismo engine,
+metadata, dataset y tabla para pgJDBC, JPA y JDBC. También resuelve 100/1.000/10.000 targets
+preconstruidos devolviendo siempre la misma instancia suministrada y sin crecimiento de cache. Las
+allocations de resolución quedan en ruido del profiler y el coste crece con las resoluciones
+ejecutadas, no con estado retenido. Ningún resultado exige otra abstracción, schema-only API o
+resolver. **NO TARGET-KEYED CACHE** y ADR-031 permanece `ACCEPTED`.

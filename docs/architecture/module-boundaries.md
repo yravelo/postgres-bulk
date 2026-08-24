@@ -126,12 +126,24 @@ repository factory descubra fixtures del otro store.
 consumidores ni artefactos publicables. Tiene `maven.deploy.skip=true`; `verify` sólo compila y
 empaqueta el arnés. JMH se ejecuta manualmente por script o `workflow_dispatch`.
 
+MS8 amplía sólo este módulo con comparaciones emparejadas default/runtime para pgJDBC, JPA y JDBC,
+una caracterización Java pura de cardinalidad y una verificación previa sobre schemas A/B/C/quoted.
+El target, SQL y fixtures siguen siendo estado del arnés; no se exportan al grafo productivo. Los
+raw JSON/CSV son evidencia documental y el POM conserva `maven.deploy.skip=true`.
+
 ## Evidencia multi-schema MS6
 
 MS6 conserva el grafo sin cambios productivos. Los dos starters siguen dependency-only y las
 pruebas de coexistencia cargan ambas autoconfiguraciones sin introducir una dependencia JPA en el
 grafo productivo JDBC. `TableName` cruza sólo las APIs de operación ya publicadas en MS4/MS5; Boot
 no adquiere una responsabilidad target-aware nueva.
+
+## Cierre multi-schema MS8
+
+La revisión final mantiene el grafo productivo intacto. Metadata y engines preparados continúan
+cacheados sólo por identidad estructural/tipo; el target efectivo y su SQL son locales a cada
+invocación. En particular: **NO TARGET-KEYED CACHE**. El coste medido no justifica ampliar API,
+crear un resolver ambiental ni trasladar código del arnés a un artifact publicable.
 
 ## Reglas verificables
 

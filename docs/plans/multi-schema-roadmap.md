@@ -248,7 +248,7 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
   consumidores externos pasan. Build `32714347790` y Compatibility `32714347857` terminan verdes
   sin features runtime, benchmarks, security baseline, publicación ni Release.
 
-## MS8 — Multi-Schema Benchmarks & Technical Closure
+## MS8 — Multi-Schema Benchmarks & Technical Closure — DONE (2026-08-24)
 
 - **Objective:** medir el overhead operation-scoped y cerrar la línea técnica sin publicar.
 - **Scope:** default frente a warm A/B/C, cardinalidad de schemas, insert/lookup, adapter frente a
@@ -268,6 +268,14 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
 - **Risks:** ruido, coste CI y convertir point estimates en recomendaciones universales.
 - **Dependencies:** MS7 y ADR-022/031/032.
 - **Deferred:** publication activation, security/supply-chain baseline, Boot 4 and new tenancy model.
+- **Closure:** el arnés JMH existente mide default/runtime en pgJDBC, JPA y JDBC para INSERT
+  10–100K y lookup 10–10K, con allocation profiler, smoke y dos baselines raw/CSV. La alternancia
+  default/A/default/B/default/C y quoted pasa fuera del timing. La caracterización
+  100/1.000/10.000 devuelve targets por identidad, mantiene allocations en ruido y no encuentra
+  cache/estado retenido. Los deltas end-to-end son ruidosos; el pequeño coste JPA observado en
+  llamadas cortas se amortiza a tamaños bulk y no justifica optimización, API ni cambio de batch.
+  ADR-022/031/032 permanecen ACCEPTED. No hubo bug productivo, release, security baseline ni
+  publicación. **NO TARGET-KEYED CACHE**.
 
 ## Dependencias
 
@@ -283,5 +291,16 @@ MS0 investigation
                 -> MS8 benchmarks/technical closure
 ```
 
-La única siguiente fase autorizable después de MS7 es
-**MS8 — Multi-Schema Benchmarks & Technical Closure**.
+## Estado posterior al cierre
+
+```text
+Original roadmap 0–16: COMPLETE
+Spring Data JDBC J0–J8: COMPLETE
+Multi-Schema MS0–MS8: COMPLETE
+```
+
+No se crea MS9. Security & Supply Chain Baseline, publication activation, Boot 4 / Spring Data 4 /
+Hibernate 7, ergonomía schema-only si alguna vez se justifica, experimentos adicionales y runtime
+tenant resolution permanecen diferidos y requieren autorización separada.
+
+**NO next phase started automatically.**

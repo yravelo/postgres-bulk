@@ -11,6 +11,13 @@ local machine. It includes transaction commit and excludes dataset construction,
 correctness checks from the timed region. Results are evidence for that environment, not service
 level objectives or universal claims.
 
+MS8 separately compares default mapping with the equivalent explicit runtime target for pgJDBC,
+Spring Data JPA and Spring Data JDBC. Across two OpenJDK 25 runs, most deltas changed sign or had
+broad intervals. JPA INSERT showed a repeated 0.3–0.6 ms point-estimate cost at 10–1.000 rows, then
+no consistent penalty at 10K/100K. A 10.000-target pure resolution loop completed in roughly
+18 µs versus 12 µs for one repeated target, without material allocation. This supports local SQL
+construction and **NO TARGET-KEYED CACHE**, not a zero-overhead claim.
+
 ## Insert summary
 
 At 10, 100, 1K, 10K and 100K rows, COPY was faster than both default and batched JPA `saveAll` in
@@ -61,5 +68,6 @@ JAVA_HOME=/path/to/jdk-21 ./scripts/run-benchmarks.sh baseline baseline-local
 
 Read [methodology](../benchmarks/methodology.md), the historical [Phase 14 baseline](../benchmarks/baseline.md),
 the [J8 Spring Data JDBC report](../benchmarks/j8-spring-data-jdbc.md) and raw JSON before making a
-tuning decision. The suite has no performance thresholds and never runs as part of normal
-`verify`.
+tuning decision. For operation-scoped targets, also read the
+[MS8 multi-schema report](../benchmarks/ms8-multi-schema.md). The suite has no performance
+thresholds and never runs as part of normal `verify`.

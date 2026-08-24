@@ -209,7 +209,7 @@ tag estándar de error se normaliza a un conjunto bounded. No existen tags de en
 tabla, SQLState o excepción concreta, y nunca se copian filas, keys, SQL ni valores. El contrato
 completo vive en [`observability.md`](observability.md).
 
-## Cierre de rendimiento Spring Data JDBC
+## Cierres de rendimiento
 
 J8 no modifica la arquitectura productiva. El módulo JMH no publicable depende de ambos adapters
 sólo para comparar `saveAll`, JDBC batch, API pública y low-level COPY contra la misma tabla. En el
@@ -218,8 +218,16 @@ frente al engine y no aportó evidencia para cambiar el default 1.000 ni añadir
 La evidencia, limitaciones y raw data están en
 [`j8-spring-data-jdbc.md`](../benchmarks/j8-spring-data-jdbc.md).
 
+MS8 reutiliza ese arnés sin alterar módulos productivos: compara el mapping default con el target
+explícito equivalente en pgJDBC, JPA y JDBC, y caracteriza 100/1.000/10.000 nombres runtime
+preconstruidos. Correctness multi-schema se valida fuera del timing. La decisión se mantiene:
+metadata, accessors y encoders son estructurales; target y SQL son locales. **NO TARGET-KEYED
+CACHE**. Resultados y raw data viven en
+[`ms8-multi-schema.md`](../benchmarks/ms8-multi-schema.md).
+
 MS0 investigó runtime multi-schema/schema-per-tenant y creó un
 [roadmap separado](../plans/multi-schema-roadmap.md). MS1 aceptó el contrato físico, MS2 implementó
-INSERT y MS3 lookup low-level target-aware con `TableName` explícito; MS4 propagará la capacidad a
-Hibernate/JPA. La aplicación resuelve tenant/autorización; la librería no conoce tenant ids ni muta
+INSERT y MS3 lookup low-level target-aware con `TableName` explícito; MS4–MS7 completaron adapters,
+composición, compatibilidad y adopción. MS8 cierra la línea técnica con benchmarks. La aplicación
+resuelve tenant/autorización; la librería no conoce tenant ids ni muta
 `search_path`. Security baseline, publicación y Boot/Data 4 permanecen fuera de esta línea.

@@ -160,4 +160,5 @@ reabrir el modelo de composición. El job focalizado JPA-only/JDBC-only/both y l
 mínimo/newest pasan, igual que Build `32714347790` y Compatibility `32714347857` (11 jobs). No se
 añadieron beans, properties o código runtime.
 
-La siguiente fase es **MS8 — Multi-Schema Benchmarks & Technical Closure**.
+MS8 cerró después la línea con benchmarks default/runtime sin cambiar esta composición ni añadir
+beans/properties. **NO TARGET-KEYED CACHE**.

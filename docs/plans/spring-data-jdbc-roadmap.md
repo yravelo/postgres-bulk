@@ -292,10 +292,10 @@ Las fases preservan estas invariantes:
 Spring Data JDBC roadmap J0–J8: COMPLETE
 ```
 
-Runtime multi-schema/schema-per-tenant continúa sin implementar, pero MS0 ya cerró su
-[investigación y roadmap separados](multi-schema-roadmap.md). Security & Supply Chain Baseline,
-publication activation, Boot 4 / Spring Data 4 future generation y experimentos de performance
-adicionales permanecen sin iniciar y requieren autorización separada.
+Runtime multi-schema/schema-per-tenant quedó implementado y técnicamente cerrado después por
+[MS0–MS8](multi-schema-roadmap.md), sin convertir el adapter en un tenant resolver. Security &
+Supply Chain Baseline, publication activation, Boot 4 / Spring Data 4 future generation y
+experimentos de performance adicionales permanecen sin iniciar y requieren autorización separada.
 
 ## Dependencias del roadmap
 

@@ -362,6 +362,12 @@ recommended key-count threshold. See the [performance guide](docs/user-guide/per
 [J8 report](docs/benchmarks/j8-spring-data-jdbc.md) and historical
 [Phase 14 baseline](docs/benchmarks/baseline.md).
 
+MS8 measured the equivalent default/runtime target paths in pgJDBC, JPA and JDBC. Most paired
+deltas were noisy or changed sign; the repeated JPA small-insert delta was sub-millisecond and
+amortized at bulk sizes. Resolving 10.000 prebuilt targets allocated no material memory. The design
+therefore remains operation-local with **NO TARGET-KEYED CACHE**. See the
+[MS8 report](docs/benchmarks/ms8-multi-schema.md).
+
 ## Limitations
 
 - PostgreSQL only; the driver connection must unwrap to pgJDBC.

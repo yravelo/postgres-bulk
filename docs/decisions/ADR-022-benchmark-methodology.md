@@ -33,3 +33,12 @@ de regresión, sin cambiar API.
 La evidencia es local y ruidosa. JPA 1M no se ejecuta por presión de heap demostrada a 100K; JDBC
 y COPY sí tienen un perfil suplementario 1M. Lookup requiere experimentos posteriores de plan
 antes de cualquier estrategia adaptativa.
+
+## Evidencia posterior MS8
+
+MS8 reutiliza el mismo módulo, runner, PostgreSQL real, dataset, JMH 1.37 y profiler. Añade perfiles
+manuales `multi-schema-smoke`/`multi-schema-baseline`, dos baselines raw separados y CSV con deltas
+default/runtime. La alternancia default/A/default/B/default/C y quoted se verifica antes del
+timing. La cardinalidad 100/1.000/10.000 se caracteriza como microbenchmark Java puro y queda
+separada de I/O. No hay threshold, gate CI, cambio productivo ni selección de muestras; ADR-022
+permanece `ACCEPTED`.

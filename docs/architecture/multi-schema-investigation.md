@@ -301,8 +301,9 @@ No debe cachearse por la librería:
 - decisiones de autorización o datasource routing.
 
 Construir SQL local añade coste `O(columnas)` por invocación y allocations pequeñas, no por fila.
-COPY, I/O y materialización dominan operaciones bulk. MS8 medirá antes de considerar una cache
-acotada; no se aceptará una cache tenant-keyed sólo para recuperar esa construcción.
+MS8 midió ese camino: el coste fue pequeño en términos absolutos, normalmente amortizado por I/O y
+materialización, y sin señal estable que justifique retención. No se acepta una cache tenant/target-
+keyed para recuperar esa construcción. **NO TARGET-KEYED CACHE**.
 
 ## Compatibilidad pública
 
@@ -391,7 +392,7 @@ JOIN. Un input vacío inválido falla sin tocar JDBC. MS4 confirmó materializac
 el SELECT target-qualified. MS5 confirmó que `EntityRowMapper` Spring Data JDBC consume ese mismo
 SELECT, conserva un query y reutiliza metadata/ID variants para A/B.
 
-## Conclusión actualizada tras MS7
+## Conclusión actualizada tras MS8
 
 El diseño es viable sin hacer tenant-aware a la librería. `TableName` ya expresa el destino físico
 completo; el cambio necesario es desplazar su selección al scope de invocación y evitar que SQL
@@ -408,6 +409,8 @@ límites Hibernate/pgJDBC y PostgreSQL 15–18. Los ejemplos externos y la guía
 capacidad en un contrato reproducible sin cambiar API ni runtime: la aplicación autoriza y pasa un
 `TableName` explícito; `DataSource`/`Connection` continúa seleccionando la database.
 
-La siguiente fase es **MS8 — Multi-Schema Benchmarks & Technical Closure**. Debe medir antes de
-considerar cualquier optimización y no reabrir resolución tenant, state de conexión o cache por
-target sin evidencia y decisión nuevas.
+MS8 añade la evidencia final: dos baselines default/runtime y una cardinalidad de 100/1.000/10.000
+targets no muestran crecimiento de cache ni estado retenido. La resolución de 10.000 targets queda
+en decenas de microsegundos por invocación y allocation en ruido del profiler; los pares
+end-to-end son ruidosos y el coste se amortiza a tamaños bulk. No se añade cache, API ni fase
+posterior automática. La línea multi-schema queda técnicamente cerrada.

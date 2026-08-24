@@ -194,8 +194,12 @@ identifier disclosure.
 ## Performance
 
 Runtime targeting builds qualified SQL once per non-empty operation and does not use a target-keyed
-cache. MS7 makes no performance claim and executes no benchmarks. MS8 will measure target
-resolution and per-operation SQL generation before any optimization is considered.
+cache. MS8 measured default versus the equivalent explicit target in pgJDBC, JPA and JDBC. Most
+pairs changed sign between runs or had broad intervals; the repeated small-call JPA INSERT cost was
+about 0.3–0.6 ms and was amortized by 10K/100K. Resolving 10.000 prebuilt targets took about 18 µs
+total versus about 12 µs when repeating one target, with allocation at profiler noise level. These
+local results do not justify a cache or a universal production estimate. See the
+[MS8 report](../benchmarks/ms8-multi-schema.md).
 
 ## Limitations
 

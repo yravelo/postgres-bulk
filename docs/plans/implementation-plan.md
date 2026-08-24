@@ -1,5 +1,9 @@
 # Plan de implementación incremental
 
+```text
+Original roadmap 0–16: COMPLETE
+```
+
 ## Reglas del plan
 
 Cada fase entra por PR separada, parte de main verde, termina con reactor compilable y no adelanta APIs de fases posteriores. Los ADRs `PROPOSED` sólo pasan a `ACCEPTED` con la evidencia indicada. No se corrige el legacy: se conserva como referencia. “Tests” significa automatizados salvo revisión documental explícita.

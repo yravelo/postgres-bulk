@@ -123,3 +123,12 @@ concurrencia, pool reuse, rollback y objetos ausentes sobre PostgreSQL 15.18/16.
 documentación distingue database routing (`DataSource`/`Connection`) de schema/table (`TableName`)
 y asigna autorización/provisioning a la aplicación. No se añadió `setSchema`, `search_path`, estado
 ambiental, cache por target ni tags de alta cardinalidad. ADR-032 permanece `ACCEPTED`.
+
+## Evidencia posterior MS8
+
+La verificación previa al benchmark alterna default/A/default/B/default/C y un schema quoted con el
+mismo `PostgresBulkJdbcOperations`, comprobando INSERT y lookup aislados antes de medir. Los
+benchmarks default/runtime usan la misma tabla física `public.benchmark_row`; por tanto el delta
+caracteriza resolución y SQL qualified sin confundir datos, red o layout. No se observa una razón
+para mutar `search_path`, estado de conexión o introducir SQL cacheado por schema. ADR-032
+permanece `ACCEPTED`.
