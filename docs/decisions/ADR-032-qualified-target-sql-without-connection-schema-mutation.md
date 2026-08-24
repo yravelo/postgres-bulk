@@ -61,9 +61,8 @@ La librería no provisiona schemas, no consulta privilegios y no soporta row-lev
 MS1 aceptó la resolución neutral mediante `TableName.resolveRuntimeTarget`. MS2 demuestra la
 estrategia con COPY real: target qualified local, misma conexión A→B, backend físico pooled
 reutilizado, concurrencia, commit/rollback/fallo y ausencia de mutación de schema/search path. Esta
-evidencia acepta la decisión arquitectónica. MS3 deberá conformar CTAS y JOIN a la misma decisión
-antes de publicar lookup target-aware; el lookup actual sin target no se presenta como soporte
-multi-schema.
+evidencia acepta la decisión arquitectónica. MS3 conforma CTAS y JOIN a la misma decisión y publica
+el lookup target-aware; el lookup sin target continúa siendo compatibilidad basada en el mapping.
 
 ## Evidencia de aceptación MS2
 
@@ -77,6 +76,20 @@ multi-schema.
 - tags existentes sin schema/target;
 - fallo de privilegios `42501` y SQLStates de schema/tabla inexistentes preservados, sin fallback.
 
-La evidencia ejecutable y el modelo de coste están en
-[`multi-schema-bulk-insert.md`](../architecture/multi-schema-bulk-insert.md). MS3 añadirá la
-conformance equivalente para CTAS/JOIN sin reabrir la decisión salvo que la evidencia la contradiga.
+La evidencia ejecutable de INSERT y su modelo de coste están en
+[`multi-schema-bulk-insert.md`](../architecture/multi-schema-bulk-insert.md). MS3 aporta debajo la
+conformance equivalente para CTAS/JOIN sin reabrir la decisión.
+
+## Evidencia posterior MS3
+
+- CTAS y JOIN reciben la misma cualificación estructural desde un `InvocationSql` local;
+- A→B sobre misma conexión y mismo backend pooled no cambia `getSchema` ni `search_path`;
+- misma metadata/key metadata soporta A/B secuencial y concurrente sin resultados cruzados;
+- quoted identifiers, mapping estático idéntico y conflictos pre-SQL conservan la política común;
+- objetos ausentes y permiso denegado preservan SQLState sin fallback;
+- commit/rollback multi-schema, `25P02`, DROP suppressed y cleanup no alteran ownership;
+- no existen mutadores de schema/path, observabilidad target-aware ni caches por `TableName`.
+
+La evidencia detallada está en
+[`multi-schema-bulk-lookup.md`](../architecture/multi-schema-bulk-lookup.md). ADR-032 permanece
+`ACCEPTED` y no nace un ADR nuevo porque MS3 aplica, sin cambiarla, la decisión ya aceptada.

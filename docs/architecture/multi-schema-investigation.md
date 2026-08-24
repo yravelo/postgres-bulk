@@ -2,10 +2,11 @@
 
 ## Estado y alcance
 
-**MS0: DONE (2026-08-20); hipótesis INSERT validada por MS2 (2026-08-24).** MS0 cerró
+**MS0: DONE (2026-08-20); hipótesis INSERT/LOOKUP validada por MS2/MS3 (2026-08-24).** MS0 cerró
 investigación, arquitectura y planificación sin código productivo. MS1 aceptó después el contrato
-neutral en ADR-031 y MS2 implementó COPY target-aware low-level, aceptando ADR-032. Lookup,
-properties Boot, adapters Spring, publicación y security baseline continúan fuera de este alcance.
+neutral en ADR-031, MS2 implementó COPY target-aware low-level y MS3 aplicó el mismo target a CTAS
+y JOIN. Properties Boot, adapters Spring, publicación y security baseline continúan fuera de este
+alcance.
 
 La línea estudia un caso concreto: una misma estructura lógica —tipo, tabla base, columnas y
 conversiones— existe en varios schemas PostgreSQL y cada operación bulk debe dirigirse al destino
@@ -81,8 +82,9 @@ El audit MS0 encontró dos puntos target-specific:
 
 1. `PostgresBulkInserter` construía `copySql` una vez desde `EntityMetadata` y lo conservaba en un
    field final. MS2 mantiene ese field sólo como SQL default y construye el SQL runtime local.
-2. `TemporaryTableBulkLookup` prepara `BulkLookupSql` desde `metadata.table()`. CTAS y JOIN
-   conservan el target cualificado en ese objeto.
+2. Antes de MS3, `TemporaryTableBulkLookup` preparaba `BulkLookupSql` desde `metadata.table()` y
+   retenía allí el target de CTAS/JOIN. MS3 conserva sólo estructura de keys preparada y construye
+   un `InvocationSql` local desde el target efectivo.
 
 En cambio, `PreparedCopyCsvRowEncoder`, `ValueEncoderRegistry`, columnas ordenadas y
 `BulkKeyMetadata` no conocen tabla/schema. Son reutilizables entre todos los destinos compatibles.
@@ -377,25 +379,26 @@ duplicar `TableName`.
 | API crece por overloads | prototype A/F y API review antes de aceptar ADR-031 |
 | target-bound facade retenida por caller | objeto inmutable sin cache interna; documentar scope/reuso seguro |
 
-## Preguntas cerradas por MS1/MS2 y abiertas para MS3+
+## Preguntas cerradas por MS1–MS3 y abiertas para MS4+
 
 MS1 cerró argumentos directos, resolución en `TableName`, método `resolveRuntimeTarget`, tabla
 runtime fija y cero cambios en interfaces implementables. MS2 confirmó que la fachada comparte
 metadata/encoder, genera COPY SQL local una vez por invocación no vacía y no necesita exponer el
-target al callback. También fijó validación del target antes del iterator/lookahead, por lo que un
-input vacío inválido falla sin tocar JDBC. Permanecen abiertas para fases posteriores:
+target al callback. MS3 confirmó lo mismo para lookup: estructura/key encoder compartidos, target
+resuelto antes del iterator e `InvocationSql` local que usa exactamente el mismo target en CTAS y
+JOIN. Un input vacío inválido falla sin tocar JDBC. Permanece abierta para fases posteriores:
 
-1. ¿Puede el lookup compartir key encoder y construir CTAS/JOIN locales sin alterar lifecycle y
-   cleanup temporal?
-2. ¿La materialización native JPA funciona con la misma tabla en otro schema y mismo row shape en
+1. ¿La materialización native JPA funciona con la misma tabla en otro schema y mismo row shape en
    todos los patches Hibernate soportados?
 
-## Conclusión actualizada tras MS2
+## Conclusión actualizada tras MS3
 
 El diseño es viable sin hacer tenant-aware a la librería. `TableName` ya expresa el destino físico
 completo; el cambio necesario es desplazar su selección al scope de invocación y evitar que SQL
 target-specific quede atrapado en caches estructurales. Qualified SQL elimina dependencia de
 `search_path` y mutación de conexión. Metadata, encoders y key descriptors se reutilizan sin
 tenant keys. COPY confirma la hipótesis en PostgreSQL 15.18 sin cache target-keyed ni mutación de
-conexión. La línea puede avanzar a **MS3 — pgJDBC Multi-Schema Bulk Lookup** sin implementar todavía
-integración Spring ni comportamiento multi-schema end-to-end.
+conexión. CTAS/JOIN confirma la misma hipótesis en PostgreSQL 15.18, incluido A→B pooled,
+concurrencia, transacciones, fallos y cleanup sin cache target-keyed. La línea puede avanzar a
+**MS4 — Hibernate and Spring Data JPA Target Integration** sin implementar todavía Spring Data
+JDBC ni Boot.

@@ -2,10 +2,10 @@
 
 ## Estado y alcance
 
-**MS1: DONE (2026-08-20); consumo pgJDBC INSERT: DONE en MS2 (2026-08-24).** MS1 hizo
-representable y validó un destino físico runtime en core. MS2 consume ese contrato sólo en bulk
-insert low-level pgJDBC. Lookup, integración Hibernate/JPA o Spring Data JDBC, auto-configuración
-Boot y resolución de tenants siguen diferidos al roadmap.
+**MS1: DONE (2026-08-20); consumo pgJDBC INSERT/LOOKUP: DONE en MS2/MS3 (2026-08-24).** MS1 hizo
+representable y validó un destino físico runtime en core. MS2 lo consume en bulk insert low-level y
+MS3 en bulk lookup low-level pgJDBC. Integración Hibernate/JPA o Spring Data JDBC,
+auto-configuración Boot y resolución de tenants siguen diferidos al roadmap.
 
 ## Contrato elegido
 
@@ -89,8 +89,9 @@ BulkWriteResult bulkInsert(
 );
 ```
 
-El lookup mostrado continúa diferido a MS3. Una vista `forTarget(TableName)` añade otra fachada,
-puede retenerse accidentalmente y no reduce el número de primitivas que los engines necesitan.
+El lookup mostrado se publica en MS3 con esa firma exacta. Una vista `forTarget(TableName)` añade
+otra fachada, puede retenerse accidentalmente y no reduce el número de primitivas que los engines
+necesitan.
 Tampoco se introduce un resolver ambiental, `ThreadLocal` ni estado mutable.
 
 `BulkOperations<T>` no crece en MS1. Añadir un método abstracto rompería implementaciones; un
@@ -135,7 +136,8 @@ validación de las factories `TableName.of`.
 ## Compatibilidad y concurrencia
 
 Las llamadas existentes permanecen intactas porque no cambió `BulkOperations` ni ninguna interfaz
-Spring. El cambio binario de MS2 es aditivo: un método nuevo en una clase final ya existente.
+Spring. Los cambios binarios de MS2/MS3 son aditivos: dos métodos nuevos en una clase final ya
+existente.
 Factories, igualdad y serialización textual de `TableName` no cambian.
 
 Las pruebas demuestran resolución y COPY A/B concurrentes sobre el mismo mapping, preservación
@@ -145,6 +147,6 @@ target.
 
 ## Continuación autorizable
 
-MS2 propaga el argumento explícito sólo en pgJDBC y construye COPY SQL local una vez por invocación
-no vacía. La siguiente extensión autorizable es MS3, que aplicará el mismo target a CTAS y JOIN del
-bulk lookup sin propagarlo todavía a adapters Spring.
+MS2/MS3 propagan el argumento explícito sólo en pgJDBC y construyen COPY/lookup SQL local por
+invocación no vacía. La siguiente extensión autorizable es MS4, que propagará el mismo target a
+Hibernate/Spring Data JPA sin adelantar Spring Data JDBC ni Boot.

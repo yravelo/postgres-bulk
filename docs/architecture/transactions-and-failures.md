@@ -92,6 +92,11 @@ operación cuya visibilidad transaccional sea incierta podría duplicar datos o 
 decisión de retry pertenece al caller y debe ocurrir sobre un scope transaccional nuevo y
 un input reproducible.
 
+MS3 no altera esta matriz al añadir target de lookup. El target se resuelve antes del iterator y
+CTAS/JOIN quedan en un objeto local; la temporal, el callback, el DROP y `25P02` conservan las
+mismas fronteras. PostgreSQL real confirma fallo sobre A, rollback caller-owned, cero temporales y
+lookup sano sobre B al reutilizar el mismo backend físico del pool.
+
 ## Rollback-only y traducción Spring
 
 Un fallo unchecked que cruza el método repository `REQUIRED` aplica las reglas de rollback

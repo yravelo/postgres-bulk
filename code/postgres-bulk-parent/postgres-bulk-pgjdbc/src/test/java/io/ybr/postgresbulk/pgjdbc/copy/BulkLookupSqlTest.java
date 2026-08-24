@@ -13,19 +13,20 @@ class BulkLookupSqlTest {
 
   @Test
   void buildsSimpleKeyLifecycleSql() {
-    BulkLookupSql sql = BulkLookupSql.prepare(TableName.of("customers"), simpleKey());
+    BulkLookupSql sql = BulkLookupSql.prepare(simpleKey());
+    BulkLookupSql.InvocationSql invocation =
+        sql.forInvocation(TableName.of("customers"), "pgbulk_keys_test");
 
     assertEquals(
         "CREATE TEMP TABLE \"pgbulk_keys_test\" ON COMMIT DROP AS SELECT \"id\" FROM \"customers\" WITH NO DATA",
-        sql.createTemporaryTable("pgbulk_keys_test"));
+        invocation.createTemporaryTable());
     assertEquals(
         "COPY \"pgbulk_keys_test\" (\"id\") FROM STDIN WITH (FORMAT CSV, DELIMITER ',', QUOTE '\"', ESCAPE '\"', NULL E'\\\\N', ENCODING 'UTF8')",
-        sql.copyKeys("pgbulk_keys_test"));
+        invocation.copyKeys());
     assertEquals(
         "SELECT target_row.* FROM \"customers\" target_row JOIN (SELECT DISTINCT \"id\" FROM \"pgbulk_keys_test\") lookup_key ON target_row.\"id\" = lookup_key.\"id\"",
-        sql.selectMatches("pgbulk_keys_test"));
-    assertEquals(
-        "DROP TABLE IF EXISTS \"pgbulk_keys_test\"", sql.dropTemporaryTable("pgbulk_keys_test"));
+        invocation.selectMatches());
+    assertEquals("DROP TABLE IF EXISTS \"pgbulk_keys_test\"", invocation.dropTemporaryTable());
   }
 
   @Test
@@ -36,22 +37,25 @@ class BulkLookupSqlTest {
             List.of(
                 ColumnMetadata.of("tenant Code", String.class, Key::tenant),
                 ColumnMetadata.of("order\"id", Integer.class, Key::id)));
-    BulkLookupSql sql =
-        BulkLookupSql.prepare(TableName.of("Sales Space", "Order\"Archive"), metadata);
+    BulkLookupSql sql = BulkLookupSql.prepare(metadata);
+    BulkLookupSql.InvocationSql invocation =
+        sql.forInvocation(TableName.of("Sales Space", "Order\"Archive"), "pgbulk_keys_test");
 
     assertEquals(
         "CREATE TEMP TABLE \"pgbulk_keys_test\" ON COMMIT DROP AS SELECT \"tenant Code\", \"order\"\"id\" FROM \"Sales Space\".\"Order\"\"Archive\" WITH NO DATA",
-        sql.createTemporaryTable("pgbulk_keys_test"));
+        invocation.createTemporaryTable());
     assertEquals(
         "SELECT target_row.* FROM \"Sales Space\".\"Order\"\"Archive\" target_row JOIN (SELECT DISTINCT \"tenant Code\", \"order\"\"id\" FROM \"pgbulk_keys_test\") lookup_key ON target_row.\"tenant Code\" = lookup_key.\"tenant Code\" AND target_row.\"order\"\"id\" = lookup_key.\"order\"\"id\"",
-        sql.selectMatches("pgbulk_keys_test"));
+        invocation.selectMatches());
   }
 
   @Test
   void rejectsNullPreparationArguments() {
-    assertThrows(NullPointerException.class, () -> BulkLookupSql.prepare(null, simpleKey()));
+    assertThrows(NullPointerException.class, () -> BulkLookupSql.prepare(null));
+    BulkLookupSql sql = BulkLookupSql.prepare(simpleKey());
+    assertThrows(NullPointerException.class, () -> sql.forInvocation(null, "pgbulk_keys_test"));
     assertThrows(
-        NullPointerException.class, () -> BulkLookupSql.prepare(TableName.of("customers"), null));
+        NullPointerException.class, () -> sql.forInvocation(TableName.of("customers"), null));
   }
 
   private static BulkKeyMetadata<Integer> simpleKey() {

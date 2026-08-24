@@ -109,11 +109,12 @@ La suite MS2 prueba sobre PostgreSQL 15.18:
 - ausencia de cache target-keyed y reutilización por identidad de metadata/columnas/encoder.
 
 La matriz completa del proyecto y el smoke de PostgreSQL 18.4 se validan por los workflows Build y
-Compatibility. MS3 extenderá la misma decisión a CTAS/JOIN del bulk lookup.
+Compatibility. MS3 extendió la misma decisión a CTAS/JOIN del bulk lookup.
 
 ## Límites explícitos
 
-MS2 no añade un overload target-aware de `findAllByBulkKey`, no propaga el target a repositories
-Spring, no crea properties Boot y no cambia tags de observabilidad. Tampoco provisiona schemas,
-consulta catálogos, resuelve tenants ni guarda identifiers de targets. La siguiente fase es
-**MS3 — pgJDBC Multi-Schema Bulk Lookup**.
+MS2 no añadió el overload target-aware de `findAllByBulkKey`; MS3 lo hace sin reabrir INSERT. Ninguna
+de ambas fases propaga el target a repositories Spring, crea properties Boot o cambia tags de
+observabilidad. Tampoco provisionan schemas, consultan catálogos, resuelven tenants ni guardan
+identifiers de targets. La continuación está en
+[`multi-schema-bulk-lookup.md`](multi-schema-bulk-lookup.md).

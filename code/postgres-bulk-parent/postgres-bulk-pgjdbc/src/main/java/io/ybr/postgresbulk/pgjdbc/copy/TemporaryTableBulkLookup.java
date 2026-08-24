@@ -15,6 +15,7 @@ import java.util.function.Supplier;
 /** Prepared coordinator for temporary-table bulk lookup on a caller-owned connection. */
 final class TemporaryTableBulkLookup<K> {
 
+  private final TableName mappedTable;
   private final BulkLookupSql sql;
   private final PreparedCopyCsvRowEncoder<K> keyEncoder;
   private final CopyExecutor copyExecutor;
@@ -25,11 +26,12 @@ final class TemporaryTableBulkLookup<K> {
       BulkKeyMetadata<K> keyMetadata,
       CopyExecutor copyExecutor,
       Supplier<String> temporaryTableNames) {
+    this.mappedTable = Objects.requireNonNull(targetTable, "targetTable must not be null");
     Objects.requireNonNull(keyMetadata, "keyMetadata must not be null");
     this.copyExecutor = Objects.requireNonNull(copyExecutor, "copyExecutor must not be null");
     this.temporaryTableNames =
         Objects.requireNonNull(temporaryTableNames, "temporaryTableNames must not be null");
-    this.sql = BulkLookupSql.prepare(targetTable, keyMetadata);
+    this.sql = BulkLookupSql.prepare(keyMetadata);
     this.keyEncoder = PreparedCopyCsvRowEncoder.prepare(keyMetadata);
   }
 
@@ -53,11 +55,27 @@ final class TemporaryTableBulkLookup<K> {
 
   <R> R lookup(
       Connection connection, Iterable<? extends K> keys, R emptyResult, LookupQuery<R> query) {
-    Objects.requireNonNull(connection, "connection must not be null");
-    Objects.requireNonNull(keys, "keys must not be null");
-    Objects.requireNonNull(emptyResult, "emptyResult must not be null");
-    Objects.requireNonNull(query, "query must not be null");
+    validateArguments(connection, keys, emptyResult, query);
+    return lookupEffectiveTarget(connection, keys, emptyResult, query, mappedTable);
+  }
 
+  <R> R lookup(
+      Connection connection,
+      Iterable<? extends K> keys,
+      R emptyResult,
+      LookupQuery<R> query,
+      TableName runtimeTarget) {
+    validateArguments(connection, keys, emptyResult, query);
+    TableName effectiveTarget = mappedTable.resolveRuntimeTarget(runtimeTarget);
+    return lookupEffectiveTarget(connection, keys, emptyResult, query, effectiveTarget);
+  }
+
+  private <R> R lookupEffectiveTarget(
+      Connection connection,
+      Iterable<? extends K> keys,
+      R emptyResult,
+      LookupQuery<R> query,
+      TableName effectiveTarget) {
     Iterator<? extends K> iterator =
         Objects.requireNonNull(keys.iterator(), "keys.iterator() must not return null");
     if (!iterator.hasNext()) {
@@ -67,24 +85,25 @@ final class TemporaryTableBulkLookup<K> {
     K firstKey = requireKey(iterator.next(), 1);
     requireManualTransaction(connection);
     String temporaryTable = TemporaryTableNameGenerator.next(temporaryTableNames);
+    BulkLookupSql.InvocationSql invocationSql = sql.forInvocation(effectiveTarget, temporaryTable);
     boolean temporaryTableCreated = false;
     Throwable operationFailure = null;
     try {
       executeStatement(
-          connection, sql.createTemporaryTable(temporaryTable), "create temporary key table");
+          connection, invocationSql.createTemporaryTable(), "create temporary key table");
       temporaryTableCreated = true;
 
       KeyWriter keyWriter = new KeyWriter(firstKey, iterator, keyEncoder);
       long copiedKeys;
       try {
-        copiedKeys = copyExecutor.execute(connection, sql.copyKeys(temporaryTable), keyWriter);
+        copiedKeys = copyExecutor.execute(connection, invocationSql.copyKeys(), keyWriter);
       } catch (CopyExecutionException failure) {
         throw lookupFailure("copy keys", failure);
       }
       verifyCopyCount(keyWriter.producedKeys(), copiedKeys);
 
       try {
-        return query.execute(connection, sql.selectMatches(temporaryTable), copiedKeys);
+        return query.execute(connection, invocationSql.selectMatches(), copiedKeys);
       } catch (SQLException failure) {
         throw lookupFailure("consume lookup result", failure);
       }
@@ -93,9 +112,17 @@ final class TemporaryTableBulkLookup<K> {
       throw failure;
     } finally {
       if (temporaryTableCreated) {
-        cleanup(connection, sql.dropTemporaryTable(temporaryTable), operationFailure);
+        cleanup(connection, invocationSql.dropTemporaryTable(), operationFailure);
       }
     }
+  }
+
+  private static void validateArguments(
+      Connection connection, Iterable<?> keys, Object emptyResult, LookupQuery<?> query) {
+    Objects.requireNonNull(connection, "connection must not be null");
+    Objects.requireNonNull(keys, "keys must not be null");
+    Objects.requireNonNull(emptyResult, "emptyResult must not be null");
+    Objects.requireNonNull(query, "query must not be null");
   }
 
   private static void requireManualTransaction(Connection connection) {

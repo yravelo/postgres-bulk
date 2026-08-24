@@ -219,8 +219,7 @@ La evidencia, limitaciones y raw data están en
 [`j8-spring-data-jdbc.md`](../benchmarks/j8-spring-data-jdbc.md).
 
 MS0 investigó runtime multi-schema/schema-per-tenant y creó un
-[roadmap separado](../plans/multi-schema-roadmap.md). MS1 aceptó el contrato físico y MS2 implementa
-bulk insert únicamente en la fachada low-level pgJDBC con `TableName` explícito; lookup y adapters
-Spring continúan diferidos. La aplicación resuelve tenant/autorización; la librería no conoce tenant
-ids ni muta `search_path`. Security baseline, publicación y Boot/Data 4 permanecen fuera de esta
-línea.
+[roadmap separado](../plans/multi-schema-roadmap.md). MS1 aceptó el contrato físico, MS2 implementó
+INSERT y MS3 lookup low-level target-aware con `TableName` explícito; MS4 propagará la capacidad a
+Hibernate/JPA. La aplicación resuelve tenant/autorización; la librería no conoce tenant ids ni muta
+`search_path`. Security baseline, publicación y Boot/Data 4 permanecen fuera de esta línea.

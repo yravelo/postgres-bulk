@@ -356,6 +356,7 @@ Spring Data adapter
 - [Spring Data JDBC benchmarks](docs/benchmarks/j8-spring-data-jdbc.md)
 - [Multi-schema investigation and roadmap](docs/architecture/multi-schema-investigation.md)
 - [Low-level multi-schema bulk insert](docs/architecture/multi-schema-bulk-insert.md)
+- [Low-level multi-schema bulk lookup](docs/architecture/multi-schema-bulk-lookup.md)
 - [Contributing](CONTRIBUTING.md)
 
 ## License

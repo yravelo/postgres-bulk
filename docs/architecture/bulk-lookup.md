@@ -2,10 +2,9 @@
 
 ## Alcance
 
-Phase 7 materializa en `postgres-bulk-pgjdbc` un motor relacional interno para buscar
-filas por muchas claves sin depender de Hibernate, Spring o JPA. La API pública continúa
-diferida: esta fase prueba el mecanismo y sus contratos antes de decidir cómo se conectará
-con el adapter ORM.
+Phase 7 materializó en `postgres-bulk-pgjdbc` un motor relacional para buscar filas por muchas
+claves sin depender de Hibernate, Spring o JPA. Phase 9 lo elevó a la fachada low-level y MS3 añade
+un target schema-qualified explícito por invocación sin propagarlo todavía a adapters Spring.
 
 ```text
 Iterable<K>
@@ -25,9 +24,10 @@ DROP TABLE explícito + ON COMMIT DROP
 
 ## Componentes
 
-- `TemporaryTableBulkLookup<K>` prepara metadata, SQL y encoders y coordina todo el
-  lifecycle sobre una `Connection` caller-owned.
-- `BulkLookupSql` construye CREATE, COPY, SELECT JOIN y DROP.
+- `TemporaryTableBulkLookup<K>` prepara metadata/encoders y coordina todo el lifecycle sobre una
+  `Connection` caller-owned; el target efectivo es local a la llamada.
+- `BulkLookupSql` prepara estructura de key independiente del target y construye un
+  `InvocationSql` CTAS/COPY/JOIN/DROP por invocación no vacía.
 - `TemporaryTableNameGenerator` crea nombres session-local de 44 bytes con prefijo
   `pgbulk_keys_` y UUID hexadecimal compacto.
 - `PreparedCopyCsvRowEncoder` y `PostgresCopyExecutor` son el pipeline COPY existente;
@@ -78,6 +78,15 @@ COPY. El UUID compacto produce nombres ASCII de 44 bytes, por debajo del límite
 de 63 bytes de PostgreSQL. Una colisión falla en CREATE; no se usa `IF NOT EXISTS` para
 ocultarla. Los tests cubren quoting, schema custom, unicidad, scopes anidados y dos
 conexiones concurrentes.
+
+MS3 permite que el target físico sea `TableName` explícito. El camino nuevo llama una vez a
+`metadata.table().resolveRuntimeTarget(runtimeTarget)` antes de consumir keys. El mismo target
+efectivo alimenta CTAS y JOIN dentro de un `InvocationSql` local; COPY y DROP sólo referencian la
+temporal session-local. No se retiene SQL por target, no se altera metadata y no existe cache por
+schema/tenant. El camino sin target continúa usando la tabla mapeada.
+
+La temporal conserva el prefijo aleatorio y nunca incluye target/schema. El detalle y evidencia
+A/B están en [`multi-schema-bulk-lookup.md`](multi-schema-bulk-lookup.md).
 
 ## Conexión, transacción y lifecycle
 

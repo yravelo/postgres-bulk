@@ -34,6 +34,7 @@ This index separates adoption guidance from implementation details.
 - [Multi-schema MS0 investigation](architecture/multi-schema-investigation.md)
 - [Operation-scoped physical target contract](architecture/operation-scoped-physical-target.md)
 - [pgJDBC multi-schema bulk insert](architecture/multi-schema-bulk-insert.md)
+- [pgJDBC multi-schema bulk lookup](architecture/multi-schema-bulk-lookup.md)
 
 ## Compatibility
 

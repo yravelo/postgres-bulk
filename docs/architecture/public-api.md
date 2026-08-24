@@ -203,7 +203,7 @@ public final class BulkKeyMetadata<K> {
 - `DefaultPostgresBulkOperations<T, ID>`: implementación pública por requisito de carga externa
   de Spring Data; es infraestructura proxyable y no se instancia directamente.
 
-## Overload low-level añadido en MS2
+## Overloads low-level añadidos en MS2/MS3
 
 `PostgresBulkJdbcOperations<T>` añade un único método target-aware para COPY insert:
 
@@ -218,8 +218,24 @@ public BulkWriteResult bulkInsert(
 
 El target es completo, schema-qualified y operation-scoped. Las dos firmas anteriores permanecen
 intactas. No se añade el overload corto con `TableName`, porque colisionaría por ambigüedad source
-con llamadas que pasen `null` al overload existente de `BulkInsertOptions`. Tampoco cambia
-`findAllByBulkKey`, `BulkOperations` ni las interfaces Spring; esa propagación queda fuera de MS2.
+con llamadas que pasen `null` al overload existente de `BulkInsertOptions`.
+
+MS3 añade el target equivalente a lookup low-level:
+
+```java
+public <K, R> R findAllByBulkKey(
+    Connection connection,
+    Iterable<? extends K> keys,
+    BulkKeyMetadata<K> keyMetadata,
+    R emptyResult,
+    LookupResultMapper<R> query,
+    TableName runtimeTarget
+);
+```
+
+El overload histórico de cinco argumentos permanece intacto. El nuevo target se resuelve una vez,
+es local a la llamada y alimenta CTAS/JOIN; no forma parte del resultado ni del callback.
+`BulkOperations` y las interfaces Spring no cambian: esa propagación queda fuera de MS3.
 
 ## Infraestructura pública añadida en Phase 10
 

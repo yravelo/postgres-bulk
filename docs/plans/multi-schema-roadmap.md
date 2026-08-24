@@ -9,8 +9,8 @@ introducir `TenantContext`, tenant ids, ThreadLocal, `search_path`, `Connection.
 global Boot, cache por tenant, provisioning, publicación o security baseline sin autorización y
 ADR separados.
 
-ADR-031 está `ACCEPTED` con evidencia Java pura de MS1 y COPY real de MS2; ADR-032 está `ACCEPTED`
-con evidencia pgJDBC MS2. "Multi-schema" en este roadmap
+ADR-031 está `ACCEPTED` con evidencia Java pura de MS1 y COPY/lookup reales de MS2/MS3; ADR-032
+está `ACCEPTED` con evidencia pgJDBC MS2/MS3. "Multi-schema" en este roadmap
 significa target `schema + table` explícito por operación dentro de una conexión ya elegida; no
 significa database routing, row-level tenancy ni Hibernate multi-tenancy.
 
@@ -96,7 +96,7 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
   retiene cache por target. PostgreSQL 15.18 valida A/B secuencial y concurrente, pool de un backend,
   commit/rollback, quoted identifiers, privilegios y fallos tardíos; legacy permanece intacto.
 
-## MS3 — pgJDBC Multi-Schema Bulk Lookup
+## MS3 — pgJDBC Multi-Schema Bulk Lookup — DONE (2026-08-24)
 
 - **Objective:** dirigir CTAS, COPY y JOIN al mismo target explícito sin cambiar temp-table
   lifecycle ni materialización callback.
@@ -118,6 +118,11 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
 - **Risks:** una de las sentencias conserve otro target, cleanup en tx abortada y cache accidental.
 - **Dependencies:** MS2 y ADR-006/015/027.
 - **Deferred:** materialización JPA/JDBC sobre tablas runtime distintas.
+- **Closure:** la fachada low-level añade un overload target-aware de seis argumentos. El target se
+  resuelve una vez antes de consumir keys y un `InvocationSql` local usa su misma cualificación en
+  CTAS/JOIN, sin cache por target ni mutación de metadata/conexión. PostgreSQL 15.18 valida A/B,
+  insert→lookup, pool físico A→B, concurrencia, transacciones, simple/composite, 20k one-shot,
+  quoted/conflictos/permisos, fallos, `25P02`, cleanup y recuperación.
 
 ## MS4 — Hibernate and Spring Data JPA Target Integration
 
@@ -260,5 +265,5 @@ MS0 investigation
                 -> MS8 compatibility/docs/benchmarks/closure
 ```
 
-La única siguiente fase autorizable después de MS2 es
-**MS3 — pgJDBC Multi-Schema Bulk Lookup**.
+La única siguiente fase autorizable después de MS3 es
+**MS4 — Hibernate and Spring Data JPA Target Integration**.

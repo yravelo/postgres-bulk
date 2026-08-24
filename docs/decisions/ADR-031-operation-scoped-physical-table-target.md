@@ -70,8 +70,8 @@ override, que no forma parte de MS1.
 - selección concurrente A/B sin estado retenido;
 - cero SQL, JDBC, cache, tenant/context/routing o mutación de conexión en el contrato.
 
-La evidencia A→B con SQL real, encoder compartido, conexión y ausencia de SQL stale fue aportada
-para INSERT por MS2 y ADR-032; MS3 hará lo propio para lookup. No era un requisito fingido para
+La evidencia A→B con SQL real, encoders compartidos, conexión y ausencia de SQL stale fue aportada
+para INSERT por MS2 y para lookup por MS3 junto con ADR-032. No era un requisito fingido para
 aceptar este contrato neutral en MS1.
 
 ## Evidencia posterior MS2
@@ -82,6 +82,16 @@ SQL se construye una vez por invocación runtime no vacía y no se retiene por t
 PostgreSQL 15.18 confirman aislamiento A/B secuencial/concurrente, misma conexión y backend pooled,
 transacciones y conflictos antes de JDBC. ADR-032 queda `ACCEPTED`; lookup y adapters continúan
 diferidos.
+
+## Evidencia posterior MS3
+
+MS3 implementa el argumento `TableName` en `PostgresBulkJdbcOperations.findAllByBulkKey`, llama al
+mismo resolver central exactamente una vez antes de consumir keys y conserva metadata/key encoder
+por identidad. `BulkLookupSql` deja de retener target: crea un `InvocationSql` local que usa una
+única cualificación efectiva para CTAS y JOIN. PostgreSQL 15.18 confirma aislamiento A/B,
+insert→lookup, backend pooled, concurrencia, transacciones, quoting, conflictos pre-SQL, fallos,
+cleanup y cero temporales después de rollback. No aparece otra política de resolución ni cache por
+target, por lo que ADR-031 permanece `ACCEPTED`.
 
 La investigación que fundamenta la propuesta está en
 [`multi-schema-investigation.md`](../architecture/multi-schema-investigation.md). La secuencia de

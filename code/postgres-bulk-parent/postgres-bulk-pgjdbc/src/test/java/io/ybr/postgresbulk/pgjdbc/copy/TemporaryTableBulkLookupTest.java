@@ -56,6 +56,98 @@ class TemporaryTableBulkLookupTest {
   }
 
   @Test
+  void targetAwareLookupUsesTheSameEffectiveTargetForCreateAndJoin() {
+    RecordingConnection jdbc = new RecordingConnection(false);
+    RecordingCopyExecutor copy = new RecordingCopyExecutor();
+
+    String select =
+        lookup(copy)
+            .lookup(
+                jdbc.connection,
+                List.of(7),
+                "empty",
+                (connection, sql, copiedKeys) -> sql,
+                TableName.of("tenant_a", "lookup_rows"));
+
+    assertTrue(jdbc.executedSql.get(0).contains("FROM \"tenant_a\".\"lookup_rows\""));
+    assertTrue(select.contains("FROM \"tenant_a\".\"lookup_rows\" target_row"));
+    assertFalse(jdbc.executedSql.get(0).contains("FROM \"lookup_rows\" WITH NO DATA"));
+    assertEquals("7\n", copy.content);
+    assertTrue(copy.copySql.startsWith("COPY \"pgbulk_keys_test\""));
+  }
+
+  @Test
+  void targetAwareLookupValidatesTargetBeforeConsumingKeysOrUsingJdbc() {
+    RecordingConnection jdbc = new RecordingConnection(false);
+    RecordingCopyExecutor copy = new RecordingCopyExecutor();
+    AtomicInteger iteratorCalls = new AtomicInteger();
+    Iterable<Integer> keys =
+        () -> {
+          iteratorCalls.incrementAndGet();
+          return List.of(1).iterator();
+        };
+    TemporaryTableBulkLookup<Integer> staticLookup =
+        TemporaryTableBulkLookup.prepare(
+            TableName.of("static_schema", "lookup_rows"), simpleKey(), copy, () -> TEMPORARY_TABLE);
+
+    assertThrows(
+        NullPointerException.class,
+        () -> staticLookup.lookup(jdbc.connection, keys, List.of(), unusedQuery(), null));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            staticLookup.lookup(
+                jdbc.connection, keys, List.of(), unusedQuery(), TableName.of("lookup_rows")));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            staticLookup.lookup(
+                jdbc.connection,
+                keys,
+                List.of(),
+                unusedQuery(),
+                TableName.of("other_schema", "lookup_rows")));
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            staticLookup.lookup(
+                jdbc.connection,
+                keys,
+                List.of(),
+                unusedQuery(),
+                TableName.of("static_schema", "other_table")));
+
+    assertEquals(0, iteratorCalls.get());
+    assertEquals(0, jdbc.autoCommitReads);
+    assertEquals(0, jdbc.statementCalls);
+    assertEquals(0, copy.calls);
+  }
+
+  @Test
+  void targetAwareEmptyInputKeepsMetadataAndPerformsNoJdbcWork() {
+    RecordingConnection jdbc = new RecordingConnection(true);
+    RecordingCopyExecutor copy = new RecordingCopyExecutor();
+    BulkKeyMetadata<Integer> keyMetadata = simpleKey();
+    List<ColumnMetadata<Integer>> components = keyMetadata.components();
+    OneShotIterable keys = new OneShotIterable(0, new AtomicInteger());
+    TemporaryTableBulkLookup<Integer> targetLookup =
+        TemporaryTableBulkLookup.prepare(
+            TableName.of("lookup_rows"), keyMetadata, copy, () -> TEMPORARY_TABLE);
+
+    List<Integer> empty = List.of();
+    assertSame(
+        empty,
+        targetLookup.lookup(
+            jdbc.connection, keys, empty, unusedQuery(), TableName.of("tenant_b", "lookup_rows")));
+
+    assertSame(components, keyMetadata.components());
+    assertEquals(1, keys.iteratorCalls);
+    assertEquals(0, jdbc.autoCommitReads);
+    assertEquals(0, jdbc.statementCalls);
+    assertEquals(0, copy.calls);
+  }
+
+  @Test
   void streamsTwentyThousandKeysThroughOneCopyAndTheSameConnection() {
     AtomicInteger generated = new AtomicInteger();
     OneShotIterable keys = new OneShotIterable(20_000, generated);
@@ -464,6 +556,7 @@ class TemporaryTableBulkLookupTest {
     private int reportedAdjustment;
     private CopyExecutionException failure;
     private Connection connection;
+    private String copySql;
     private String content = "";
     private int calls;
 
@@ -471,6 +564,7 @@ class TemporaryTableBulkLookupTest {
     public long execute(Connection connection, String copySql, CopyDataWriter producer) {
       calls++;
       this.connection = connection;
+      this.copySql = copySql;
       if (failure != null) {
         throw failure;
       }

@@ -6,20 +6,18 @@ import io.ybr.postgresbulk.core.metadata.TableName;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-/** Prepared SQL fragments for one target table and ordered bulk key definition. */
+/** Prepared target-independent SQL structure for one ordered bulk key definition. */
 final class BulkLookupSql {
 
   private static final String TARGET_ALIAS = "target_row";
   private static final String KEY_ALIAS = "lookup_key";
 
-  private final String qualifiedTarget;
   private final String selectedColumns;
   private final String joinCondition;
   private final BulkKeyMetadata<?> keyMetadata;
 
-  private BulkLookupSql(TableName targetTable, BulkKeyMetadata<?> keyMetadata) {
+  private BulkLookupSql(BulkKeyMetadata<?> keyMetadata) {
     this.keyMetadata = Objects.requireNonNull(keyMetadata, "keyMetadata must not be null");
-    this.qualifiedTarget = CopySqlBuilder.qualifiedName(targetTable);
     this.selectedColumns =
         keyMetadata.components().stream()
             .map(ColumnMetadata::columnName)
@@ -33,47 +31,48 @@ final class BulkLookupSql {
             .collect(Collectors.joining(" AND "));
   }
 
-  static BulkLookupSql prepare(TableName targetTable, BulkKeyMetadata<?> keyMetadata) {
-    return new BulkLookupSql(
-        Objects.requireNonNull(targetTable, "targetTable must not be null"), keyMetadata);
+  static BulkLookupSql prepare(BulkKeyMetadata<?> keyMetadata) {
+    return new BulkLookupSql(keyMetadata);
   }
 
-  String createTemporaryTable(String temporaryTable) {
-    return "CREATE TEMP TABLE "
-        + quotedTemporaryTable(temporaryTable)
-        + " ON COMMIT DROP AS SELECT "
-        + selectedColumns
-        + " FROM "
-        + qualifiedTarget
-        + " WITH NO DATA";
-  }
-
-  String copyKeys(String temporaryTable) {
-    return CopySqlBuilder.insertTemporary(temporaryTable, keyMetadata);
-  }
-
-  String selectMatches(String temporaryTable) {
-    return "SELECT "
-        + TARGET_ALIAS
-        + ".* FROM "
-        + qualifiedTarget
-        + ' '
-        + TARGET_ALIAS
-        + " JOIN (SELECT DISTINCT "
-        + selectedColumns
-        + " FROM "
-        + quotedTemporaryTable(temporaryTable)
-        + ") "
-        + KEY_ALIAS
-        + " ON "
-        + joinCondition;
-  }
-
-  String dropTemporaryTable(String temporaryTable) {
-    return "DROP TABLE IF EXISTS " + quotedTemporaryTable(temporaryTable);
+  InvocationSql forInvocation(TableName targetTable, String temporaryTable) {
+    Objects.requireNonNull(targetTable, "targetTable must not be null");
+    String qualifiedTarget = CopySqlBuilder.qualifiedName(targetTable);
+    String quotedTemporaryTable = quotedTemporaryTable(temporaryTable);
+    return new InvocationSql(
+        "CREATE TEMP TABLE "
+            + quotedTemporaryTable
+            + " ON COMMIT DROP AS SELECT "
+            + selectedColumns
+            + " FROM "
+            + qualifiedTarget
+            + " WITH NO DATA",
+        CopySqlBuilder.insertTemporary(temporaryTable, keyMetadata),
+        "SELECT "
+            + TARGET_ALIAS
+            + ".* FROM "
+            + qualifiedTarget
+            + ' '
+            + TARGET_ALIAS
+            + " JOIN (SELECT DISTINCT "
+            + selectedColumns
+            + " FROM "
+            + quotedTemporaryTable
+            + ") "
+            + KEY_ALIAS
+            + " ON "
+            + joinCondition,
+        "DROP TABLE IF EXISTS " + quotedTemporaryTable);
   }
 
   private static String quotedTemporaryTable(String temporaryTable) {
     return PostgresIdentifierQuoter.quote(temporaryTable);
   }
+
+  /** Complete SQL lifecycle built once for one invocation and one effective target. */
+  record InvocationSql(
+      String createTemporaryTable,
+      String copyKeys,
+      String selectMatches,
+      String dropTemporaryTable) {}
 }

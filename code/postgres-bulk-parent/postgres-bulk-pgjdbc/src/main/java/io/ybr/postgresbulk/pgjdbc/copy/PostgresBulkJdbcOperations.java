@@ -145,6 +145,49 @@ public final class PostgresBulkJdbcOperations<T> {
   }
 
   /**
+   * Looks up mapped entities against one explicit operation-scoped target.
+   *
+   * <p>The runtime target must be schema-qualified, retain the mapped table, and respect an
+   * explicitly mapped schema. It is resolved exactly once through {@link
+   * TableName#resolveRuntimeTarget} before keys are consumed. For non-empty input, CTAS and JOIN
+   * SQL are built together from that same effective target and retained only for this invocation.
+   * Key metadata, its prepared encoder, temporary-table naming, callback behavior, cleanup, and
+   * connection state are unchanged.
+   *
+   * <p>Empty input remains a JDBC no-op after argument and target validation. Transaction,
+   * duplicate, missing-key, null-key, materialization, and failure semantics match {@link
+   * #findAllByBulkKey(Connection, Iterable, BulkKeyMetadata, Object, LookupResultMapper)}.
+   *
+   * @param connection caller-owned connection with {@code autoCommit=false}
+   * @param keys simple or composite key values
+   * @param keyMetadata ordered physical key mapping
+   * @param emptyResult result returned without JDBC work when {@code keys} is empty
+   * @param query result materializer invoked before the temporary table is dropped
+   * @param runtimeTarget complete schema-qualified target for this invocation
+   * @param <K> logical simple or composite key type
+   * @param <R> fully materialized result type
+   * @return {@code emptyResult} for empty input, otherwise the callback result
+   * @throws NullPointerException if an argument is {@code null}
+   * @throws IllegalArgumentException if the target conflicts with the mapping, is unqualified, or a
+   *     key or key component is {@code null}
+   * @throws IllegalStateException if autocommit is enabled for non-empty input
+   * @throws io.ybr.postgresbulk.core.BulkException if temporary-table creation, COPY, query, or
+   *     cleanup fails
+   */
+  public <K, R> R findAllByBulkKey(
+      Connection connection,
+      Iterable<? extends K> keys,
+      BulkKeyMetadata<K> keyMetadata,
+      R emptyResult,
+      LookupResultMapper<R> query,
+      TableName runtimeTarget) {
+    Objects.requireNonNull(keyMetadata, "keyMetadata must not be null");
+    Objects.requireNonNull(query, "query must not be null");
+    return TemporaryTableBulkLookup.prepare(metadata.table(), keyMetadata)
+        .lookup(connection, keys, emptyResult, query::map, runtimeTarget);
+  }
+
+  /**
    * Materializes a lookup result while the temporary relation is visible.
    *
    * @param <R> fully materialized result type
