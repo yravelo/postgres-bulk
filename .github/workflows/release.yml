@@ -99,6 +99,9 @@ jobs:
           ./scripts/test-workflow-security.py
           ./scripts/check-secrets.sh history
 
+      - name: Revalidate dependency vulnerabilities and update policy
+        run: ./scripts/check-vulnerabilities.sh
+
       - name: Full normal build
         working-directory: code/postgres-bulk-parent
         run: ./mvnw --batch-mode --no-transfer-progress clean verify

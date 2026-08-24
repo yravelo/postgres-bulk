@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "build_tools": [
+    {"name": "com.diffplug.spotless:spotless-maven-plugin", "version": "3.9.0", "property": "spotless-maven-plugin.version", "activation": "normal build"},
+    {"name": "com.google.googlejavaformat:google-java-format", "version": "1.28.0", "property": "google-java-format.version", "activation": "Spotless formatter engine"},
+    {"name": "org.apache.maven.plugins:maven-clean-plugin", "version": "3.5.0", "property": "maven-clean-plugin.version", "activation": "normal lifecycle"},
+    {"name": "org.apache.maven.plugins:maven-compiler-plugin", "version": "3.15.0", "property": "maven-compiler-plugin.version", "activation": "normal lifecycle"},
+    {"name": "org.apache.maven.plugins:maven-deploy-plugin", "version": "3.1.4", "property": "maven-deploy-plugin.version", "activation": "release only"},
+    {"name": "org.apache.maven.plugins:maven-enforcer-plugin", "version": "3.6.3", "property": "maven-enforcer-plugin.version", "activation": "normal build"},
+    {"name": "org.apache.maven.plugins:maven-failsafe-plugin", "version": "3.5.4", "property": "maven-failsafe-plugin.version", "activation": "normal build"},
+    {"name": "org.apache.maven.plugins:maven-gpg-plugin", "version": "3.2.8", "property": "maven-gpg-plugin.version", "activation": "central-publish profile only"},
+    {"name": "org.apache.maven.plugins:maven-install-plugin", "version": "3.1.4", "property": "maven-install-plugin.version", "activation": "normal lifecycle"},
+    {"name": "org.apache.maven.plugins:maven-jar-plugin", "version": "3.4.2", "property": "maven-jar-plugin.version", "activation": "normal lifecycle"},
+    {"name": "org.apache.maven.plugins:maven-javadoc-plugin", "version": "3.12.0", "property": "maven-javadoc-plugin.version", "activation": "normal build and release"},
+    {"name": "org.apache.maven.plugins:maven-resources-plugin", "version": "3.4.0", "property": "maven-resources-plugin.version", "activation": "normal lifecycle"},
+    {"name": "org.apache.maven.plugins:maven-shade-plugin", "version": "3.6.1", "property": "maven-shade-plugin.version", "activation": "benchmark package"},
+    {"name": "org.apache.maven.plugins:maven-source-plugin", "version": "3.4.0", "property": "maven-source-plugin.version", "activation": "release profile only"},
+    {"name": "org.apache.maven.plugins:maven-surefire-plugin", "version": "3.5.4", "property": "maven-surefire-plugin.version", "activation": "normal build"},
+    {"name": "org.apache.maven.plugins:maven-dependency-plugin", "version": "3.8.1", "property": null, "activation": "SEC2 inventory gate"},
+    {"name": "org.codehaus.mojo:flatten-maven-plugin", "version": "1.7.3", "property": "flatten-maven-plugin.version", "activation": "normal build"},
+    {"name": "org.codehaus.mojo:license-maven-plugin", "version": "2.7.1", "property": "license-maven-plugin.version", "activation": "license audit"},
+    {"name": "org.sonatype.central:central-publishing-maven-plugin", "version": "0.11.0", "property": "central-publishing-maven-plugin.version", "activation": "central-publish profile only"},
+    {"name": "org.springframework.boot:spring-boot-maven-plugin", "version": "3.5.16", "property": "spring-boot.version", "activation": "examples"}
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "accepted_risks": [
+    {
+      "advisory_id": "GHSA-5gvw-p9qm-jgwh",
+      "aliases": ["CVE-2026-59889"],
+      "dependency": "com.fasterxml.jackson.core:jackson-databind",
+      "version": "2.21.4",
+      "scope": "test, benchmark",
+      "reason": "The affected deserialization path is not shipped by a publishable PostgreSQL Bulk artifact.",
+      "applicability": "Resolved only below test dependencies and the non-published JMH benchmark module.",
+      "compensating_controls": "Untrusted JSON is not processed by the affected test and benchmark code; OSV and Dependabot continue monitoring the Boot-managed owner.",
+      "owner": "yravelo",
+      "review_date": "2026-08-24",
+      "expiry": "2026-10-24",
+      "removal_condition": "Remove when the supported Spring Boot 3.5 line manages jackson-databind 2.21.5 or later, or if the dependency reaches production scope.",
+      "disposition": "WARN"
+    },
+    {
+      "advisory_id": "GHSA-5jmj-h7xm-6q6v",
+      "aliases": ["CVE-2026-54515"],
+      "dependency": "com.fasterxml.jackson.core:jackson-databind",
+      "version": "2.21.4",
+      "scope": "test, benchmark",
+      "reason": "The affected JSON feature is not part of the published library runtime.",
+      "applicability": "Resolved only below test dependencies and the non-published JMH benchmark module.",
+      "compensating_controls": "Tests and benchmarks accept no untrusted JSON; the Boot BOM remains the transitive owner and is monitored weekly.",
+      "owner": "yravelo",
+      "review_date": "2026-08-24",
+      "expiry": "2026-10-24",
+      "removal_condition": "Remove when the supported Spring Boot 3.5 line manages jackson-databind 2.21.5 or later, or if scope/reachability changes.",
+      "disposition": "WARN"
+    },
+    {
+      "advisory_id": "GHSA-mhm7-754m-9p8w",
+      "aliases": [],
+      "dependency": "com.fasterxml.jackson.core:jackson-databind",
+      "version": "2.21.4",
+      "scope": "test, benchmark",
+      "reason": "The vulnerable coercion behavior is outside the published PostgreSQL Bulk runtime.",
+      "applicability": "Resolved only below test dependencies and the non-published JMH benchmark module.",
+      "compensating_controls": "No untrusted JSON enters tests or benchmarks; exact-version scanning detects any ownership or scope change.",
+      "owner": "yravelo",
+      "review_date": "2026-08-24",
+      "expiry": "2026-10-24",
+      "removal_condition": "Remove when the supported Spring Boot 3.5 line manages jackson-databind 2.21.5 or later, or if scope/reachability changes.",
+      "disposition": "WARN"
+    },
+    {
+      "advisory_id": "GHSA-j288-q9x7-2f5v",
+      "aliases": ["CVE-2025-48924"],
+      "dependency": "org.apache.commons:commons-lang3",
+      "version": "3.17.0",
+      "scope": "test, benchmark, example",
+      "reason": "The affected recursion helper is not used or shipped by a publishable PostgreSQL Bulk module.",
+      "applicability": "The coordinate arrives through Testcontainers and other non-production paths; no PostgreSQL Bulk code invokes the affected method.",
+      "compensating_controls": "Test and benchmark inputs are repository-controlled; Testcontainers remains the direct transitive owner and is monitored weekly.",
+      "owner": "yravelo",
+      "review_date": "2026-08-24",
+      "expiry": "2026-10-24",
+      "removal_condition": "Remove when Testcontainers resolves commons-lang3 3.18.0 or later, or if the dependency reaches production scope.",
+      "disposition": "WARN"
+    },
+    {
+      "advisory_id": "GHSA-qv9r-c865-cp47",
+      "aliases": ["CVE-2026-49844"],
+      "dependency": "org.apache.logging.log4j:log4j-api",
+      "version": "2.24.3",
+      "scope": "production transitive, test, benchmark, example",
+      "reason": "PostgreSQL Bulk does not create Log4j MapMessage values or serialize them with JsonLayout; the dependency is a bridge below Spring Boot logging.",
+      "applicability": "The advisory requires a non-finite floating-point value in MapMessage JSON serialization, an API and configuration absent from PostgreSQL Bulk.",
+      "compensating_controls": "The default Boot stack routes through SLF4J/Logback, no Log4j Core/JsonLayout is shipped, and the exact transitive owner is monitored by OSV and Dependabot.",
+      "owner": "yravelo",
+      "review_date": "2026-08-24",
+      "expiry": "2026-10-24",
+      "removal_condition": "Remove when the supported Spring Boot 3.5 line manages log4j-api 2.25.5 or later, or if MapMessage/JsonLayout becomes reachable.",
+      "disposition": "WARN"
+    }
+  ]
+}

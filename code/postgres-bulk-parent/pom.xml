@@ -66,6 +66,7 @@
 
     <spring-boot.version>3.5.16</spring-boot.version>
     <postgres.version>15.18-alpine</postgres.version>
+    <postgresql.version>42.7.13</postgresql.version>
     <junit.version>5.12.2</junit.version>
     <jakarta-activation.version>2.1.1</jakarta-activation.version>
     <jmh.version>1.37</jmh.version>
@@ -121,6 +122,13 @@
         <version>${spring-boot.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <!-- Security patch within the validated pgJDBC 42.7.x compatibility line. -->
+      <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>${postgresql.version}</version>
       </dependency>
 
       <dependency>

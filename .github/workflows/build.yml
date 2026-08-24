@@ -61,6 +61,10 @@ jobs:
             examples/spring-boot-data-jdbc/pom.xml
             verification/spring-boot-jdbc-consumer/pom.xml
 
+      - name: Audit dependency vulnerabilities and update policy
+        working-directory: .
+        run: ./scripts/check-vulnerabilities.sh
+
       - name: Verify reactor
         run: ./mvnw --batch-mode --no-transfer-progress clean verify
 
