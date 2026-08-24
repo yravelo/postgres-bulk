@@ -1,6 +1,6 @@
 # Criterios de aceptación de la primera release pública
 
-Estado auditado para el candidato `0.1.0` tras Phase 16E. Cada criterio usa exclusivamente `PASS`,
+Estado auditado para el candidato `0.1.0` tras SEC5. Cada criterio usa exclusivamente `PASS`,
 `BLOCKED`, `EXTERNAL PREREQUISITE` o `DEFERRED (non-blocking)`.
 
 ## Funcionalidad
@@ -58,6 +58,10 @@ Estado auditado para el candidato `0.1.0` tras Phase 16E. Cada criterio usa excl
   core, pgJDBC, Hibernate, Spring Data JPA/JDBC y sus cuatro artifacts Boot.
 - **PASS** — El inventario separa 37 artifacts Maven primarios de nueve SBOM JSON adjuntos y un
   aggregate de evidencia.
+- **PASS** — El dry-run firmado verifica 46 firmas Central y tres firmas de evidencia; el manifest
+  liga coordenadas, clasificadores, SHA-256, SBOM, fingerprint, versión y source commit.
+- **PASS** — La comparación unsigned/signed conserva idénticos los 46 payloads; faltantes,
+  wrong-signer, tampering, checksum incorrecto, artifact inesperado, SNAPSHOT y benchmark fallan.
 - **PASS** — Consumer independiente usa parent Boot propio, `0.1.0` y repositorio Maven local aislado.
 - **PASS** — Consumer cubre startup, fragment, insert, lookup, rollback, read-only y observabilidad.
 - **PASS** — Dependency tree no contiene SNAPSHOT, benchmark/example, Testcontainers productivo ni Actuator.
@@ -80,14 +84,17 @@ Estado auditado para el candidato `0.1.0` tras Phase 16E. Cada criterio usa excl
   aplica `spotbugs.skip` sólo para evitar once repeticiones del gate canónico.
 - **PASS** — No se requiere NOTICE vacío según el contenido actualmente auditado.
 - **PASS** — SHA-256 de artifacts staged se genera e inspecciona.
-- **PASS** — OpenPGP sigue siendo obligatorio; la firma está aislada en `central-publish` y el
-  procedimiento seguro de generación/distribución está documentado.
+- **PASS** — OpenPGP sigue siendo obligatorio; `local-signing` usa Maven GPG 3.2.8,
+  gpg-agent/pinentry, fingerprint completo y SHA-512 sin compartir clave/passphrase con CI.
 - **PASS** — CycloneDX Maven plugin 2.9.3 genera spec 1.6 JSON para los nueve artifacts y aggregate;
   Maven/OSV/purl/edge/version/scope se reconcilian y dos generaciones limpias se comparan
   semánticamente.
 - **PASS** — La baseline de 55 dependencias externas productivas contiene ocho IDs de licencia,
   cero unknown, seis reviews múltiples, dos excepciones exactas y cero BLOCK.
-- **DEFERRED (non-blocking)** — Provenance/attestations se evaluará después de la primera release.
+- **PASS** — `release-inventory.json`, SHA-256, firma del aggregate y exact source commit forman la
+  provenance mínima; no se afirma SLSA.
+- **DEFERRED (non-blocking)** — GitHub artifact attestations requiere Enterprise Cloud para este
+  repository privado; Sigstore no sustituye OpenPGP y queda diferido.
 - **PASS** — Auditoría de patrones sensibles no encuentra tokens, passwords ni private keys hardcoded.
 - **PASS** — `CHANGELOG.md`, release notes y política SemVer `0.x` existen.
 - **DEFERRED (non-blocking)** — GitHub Private Vulnerability Reporting no está disponible para el
@@ -106,13 +113,13 @@ Estado auditado para el candidato `0.1.0` tras Phase 16E. Cada criterio usa excl
   endpoints legacy y con `autoPublish=false`.
 - **PASS** — El owner confirma `io.github.yravelo` como `VERIFIED` en Maven Central Portal; no se
   almacena screenshot, sesión ni token.
-- **PASS** — Repository Secrets es la frontera aprobada para el repo privado y single-maintainer;
-  sus límites y el riesgo de workflows con write access están documentados en ADR-023.
+- **PASS** — La firma local es la frontera aprobada; el runner persistente y GitHub Actions no
+  reciben clave, passphrase ni token.
 - **DEFERRED (non-blocking)** — El environment vacío `maven-central` permanece como marcador inerte
   y el workflow no lo referencia porque el plan no aporta secrets/protections utilizables.
-- **EXTERNAL PREREQUISITE** — Los cuatro Repository Secret names siguen MISSING; no se generó el
-  Portal token ni se configuró ningún valor.
-- **EXTERNAL PREREQUISITE** — Crear/proteger la clave OpenPGP real y distribuir su public key.
+- **EXTERNAL PREREQUISITE** — El Portal token sigue MISSING; no se configuró ningún secret remoto.
+- **PASS** — Clave OpenPGP real RSA-3072 protegida, fingerprint
+  `11545CD242C9575DF408AC08F83D364143C798A3`, revocación privada y export público preparado.
 - **PASS** — `origin` usa SSH, `main` está publicado y las URLs de project/SCM coinciden con el
   repository privado real.
 - **PASS** — Build remoto `32264391877` y los 10 jobs de Compatibility `32264393355` terminaron
@@ -123,22 +130,20 @@ Estado auditado para el candidato `0.1.0` tras Phase 16E. Cada criterio usa excl
 - **PASS** — SEC4 queda cerrado para `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`: Build
   self-hosted `32774191694` pasó todos los gates y Compatibility `32774191674` pasó 11/11. El runner
   es repository-scoped, non-root y usa labels dedicadas; PRs fork/no confiables no se ejecutan
-  automáticamente. No se ejecutaron Benchmarks ni Release y SEC5 sigue `NOT STARTED`.
+  automáticamente. No se ejecutaron Benchmarks ni Release.
 - **EXTERNAL PREREQUISITE** — Crear `v0.1.0` y autorizar upload/publicación; el canal privado sigue
   diferido como non-blocking.
-- **PASS** — Release es `workflow_dispatch` only desde `main` por `yravelo`; exige stable SemVer,
-  full SHA perteneciente a `origin/main`, publish intent y confirmación literal.
-- **PASS** — Upload depende del candidate exitoso y vuelve a exigir que `v<version>` resuelva al
-  mismo SHA; no puede publicar un branch arbitrario por introducir una versión.
-- **PASS** — Sólo `central-upload` referencia los cuatro secrets, todas las Actions están pinned por
-  SHA, `GITHUB_TOKEN` conserva `contents: read`, concurrency no cancela y `autoPublish=false`.
+- **PASS** — Release es candidate-only, `workflow_dispatch` desde `main` por `yravelo`; exige stable
+  SemVer, full SHA perteneciente a `origin/main` y confirmación literal.
+- **PASS** — El workflow no contiene job/input de upload ni referencias `secrets.*`; todas las
+  Actions están pinned, `GITHUB_TOKEN` conserva `contents: read` y `autoPublish=false`.
 - **PASS** — Fork PRs y Dependabot no reciben Actions secrets en condiciones documentadas; release
   no usa `pull_request_target`, `workflow_run`, push, PR ni schedule.
 - **PASS** — Hubo push de `main`; no se creó tag ni se ejecutó release, upload o publicación.
 
 ## Veredicto
 
-La ingeniería y la frontera técnica de Phase 16 están cerradas. El proyecto queda **READY FOR
-CREDENTIAL ACTIVATION**; la release pública aún no está autorizada ni ejecutable hasta generar el
-Portal token/clave, configurar los cuatro Repository Secrets, crear el tag exacto y autorizar
-upload/publicación. Phase 16E queda `DONE`; esas acciones son activación manual, no Phase 17.
+SEC5 está cerrado con identidad OpenPGP y signed dry-run verificable. La release pública aún no está
+autorizada: falta verificar el backup offline, generar el Portal token, crear el tag exacto y
+autorizar upload/publicación. No se requieren Repository Secrets. La fase siguiente recomendada es
+**SEC6 — Vulnerability Response and Repository Governance**.

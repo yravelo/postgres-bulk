@@ -52,6 +52,7 @@ This index separates adoption guidance from implementation details.
 - [Dependency vulnerability and update management](security/dependency-vulnerability-management.md)
 - [Java static analysis](security/java-static-analysis.md)
 - [SBOM and dependency/license integrity](security/sbom-and-license-integrity.md)
+- [Release signing, inventory and provenance](security/release-signing-and-provenance.md)
 - [Security roadmap](plans/security-roadmap.md)
 
 ## Decisions and evidence

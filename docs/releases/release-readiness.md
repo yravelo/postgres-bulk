@@ -2,10 +2,10 @@
 
 ## Verdict
 
-The final project identity, private GitHub repository, Central namespace and secure-secrets model
-are approved. Phase 16 is technically ready for credential activation, but `0.1.0` is **not ready
-for public publication**: the real Portal token, signing material, four secret values, tag, upload
-and Portal publication remain intentionally withheld. No release or benchmark workflow ran.
+The final project identity, private GitHub repository, Central namespace and local OpenPGP release
+identity are approved. SEC5 signed dry-run and verification are PASS, but `0.1.0` is **not ready for
+public publication**: offline key-backup verification, the Portal token, tag, upload and Portal
+publication remain intentionally withheld. No Release or benchmark workflow ran.
 
 ## Final identity
 
@@ -79,26 +79,23 @@ session data or token is stored. The real Portal user token has not been generat
 | Dependabot update policy | PASS — five weekly Maven/Actions lanes, majors manual, no auto-merge; Compose manual |
 | Dependabot alerts/security updates | ENABLED — private visibility unchanged; security updates enabled and unpaused |
 | GitHub dependency graph | ENABLED — bodyless endpoint check passed; no SBOM downloaded or committed |
-| OpenPGP strategy | PASS — required by Central and isolated in `central-publish` |
-| Protected OpenPGP key | EXTERNAL PREREQUISITE — real key was not generated |
+| OpenPGP strategy | PASS — local `local-signing` profile, gpg-agent/pinentry, SHA-512 and exact fingerprint |
+| Protected OpenPGP key | PASS — RSA-3072 release identity; expires 2028-08-23; private material outside repo/runner |
 | GitHub branch protection/rules | DEFERRED (non-blocking) — unavailable for this private repository on the current plan |
-| Repository Secrets model | PASS — explicitly selected for the current private, single-maintainer threat model |
+| Repository Secrets model | SUPERSEDED — signing is local; Release references zero repository secrets |
 | Trusted self-hosted Build/Compatibility runner | PASS — repository-scoped, non-root, dedicated labels, owner+same-repo PR guard; 11/11 lanes |
 | GitHub environment `maven-central` | DEFERRED (non-blocking) — retained as an inert marker; not referenced by release workflow |
 | Environment protection | DEFERRED (non-blocking) — unavailable for this private repository on the current entitlement |
 | `CENTRAL_USERNAME` / `CENTRAL_PASSWORD` | MISSING |
-| `GPG_PRIVATE_KEY` / `GPG_PASSPHRASE` | MISSING |
+| `GPG_PRIVATE_KEY` / `GPG_PASSPHRASE` | NOT USED — must not be created for the local strategy |
 | Tag `v0.1.0` | NOT EXECUTED — creation/push not authorized |
 | Remote Build and Compatibility workflows | PASS |
 | Benchmarks and Release candidate workflows | NOT EXECUTED |
 | Central upload/publication | NOT EXECUTED |
 
-Future values belong in Actions Repository Secrets, never in Git, documentation, chat or logs.
-Repository Secrets are not an approval boundary: GitHub reads them when a run is queued and any
-trusted workflow can reference them. The approved compensating controls are owner-only dispatch
-from `main`, strict stable-SemVer/full-SHA/confirmation validation, candidate SHA membership in
-`origin/main`, exact tag-to-candidate verification, candidate dependency, `contents: read`, pinned
-Actions, upload concurrency and `autoPublish=false`.
+The Release workflow is candidate-only, owner-dispatched and secret-free. The private signing key
+and passphrase must never become Actions secrets or runner state. Central credentials remain absent;
+their eventual local handling and any upload require a separately reviewed activation.
 
 ## License, supply chain and reproducibility
 
@@ -108,7 +105,8 @@ IDs, six exact multiple-license reviews, two exact weak-copyleft exceptions and 
 blocked findings. Each Java module attaches binary, sources and strict Javadocs; code-free starters
 use explanatory archives. Staging emits separate SHA-256 evidence for the parent POM plus four
 files for each of the nine modules (37 primary artifacts) and nine attached SBOM JSON files. The
-aggregate SBOM remains separate release security evidence. Provenance remains deferred to SEC5.
+aggregate SBOM remains separate signed release security evidence. SEC5 binds all files, checksums,
+the aggregate and the exact source commit in `release-inventory.json`.
 
 SEC4 pins CycloneDX Maven plugin 2.9.3 and emits spec 1.6 JSON. Per-artifact identities, purls,
 versions, hashes, licenses and dependency graphs are checked against Maven and the
@@ -121,8 +119,8 @@ self-hosted runner removed the GitHub-hosted billing dependency without changing
 or coverage. For `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`, Build `32774191694` passed all security,
 reactor, SBOM/license, consumer and documentation steps on the dedicated runner; Compatibility
 `32774191674` passed all 11 lanes. The earlier pre-step billing rejections remain historical
-evidence, not an open SEC4 blocker. Benchmarks and Release were not executed. SEC4 is `DONE`; SEC5
-is `NOT STARTED`.
+evidence, not an open SEC4 blocker. Benchmarks and Release were not executed. SEC4 and SEC5 are
+`DONE`; SEC6 is the next recommended phase.
 
 SEC2 adds a fail-closed dependency gate to Build and the release candidate before any future
 upload. The applicable pgJDBC HIGH finding on 42.7.11 was remediated by selecting supported
@@ -180,21 +178,18 @@ the namespace, generate a Portal user token, sign every deployed POM/JAR with Op
 `org.sonatype.central:central-publishing-maven-plugin:0.11.0`; `autoPublish=false` deliberately
 keeps upload and publication separate. Plugin `validate` completed without credentials or upload.
 
-The release workflow keeps candidate validation secret-free and gives only `central-upload` access
-to the `maven-central` environment. Its Actions are pinned to commits, checkout credentials are not
-persisted and simultaneous Central uploads are serialized. `setup-java` imports the armored key
-from the runner temp directory, removes that file after import and cleans the imported key after
-the job. No private key is uploaded as an artifact.
+SEC5 superseded the Phase 16D remote-signing design. The Release workflow now performs only
+secret-free candidate validation; it has no `central-upload` job, publishing input, GPG import or
+Central credentials. Its Actions remain pinned and checkout credentials are not persisted.
 
 The empty `maven-central` environment exists, but the current private-repository entitlement does
-not provide usable environment secrets or protection rules. All four required secret names are
-missing at both environment and repository level. The environment must not be treated as a
-security boundary until the account supports those controls or an explicitly approved alternative
-is adopted.
+not provide usable environment secrets or protection rules. It remains inert and is not a signing
+boundary. No signing Repository Secrets exist or should be created under the SEC5 local strategy.
 
 The repeated local `0.1.0` dry-run is **PASS**: 25 primary artifacts, zero SNAPSHOT dependencies,
-no benchmark/example artifacts and an isolated external consumer PASS. No real GPG key, Central
-bundle upload, tag or publication was produced.
+no benchmark/example artifacts and an isolated external consumer PASS. That historical dry-run was
+unsigned; SEC5 adds the separately verified real signed dry-run. No Central bundle upload, tag or
+publication was produced.
 
 ## Phase 16E verified namespace and secure secrets boundary
 
@@ -204,19 +199,15 @@ repository/environment secrets can be administered by the applicable repository 
 secrets are read when a run is queued, Actions secrets are withheld from normal fork PRs and
 Dependabot-triggered workflows, and log redaction is not guaranteed for transformed values.
 
-The chosen model is Repository Secrets plus code-level controls appropriate to the current single
-maintainer. A malicious workflow reaching trusted `main` remains the main residual risk, because a
-repository secret can be referenced by other workflows; adding collaborators therefore triggers a
-mandatory reevaluation. The workflow is `workflow_dispatch` only and accepts a stable version,
-full commit SHA, boolean publish intent and literal confirmation. Candidate validates the SHA is
-on `origin/main`; upload depends on candidate and checks `v<version>` points to the identical SHA.
-Only `central-upload` contains the four `secrets.*` references.
+SEC5 chooses local signing instead of Repository Secrets. A malicious workflow or build plugin
+therefore cannot read a key from GitHub, and the persistent self-hosted runner never holds signing
+material. The workflow is `workflow_dispatch` only and accepts a stable version, full commit SHA
+and literal candidate confirmation. It validates that SHA belongs to `origin/main` and performs no
+upload.
 
-`actions/setup-java` imports the armored key through temporary runner material and removes the
-imported key in its post-step. Maven settings is generated in `RUNNER_TEMP`, used explicitly and
-removed even after failure. No upload-job artifacts contain the key, keyring or settings. The
-Central plugin retains `autoPublish=false`, so successful upload still requires a separate manual
-Portal publication.
+No workflow imports an armored key or generates publishing settings. The Central plugin retains
+`autoPublish=false`, but SEC5 never activates it; any future local upload and later Portal
+publication remain separately authorized actions.
 
 - [GitHub secret types](https://docs.github.com/en/code-security/reference/secret-security/secret-types)
 - [Using secrets in Actions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
@@ -235,15 +226,34 @@ The PostgreSQL 16.14 job failed on its first attempt and passed unchanged when o
 retried; no workflow/code adjustment or matrix reduction was made. Release candidate and
 Benchmarks were not executed.
 
+## SEC5 signing and provenance closure
+
+The dedicated RSA-3072 release identity has fingerprint
+`11545CD242C9575DF408AC08F83D364143C798A3`, expires 2028-08-23 and is protected by a passphrase
+entered through pinentry. Its private key and GnuPG-generated revocation certificate remain outside
+Git and all runners; the public export is tracked and sent to a Central-supported keyserver.
+
+The local gate builds from clean synchronized `main`, compares unsigned and signed SHA-256 for all
+46 Central payloads, verifies 46 detached payload signatures and three detached evidence
+signatures, and binds the exact source commit in `release-inventory.json`. Valid, missing,
+wrong-signer, tampered, bad-checksum, unexpected, SNAPSHOT and benchmark fixtures are covered.
+The aggregate SBOM remains evidence rather than a deployed classifier. No SHA-1 signature passes.
+
+GitHub artifact attestations remain disabled because private repositories require Enterprise Cloud
+under the current GitHub terms. No SLSA level is claimed and Sigstore is not enabled. Exact commit,
+reproducible payloads, SBOMs, SHA-256 inventory and approved OpenPGP signatures form the documented
+minimum provenance baseline. See
+[release signing, inventory and provenance](../security/release-signing-and-provenance.md).
+
 ## Remaining activation sequence
 
-1. Generate a Portal user token and a real passphrase-protected OpenPGP key outside the repository;
-   distribute only its public key through a Central-supported keyserver.
-2. Configure the four approved Repository Secret names without exposing their values.
-3. Resolve the private vulnerability channel independently; it remains non-blocking.
+1. Copy the protected key backup and revocation material to separate offline media and verify
+   recovery; never place them on a runner or in Actions secrets.
+2. Generate a Portal user token only when a local upload is separately authorized.
+3. Resolve the private vulnerability channel in SEC6.
 4. Recheck an authorized candidate SHA from `main`, then create and push `v0.1.0` only with
    separate authorization and make it point to that exact SHA.
-5. Dispatch from `main` with the full SHA and explicit intent; authorize Central upload and Portal
-   publication separately.
+5. Reproduce and verify the signed candidate locally; authorize Central upload and Portal
+   publication separately. The candidate workflow does not upload.
 
 No external action above is authorized by this document.

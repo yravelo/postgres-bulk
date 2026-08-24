@@ -144,14 +144,14 @@ uses the same tracked POMs with an explicit CI-friendly version:
 ./scripts/release-dry-run.sh 0.1.0
 ./scripts/audit-production-licenses.sh 0.1.0
 ./scripts/compare-release-builds.sh 0.1.0
+./scripts/test-release-signatures.py
 ```
 
 Run these commands from the repository root with Docker available. They write only under
-`target/`; no remote publication occurs. The `central-publish` profile is reserved for the manual,
-protected release workflow after all external prerequisites in
-[release readiness](docs/releases/release-readiness.md) are resolved.
+`target/`; no remote publication occurs. The GitHub Release workflow is deliberately candidate-only
+and contains no signing or Central credentials.
 
-## Central and OpenPGP activation (owner only)
+## Local OpenPGP release ceremony (owner only)
 
 Central uses the Publisher Portal, not the legacy OSSRH workflow. Sign in at
 `https://central.sonatype.com` using GitHub identity `yravelo`. The owner confirmed on 2026-08-19
@@ -160,17 +160,16 @@ named, expiring user token at
 `https://central.sonatype.com/usertoken`. Its generated username/password pair maps to
 `CENTRAL_USERNAME` and `CENTRAL_PASSWORD`; neither value belongs in this repository or chat.
 
-Central requires an OpenPGP signature for every deployed POM and JAR. Generate the real key only
-on a trusted owner-controlled machine, choose a deliberately public UID and strong passphrase,
-record the full fingerprint and keep the revocation certificate and private-key backup offline:
+Central requires an OpenPGP signature for every deployed file, including attached CycloneDX SBOMs.
+The approved release key and complete ceremony are documented in
+[release signing and provenance](docs/security/release-signing-and-provenance.md). Verify the public
+fingerprint before use:
 
 ```bash
-gpg --full-generate-key
-gpg --list-secret-keys --keyid-format long
-gpg --armor --export <FINGERPRINT> > public-key.asc
-gpg --armor --export-secret-keys <FINGERPRINT> > private-key.asc
-gpg --keyserver keyserver.ubuntu.com --send-keys <FINGERPRINT>
-gpg --keyserver keyserver.ubuntu.com --recv-keys <FINGERPRINT>
+gpg --show-keys --with-fingerprint \
+  docs/security/keys/postgres-bulk-release-11545CD242C9575DF408AC08F83D364143C798A3.asc
+./scripts/signed-release-dry-run.sh 0.1.0 \
+  <LOCAL_SIGNING_PATH>
 ```
 
 Verify the imported fingerprint matches before continuing. `keyserver.ubuntu.com`,
@@ -178,25 +177,9 @@ Verify the imported fingerprint matches before continuing. `keyserver.ubuntu.com
 sent to them. Keep `private-key.asc` and its passphrase separate and remove the export from normal
 storage after GitHub configuration according to the owner's secure deletion policy.
 
-Phase 16E explicitly selects Actions Repository Secrets for the current private, single-maintainer
-repository. The existing `maven-central` environment is not used by the workflow because it has no
-effective secrets or protection rules under the current plan. `gh secret set` without `--body`
-reads interactively; the armored key can be read from a protected file without placing its content
-in shell history:
-
-```bash
-gh secret set CENTRAL_USERNAME --repo yravelo/postgres-bulk
-gh secret set CENTRAL_PASSWORD --repo yravelo/postgres-bulk
-gh secret set GPG_PRIVATE_KEY --repo yravelo/postgres-bulk < /secure/path/private-key.asc
-gh secret set GPG_PASSPHRASE --repo yravelo/postgres-bulk
-gh secret list --repo yravelo/postgres-bulk --app actions
-```
-
-The list command verifies names only; never request or display values. Before dispatch, review the
-workflow on `main`, resolve the full 40-character candidate SHA, and ensure it belongs to
-`origin/main`. Candidate-only confirmation is `candidate <version>`; upload confirmation is
-`publish <version>`. Upload additionally requires `v<version>` to point exactly to that SHA. Never
-enable shell tracing or print the environment in the upload job. Creating the tag, executing the
-workflow, uploading and publishing in Central are separate authorized actions. Reevaluate this
-storage decision before adding write collaborators, making the repository public or changing the
-GitHub plan.
+The passphrase is entered only through pinentry/gpg-agent. Never export the secret key into this
+repository, a GitHub secret, runner filesystem, argument, environment variable, Maven settings or
+log. The real script requires a clean synchronized `main`, produces 46 Central-bound signatures
+plus three evidence signatures, verifies the approved full fingerprint, and proves payload hashes
+are unchanged. `local-signing` and `central-publish` remain separate Maven profiles; enabling the
+latter, creating a tag, uploading or publishing each require separate future authorization.

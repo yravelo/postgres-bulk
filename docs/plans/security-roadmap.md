@@ -104,20 +104,20 @@ Reglas transversales:
 | Dependencies | SEC2 inventory and SEC3 stable build |
 | Deferred | signing/provenance to SEC5 |
 
-## SEC5 — Release Signing, Inventory and Provenance Hardening
+## SEC5 — Release Signing, Inventory and Provenance Hardening — DONE (2026-08-24)
 
 | Campo | Definición |
 | --- | --- |
 | Objective | repair release inventory drift and bind source, candidate, signatures and checksums |
 | Scope | all nine publishable modules+parent; JPA/JDBC consumers; tag-signature policy; OpenPGP fingerprint/rotation/revocation; provenance feasibility recheck |
-| Non-goals | generate real key/token/secret/tag, dispatch Release, upload/publish Central |
-| Tools/cost | existing Maven/GPG/checksum/repro scripts; optional dry-run test key outside tracked state; €0, slow release-only |
+| Non-goals | Portal token, Actions signing secrets, tag, dispatch Release, upload/publish Central |
+| Tools/cost | GnuPG 2.4.8, Maven GPG 3.2.8, checksum/inventory scripts and ephemeral fixture keys; €0, slow release-only |
 | Affected | release scripts/workflow/profile/docs and artifact inventory |
-| Gates | exact signed tag/SHA; expected fingerprint; signed POM/JAR/SBOM as policy defines; complete staging; double-build match; no unexpected artifacts |
-| Tests | 9-module file staging, two clean builds, signature verify with disposable fixture, isolated JPA+JDBC consumers, no key in artifacts/logs |
+| Gates | clean synchronized source SHA; expected fingerprint; 46 signed Central files + 3 signed evidence files; complete staging; unchanged payload hashes; no unexpected artifacts |
+| Tests | 9-module file staging, unsigned/signed comparison, valid/missing/wrong/tampered/checksum/SNAPSHOT/benchmark fixtures, isolated JPA+JDBC consumers, no private key in artifacts/logs |
 | False positives | reproducibility exception identifies file/bytes/cause/expiry; signatures/fingerprint cannot be suppressed |
 | Documentation | owner key ceremony, offline backup/revocation, token rotation, activation checklist, provenance decision |
-| Acceptance | historical six-module assumptions removed; release remains frozen and secret-free until separate authorization |
+| Acceptance | real protected identity prepared, public fingerprint distributed, signed dry-run/gate PASS; release remains frozen and CI secret-free |
 | Risks | mishandled key, plugin code executing with secrets, provenance leaking private repo name |
 | Dependencies | SEC4 artifact/SBOM inventory |
 | Deferred | GitHub attestations/Scorecard until plan/public visibility supports them |
@@ -190,10 +190,9 @@ SEC0 investigation
                 -> SEC8 technical closure
 ```
 
-SEC4 está cerrado. El runner repository-scoped compensó el rechazo por billing de los runners
-hosted sin cambiar plan/visibilidad: Build `32774191694` pasó y Compatibility `32774191674` pasó
-11/11 para `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`. Los jobs ejecutaron sobre el selector dedicado,
-sin secrets y con PRs externos/no confiables excluidos por guard fail-safe. Benchmarks y Release no
-se ejecutaron. SEC5 — Release Signing, Inventory and Provenance Hardening es la única fase siguiente
-recomendada, pero sigue `NOT STARTED`: cerrar SEC4 no autoriza credentials/keys/tags ni descongelar
-`0.1.0`.
+SEC5 está cerrado con identidad OpenPGP local protegida, fingerprint público fijado, inventario
+source-bound de 46 archivos Central y tres evidencias, comparación unsigned/signed y regresiones
+fail-closed. El workflow remoto es candidate-only y no contiene clave, passphrase, token ni upload.
+No se creó tag, no se ejecutó Release y no hubo upload/publicación. La única fase siguiente
+recomendada es **SEC6 — Vulnerability Response and Repository Governance**; iniciarla requiere una
+petición separada y no descongela `0.1.0`.

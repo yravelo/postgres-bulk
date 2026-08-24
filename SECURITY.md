@@ -65,3 +65,14 @@ incompatible strong-copyleft licenses block; exact weak/multiple-license reviews
 expiry. The current baseline has 55 external production components, zero unknown licenses and zero
 unresolved blocks. See the
 [SBOM and dependency/license integrity policy](docs/security/sbom-and-license-integrity.md).
+
+## Release signing key incidents
+
+The planned release identity is the public fingerprint
+`11545CD242C9575DF408AC08F83D364143C798A3`; no private key or passphrase is stored in GitHub
+Actions. If control of that key or its signing workstation may be lost, stop signing and release
+activity immediately, use the offline revocation certificate, publish the revocation, rotate the
+Central token if relevant, preserve non-secret evidence and audit every candidate signed since the
+last known-good event. A replacement fingerprint requires reviewed policy/configuration changes and
+fresh tamper/wrong-signer tests. See the
+[release signing and provenance policy](docs/security/release-signing-and-provenance.md).

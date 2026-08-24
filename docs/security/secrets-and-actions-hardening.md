@@ -11,9 +11,10 @@ jobs no publicadores impiden que `setup-java` genere settings Maven. Los valores
 entran por `env` y se citan; Benchmarks conserva además un `choice` y un `case` con la misma
 allow-list. Gitleaks 8.30.1 pasó sobre el árbol actual y los 66 commits existentes sin findings.
 
-SEC1 no cambia POMs, Java, API pública, imágenes Docker, dependencias o comportamiento de
-publicación. El inventario incompleto de artifacts de release identificado por SEC0 sigue siendo
-un bloqueo separado para SEC5.
+SEC1 no cambió POMs, Java, API pública, imágenes Docker, dependencias o comportamiento de
+publicación. **Actualización SEC5:** el inventario quedó cerrado y la estrategia remota descrita
+históricamente en esta página fue sustituida por firma local; Release ahora es candidate-only y
+referencia cero secrets.
 
 ## Inventario de workflows
 
@@ -22,7 +23,7 @@ un bloqueo separado para SEC5.
 | Build | `push` sólo `main`; `pull_request`; sin inputs | `verify`; self-hosted dedicado; `contents: read`; timeout 120; concurrency por ref cancelable | checkout limpio/setup-java; cache Maven por POM; sin artifact/service | sólo push o PR owner+same-repo; sin secrets/deploy/token write; current-tree Gitleaks y policy gate antes del build |
 | Compatibility | `push` sólo `main`; `pull_request`; matrices Java/PostgreSQL/Hibernate/pgJDBC versionadas en YAML | siete jobs/11 lanes; self-hosted dedicado; `contents: read`; timeout 60; concurrency por ref cancelable | checkout limpio/setup-java; cache Maven; sin artifact/service | sólo push o PR owner+same-repo; sin secrets/deploy; matrix shell values pasan por `env` quoted |
 | Benchmarks | `workflow_dispatch`; `profile` tipo `choice` con cinco valores | `benchmark`; `contents: read`; timeout 120; concurrency única no cancelable | checkout/setup-java/upload-artifact; cache Maven; JSON JMH 14 días | sin secrets; profile validado en dispatch, workflow y script; artifact no tiene consumidor automático |
-| Release | sólo `workflow_dispatch`; version, full SHA, boolean upload y confirmación literal | `candidate` 120 y `central-upload` 60; `contents: read`; concurrencia no cancelable | candidate usa cache Maven y sube staging/checksums 7 días; upload recompila, no descarga candidate ni usa cache | candidate sin secrets; cuatro secrets aparecen sólo en `central-upload`; workflow no fue ejecutado |
+| Release | sólo `workflow_dispatch`; version, full SHA y confirmación literal | sólo `candidate` 120; `contents: read`; concurrencia no cancelable | candidate usa cache Maven y sube staging/checksums 7 días | sin secrets, firma, token ni upload; workflow no fue ejecutado |
 
 No existen `pull_request_target`, `workflow_run`, `repository_dispatch`, schedules, triggers de tag,
 services ni composite Actions. Build y Compatibility usan exclusivamente el selector
@@ -54,15 +55,14 @@ tag→SHA, changelog y diff antes de cambiar simultáneamente la allow-list y lo
 
 Todos los checkout fijan `persist-credentials: false`; Build y Compatibility fijan además
 `clean: true` por usar un host persistente. Build, Compatibility y Benchmarks declaran
-`fetch-depth: 1`, mientras ambos jobs Release usan `fetch-depth: 0` para validar history, ancestry
-y tag. LFS y submodules permanecen false. Ningún checkout recibe token custom ni existe `git push`.
+`fetch-depth: 1`, mientras Release usa `fetch-depth: 0` para validar history y ancestry. LFS y
+submodules permanecen false. Ningún checkout recibe token custom ni existe `git push`.
 
 Los jobs Build/candidate/test fijan `overwrite-settings: false`: `setup-java` instala Temurin y
 puede usar cache Maven, pero no genera un `settings.xml` publicador, no recibe server credentials ni
 importa GPG. En Build/Compatibility, `settings-path` queda aislado bajo `runner.temp` para que el
-host persistente no conserve settings en su home. `central-upload` es la única excepción: declara Central, settings bajo
-`RUNNER_TEMP` y key input. Un step `always()` elimina settings y el `GNUPGHOME` únicamente si éste
-está dentro de `RUNNER_TEMP`.
+host persistente no conserve settings en su home. SEC5 eliminó la excepción `central-upload`;
+ningún job recibe inputs de publicación o importa GPG.
 
 El `GITHUB_TOKEN` remoto tiene default read-only y no puede aprobar PR reviews. Los workflows
 declaran además `contents: read`; no solicitan OIDC, packages, deployments, issues, pull requests,
@@ -74,8 +74,8 @@ revocación ni eliminación segura.
 
 El gate prohíbe expresiones `${{ ... }}` dentro de todos los `run`, `eval`, shell tracing y
 `git push`. Los valores Release ya entraban por `env` y preservan stable SemVer, SHA hexadecimal de
-40 caracteres, confirmación `candidate|publish <version>`, repository/actor/default-branch,
-`SHA ∈ origin/main` y tag exacto en upload.
+40 caracteres, confirmación `candidate <version>`, repository/actor/default-branch y
+`SHA ∈ origin/main`.
 
 Benchmarks traduce `inputs.profile` y `github.run_id` a variables `env`, cita ambas y rechaza
 cualquier profile fuera de la lista incluso si GitHub omitiese el tipo `choice`. El script runner
@@ -85,13 +85,9 @@ inputs declarativos no abren evaluación de comandos.
 
 ## Secrets y lifecycle
 
-El inventario remoto de Repository Actions Secrets estaba vacío durante SEC1; no se pidió ningún
-valor. El contrato futuro permite exactamente:
-
-- `GPG_PRIVATE_KEY` sólo como input de setup-java en `central-upload`;
-- `CENTRAL_USERNAME`, `CENTRAL_PASSWORD` y `GPG_PASSPHRASE` sólo como environment del step Maven;
-- ningún `secrets.*` en candidate, Build, Compatibility o Benchmarks;
-- ningún secret en cache, settings persistente, output, report o artifact.
+El inventario remoto de Repository Actions Secrets estaba vacío durante SEC1 y sigue vacío. SEC5
+prohíbe almacenar la clave/passphrase de firma en Actions: todos los workflows deben permanecer sin
+`secrets.*`. La clave vive sólo en la estación firmante y la passphrase entra por pinentry.
 
 Si se sospecha exposición, se detiene el workflow y se revoca/rota antes de limpiar el repo. No se
 imprime el finding, no se confía en masking y no se reescribe history automáticamente. La ausencia
@@ -124,14 +120,13 @@ no introduce un pseudo-secret que pueda copiarse por error.
 
 El JSON de Benchmarks contiene resultados JMH y expira en 14 días; no se descarga automáticamente.
 El candidate artifact contiene sólo staging, auditoría y checksums explícitos y expira en 7 días.
-`central-upload` no confía ni descarga ese artifact: vuelve a checkout del SHA autorizado, revalida
-tag/SHA y recompila. Settings, GPG home, secret reports y hidden files quedan fuera de ambos paths.
+Settings, GPG home, private keys, secret reports y hidden files quedan fuera del path.
 
 Los caches son exclusivamente los de Maven administrados por setup-java, con keys derivadas de
 plataforma y POMs; no hay restore keys custom ni cache upload/download manual. Un PR no recibe
 secrets ni permisos write. Candidate puede restaurar dependencies, pero los gates de staging y
-reproducibilidad no deben depender de cache; `central-upload` no habilita cache. El riesgo de
-dependency/plugin comprometido se trata en SEC2, no desactivando cache en SEC1.
+reproducibilidad no deben depender de cache. El riesgo de dependency/plugin comprometido se trata
+en SEC2, no desactivando cache en SEC1.
 
 ## Gate determinista y pruebas
 
