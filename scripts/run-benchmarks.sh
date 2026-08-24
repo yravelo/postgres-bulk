@@ -10,6 +10,14 @@ profile="${1:-smoke}"
 label="${2:-${profile}}"
 java_bin="${JAVA_HOME:+${JAVA_HOME}/bin/}java"
 
+case "${profile}" in
+  smoke|baseline|large|multi-schema-smoke|multi-schema-baseline) ;;
+  *)
+    echo "usage: $0 {smoke|baseline|large|multi-schema-smoke|multi-schema-baseline} [result-label]" >&2
+    exit 2
+    ;;
+esac
+
 mkdir -p "${results_dir}"
 (
   cd "${maven_dir}"

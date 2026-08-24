@@ -21,6 +21,16 @@ secrets/
 *.keystore
 *.gpg
 *.pgp
+*.asc
+*.rev
+*.token
+.gnupg/
+private-keys-v1.d/
+settings.xml
+settings-security.xml
+gitleaks-report.*
+__pycache__/
+*.py[cod]
 
 # IntelliJ IDEA
 .idea/

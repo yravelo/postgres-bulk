@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 defaults:
   run:
     working-directory: code/postgres-bulk-parent
@@ -16,14 +20,19 @@ jobs:
   multi-schema-composition:
     name: Multi-schema — JPA, JDBC and both starters / Java 17 / PostgreSQL 15.18
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
       - name: Set up Java 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: 17
+          overwrite-settings: false
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify multi-schema starter composition
@@ -39,18 +48,23 @@ jobs:
   java:
     name: Multi-schema — Java ${{ matrix.java }} / JDBC + JPA baseline stack
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         java: [21, 25]
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
       - name: Set up Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
+          overwrite-settings: false
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify on Java ${{ matrix.java }}
@@ -59,14 +73,19 @@ jobs:
   boot-minimum:
     name: Multi-schema minimum — Java 17 / Boot + Data JDBC 3.5.0 / pgJDBC 42.7.5 / PostgreSQL 15.18
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
       - name: Set up Java 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: 17
+          overwrite-settings: false
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Audit managed stack
@@ -82,34 +101,46 @@ jobs:
   postgres:
     name: Multi-schema — PostgreSQL ${{ matrix.postgres }} / JDBC + JPA baseline stack
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         postgres: [16.14-alpine, 17.10-alpine]
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
       - name: Set up Java 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: 17
+          overwrite-settings: false
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify PostgreSQL ${{ matrix.postgres }}
-        run: ./mvnw --batch-mode --no-transfer-progress clean verify -Dpostgres.version=${{ matrix.postgres }}
+        env:
+          POSTGRES_VERSION: ${{ matrix.postgres }}
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify -Dpostgres.version="${POSTGRES_VERSION}"
 
   newest:
     name: Multi-schema newest — Java 21 / Boot 3.5.16 / Data JDBC 3.5.13 / pgJDBC 42.7.13 / PostgreSQL 18.4
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
       - name: Set up Java 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: 21
+          overwrite-settings: false
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify newest supported boundaries
@@ -128,45 +159,59 @@ jobs:
   hibernate-adapter:
     name: Hibernate adapter ${{ matrix.hibernate }}
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         hibernate: [6.6.15.Final, 6.6.55.Final]
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
       - name: Set up Java 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: 17
+          overwrite-settings: false
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify Hibernate adapter
+        env:
+          HIBERNATE_VERSION: ${{ matrix.hibernate }}
         run: >-
           ./mvnw --batch-mode --no-transfer-progress clean verify
           -pl postgres-bulk-hibernate -am
-          -Dhibernate.version=${{ matrix.hibernate }}
+          -Dhibernate.version="${HIBERNATE_VERSION}"
 
   pgjdbc:
     name: pgJDBC ${{ matrix.pgjdbc }}
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         pgjdbc: [42.7.5, 42.7.13]
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
       - name: Set up Java 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: 17
+          overwrite-settings: false
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify pgJDBC COPY adapter
+        env:
+          PGJDBC_VERSION: ${{ matrix.pgjdbc }}
         run: >-
           ./mvnw --batch-mode --no-transfer-progress clean verify
           -pl postgres-bulk-pgjdbc -am
-          -Dpostgresql.version=${{ matrix.pgjdbc }}
+          -Dpostgresql.version="${PGJDBC_VERSION}"

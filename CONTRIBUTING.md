@@ -20,9 +20,31 @@ consumer, Spotless and warning-free public Javadocs. Apply Java formatting with:
 Before submitting a change, also run from the repository root:
 
 ```bash
+./scripts/check-workflow-security.py
+./scripts/test-workflow-security.py
+./scripts/check-secrets.sh current
 ./scripts/check-documentation.sh
 git diff --check
 ```
+
+Run the full Git history scan before a release candidate or after changing secret-handling policy:
+
+```bash
+./scripts/check-secrets.sh history
+```
+
+The Gitleaks wrapper downloads version 8.30.1 from the official release, verifies the platform
+archive and extracted binary by SHA-256, fully redacts detected values and writes no report. Linux
+x86-64 and arm64 are supported. A finding must be treated as potentially compromised: stop the
+change, revoke or rotate real credentials first, then investigate cleanup. Do not rewrite history,
+add a broad allow-list or paste the value into an issue, log or chat. If an exception is genuinely
+required, it must be rule/path-specific and document evidence, owner and expiry.
+
+All GitHub Actions must use an approved full commit SHA with a human-readable version comment.
+Keep workflow permissions read-only, checkout credentials non-persistent and event/input expressions
+outside shell blocks. Secret masking is only defense-in-depth; it is not an authorization or
+isolation boundary. Release credentials belong exclusively to the `central-upload` job, and no
+candidate, build, test, cache or artifact may contain them.
 
 ## Compatibility
 

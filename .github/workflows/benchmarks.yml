@@ -18,25 +18,43 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: benchmarks
+  cancel-in-progress: false
+
 jobs:
   benchmark:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-java@v5
+      - name: Check out repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Set up Java 21
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: "21"
+          overwrite-settings: false
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Run benchmark profile
         env:
+          BENCHMARK_PROFILE: ${{ inputs.profile }}
+          RESULT_LABEL: github-${{ github.run_id }}-${{ inputs.profile }}
           POSTGRES_VERSION: 15.18-alpine
-        run: ./scripts/run-benchmarks.sh "${{ inputs.profile }}" "github-${{ github.run_id }}-${{ inputs.profile }}"
+        run: |
+          case "${BENCHMARK_PROFILE}" in
+            smoke|baseline|large|multi-schema-smoke|multi-schema-baseline) ;;
+            *) echo "Unsupported benchmark profile" >&2; exit 2 ;;
+          esac
+          ./scripts/run-benchmarks.sh "${BENCHMARK_PROFILE}" "${RESULT_LABEL}"
       - name: Upload raw JMH result
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: benchmark-${{ github.run_id }}-${{ inputs.profile }}
           path: docs/benchmarks/raw/github-${{ github.run_id }}-${{ inputs.profile }}.json
           if-no-files-found: error
+          retention-days: 14

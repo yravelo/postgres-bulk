@@ -32,7 +32,7 @@ Reglas transversales:
 | Dependencies | roadmaps anteriores completos |
 | Deferred | toda activación a SEC1+ |
 
-## SEC1 — Secrets and GitHub Actions Hardening
+## SEC1 — Secrets and GitHub Actions Hardening — DONE (2026-08-24)
 
 | Campo | Definición |
 | --- | --- |
@@ -40,12 +40,12 @@ Reglas transversales:
 | Scope | Gitleaks CLI; SHA pinning; checkout credentials; env inputs; permissions, timeout, concurrency y action policy |
 | Non-goals | SCA, SAST, SBOM, keys/secrets reales, release/publication |
 | Tools/cost | Gitleaks CLI y checks shell/YAML; €0, fast |
-| Affected | cuatro workflows, scripts security, Gitleaks config/ignore, CONTRIBUTING/security docs |
-| Gates | PR commit-range scan; main/release full-history scan; todas Actions full SHA con tag comment |
-| Tests | known fake-positive/negative fixtures sin secret utilizable; malicious benchmark input; workflow syntax and remote CI |
-| False positives | fingerprint exacto + reason/owner/expiry; revocation precede suppression |
-| Documentation | local usage, incident steps, pin update procedure y matrix por workflow |
-| Acceptance | cero secret findings untriaged; no mutable Actions; no direct untrusted shell context; least privilege preserved |
+| Affected | cuatro workflows, scripts security, Gitleaks wrapper/ignore, CONTRIBUTING/security docs |
+| Gates | Build current-tree scan; Release/full local history scan; deterministic YAML policy; todas las Actions por full SHA con version comment |
+| Tests | mutable tag, `pull_request_target`, candidate secret, release push y `contents: write` fallan; full SHA pasa; remote CI verde |
+| False positives | ninguna excepción necesaria; si aparece: path/rule exactos + evidence/owner/expiry; revocation precede suppression |
+| Documentation | `docs/security/secrets-and-actions-hardening.md`, comandos locales, incident steps, pin update y workflow inventory |
+| Acceptance | Gitleaks 8.30.1 current/history sin findings; SHA allow-list; no shell context directo; secrets sólo upload; least privilege preservado |
 | Risks | history scan noise; stale SHAs; accidental display de finding |
 | Dependencies | SEC0 |
 | Deferred | Dependabot/OSV a SEC2; release inventory a SEC5 |

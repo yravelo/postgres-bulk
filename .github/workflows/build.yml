@@ -8,10 +8,15 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
     name: Baseline — Java 17 / Boot 3.5.16 / PostgreSQL 15.18
     runs-on: ubuntu-latest
+    timeout-minutes: 120
 
     defaults:
       run:
@@ -19,13 +24,35 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install security audit prerequisites
+        working-directory: .
+        run: |
+          if ! command -v rg >/dev/null 2>&1 || ! python3 -c 'import yaml' >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes python3-yaml ripgrep
+          fi
+
+      - name: Audit workflow security
+        working-directory: .
+        run: |
+          ./scripts/check-workflow-security.py
+          ./scripts/test-workflow-security.py
+
+      - name: Scan current tree for secrets
+        working-directory: .
+        run: ./scripts/check-secrets.sh current
 
       - name: Set up Java
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
         with:
           distribution: temurin
           java-version: 17
+          overwrite-settings: false
           cache: maven
           cache-dependency-path: |
             code/postgres-bulk-parent/pom.xml
@@ -48,13 +75,6 @@ jobs:
 
       - name: Verify isolated JDBC starter consumer
         run: ./mvnw --batch-mode --no-transfer-progress -f ../../verification/spring-boot-jdbc-consumer/pom.xml clean verify
-
-      - name: Install documentation audit tools
-        run: |
-          if ! command -v rg >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install --yes ripgrep
-          fi
 
       - name: Audit documentation and public API
         working-directory: .
