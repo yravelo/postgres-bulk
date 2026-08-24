@@ -23,6 +23,15 @@ Resolving and testing an appropriate private reporting channel remains an extern
 enabled, replace this paragraph with the repository's real Security Advisories reporting
 instructions. No email, response time or remediation SLA is implied by this provisional policy.
 
+## CI trust boundary
+
+Build and Compatibility run on a persistent, repository-scoped self-hosted runner with Docker
+access. That capability is trusted infrastructure and is not available to arbitrary PR code:
+self-hosted jobs accept pushes and only owner-authored PRs whose head repository is this repository.
+Fork or other untrusted PR jobs are skipped. No publishing secret is present on the runner, checkout
+credentials are not persisted, and Release remains separate on GitHub-hosted infrastructure. See
+the [self-hosted runner security model](docs/security/self-hosted-runner.md).
+
 ## Dependency vulnerabilities
 
 Dependency advisories are checked by OSV in Build and again for a release candidate. Dependabot

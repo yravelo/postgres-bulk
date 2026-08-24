@@ -130,6 +130,11 @@ sensitive values in errors or metrics. Update user documentation when observable
 Do not add generated IDs, retries, adaptive lookup or new mapping support merely to simplify an
 example; document friction and propose the behavior separately.
 
+Build and Compatibility currently run on trusted self-hosted infrastructure. Only owner branches
+from this repository may execute there; external or otherwise untrusted PR code must not run on the
+self-hosted runner. Maintainers must preserve the exact PR guard and dedicated labels documented in
+the [self-hosted runner security model](docs/security/self-hosted-runner.md).
+
 ## Release candidate dry-run
 
 The default build uses `0.1.0-SNAPSHOT` and never needs signing material. The `release` profile
