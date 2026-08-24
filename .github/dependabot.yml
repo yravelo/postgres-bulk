@@ -21,6 +21,8 @@ updates:
           - "org.apache.maven.plugins:*"
           - "org.codehaus.mojo:*"
           - "com.diffplug.spotless:*"
+          - "com.github.spotbugs:*"
+          - "com.h3xstream.findsecbugs:*"
         update-types:
           - minor
           - patch

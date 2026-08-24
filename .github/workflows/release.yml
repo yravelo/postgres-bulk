@@ -106,6 +106,9 @@ jobs:
         working-directory: code/postgres-bulk-parent
         run: ./mvnw --batch-mode --no-transfer-progress clean verify
 
+      - name: Revalidate static-analysis reports
+        run: ./scripts/check-static-analysis.py
+
       - name: Documentation and link gates
         run: ./scripts/check-documentation.sh
 

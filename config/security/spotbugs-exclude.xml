@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+  <!--
+    owner: yravelo; review-by: 2027-02-24
+    List.copyOf creates the immutable representation returned by this exact accessor. The
+    executable ColumnMetadata elements have an explicit caller-owned thread-safety contract.
+  -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP" />
+    <Class name="io.ybr.postgresbulk.core.metadata.BulkKeyMetadata" />
+    <Method name="components" />
+  </Match>
+
+  <!--
+    owner: yravelo; review-by: 2027-02-24
+    List.copyOf creates the immutable representation returned by this exact accessor. The
+    executable ColumnMetadata elements have an explicit caller-owned thread-safety contract.
+  -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP" />
+    <Class name="io.ybr.postgresbulk.core.metadata.EntityMetadata" />
+    <Method name="insertColumns" />
+  </Match>
+
+  <!--
+    owner: yravelo; review-by: 2027-02-24
+    SQL is produced only by BulkLookupSql from individually quoted identifiers. JDBC parameters
+    cannot represent DDL identifiers or a complete DROP statement.
+  -->
+  <Match>
+    <Bug pattern="SQL_INJECTION_JDBC" />
+    <Class name="io.ybr.postgresbulk.pgjdbc.copy.TemporaryTableBulkLookup" />
+    <Method name="executeStatement" />
+  </Match>
+
+  <!--
+    owner: yravelo; review-by: 2027-02-24
+    DROP SQL is produced only by BulkLookupSql from the validated, quoted temporary-table name;
+    cleanup preserves a primary failure by attaching SQLException as suppressed.
+  -->
+  <Match>
+    <Bug pattern="SQL_INJECTION_JDBC" />
+    <Class name="io.ybr.postgresbulk.pgjdbc.copy.TemporaryTableBulkLookup" />
+    <Method name="cleanup" />
+  </Match>
+
+  <!--
+    owner: yravelo; review-by: 2027-02-24
+    selectSql is an internal callback value produced only by BulkLookupSql. Every dynamic schema,
+    table, column and temporary name is quoted before this materializer receives the statement.
+  -->
+  <Match>
+    <Bug pattern="SQL_INJECTION_JDBC" />
+    <Class name="io.ybr.postgresbulk.springdata.jdbc.DefaultSpringDataJdbcBulkOperations$EntityRowMapperMaterializer" />
+    <Method name="materialize" />
+  </Match>
+
+  <!--
+    owner: yravelo; review-by: 2027-02-24
+    This Spring Data infrastructure constructor validates both collaborators and intentionally
+    fails fast. The class has no finalizer and its documentation rejects application subclassing.
+  -->
+  <Match>
+    <Bug pattern="CT_CONSTRUCTOR_THROW" />
+    <Class name="io.ybr.postgresbulk.springdata.repository.DefaultPostgresBulkOperations" />
+    <Method name="&lt;init&gt;" />
+  </Match>
+</FindBugsFilter>

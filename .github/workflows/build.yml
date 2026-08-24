@@ -68,6 +68,10 @@ jobs:
       - name: Verify reactor
         run: ./mvnw --batch-mode --no-transfer-progress clean verify
 
+      - name: Audit static-analysis reports
+        working-directory: .
+        run: ./scripts/check-static-analysis.py
+
       - name: Install development snapshot
         run: ./mvnw --batch-mode --no-transfer-progress -DskipTests install
 

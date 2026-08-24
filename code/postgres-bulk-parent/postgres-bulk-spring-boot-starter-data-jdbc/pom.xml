@@ -12,6 +12,10 @@
   <name>PostgreSQL Bulk Spring Boot Starter for Spring Data JDBC</name>
   <description>Dependency-only starter for PostgreSQL Bulk with Spring Data JDBC</description>
 
+  <properties>
+    <spotbugs.skip>true</spotbugs.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>

@@ -58,7 +58,7 @@
   <properties>
     <revision>0.1.0-SNAPSHOT</revision>
     <java.version>17</java.version>
-    <maven.minimum.version>3.6.3</maven.minimum.version>
+    <maven.minimum.version>3.8.9</maven.minimum.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <maven.compiler.release>${java.version}</maven.compiler.release>
@@ -89,6 +89,10 @@
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
     <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
     <central-publishing-maven-plugin.version>0.11.0</central-publishing-maven-plugin.version>
+    <spotbugs-maven-plugin.version>4.10.4.0</spotbugs-maven-plugin.version>
+    <spotbugs.version>4.10.4</spotbugs.version>
+    <findsecbugs.version>1.14.0</findsecbugs.version>
+    <spotbugs.skip>false</spotbugs.skip>
     <spotless-maven-plugin.version>3.9.0</spotless-maven-plugin.version>
   </properties>
 
@@ -253,6 +257,23 @@
           <version>${maven-enforcer-plugin.version}</version>
         </plugin>
         <plugin>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>${spotbugs-maven-plugin.version}</version>
+          <dependencies>
+            <dependency>
+              <groupId>com.github.spotbugs</groupId>
+              <artifactId>spotbugs</artifactId>
+              <version>${spotbugs.version}</version>
+            </dependency>
+            <dependency>
+              <groupId>com.h3xstream.findsecbugs</groupId>
+              <artifactId>findsecbugs-plugin</artifactId>
+              <version>${findsecbugs.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+        <plugin>
           <groupId>com.diffplug.spotless</groupId>
           <artifactId>spotless-maven-plugin</artifactId>
           <version>${spotless-maven-plugin.version}</version>
@@ -337,6 +358,29 @@
             <goals>
               <goal>integration-test</goal>
               <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+        <artifactId>spotbugs-maven-plugin</artifactId>
+        <configuration>
+          <effort>Max</effort>
+          <threshold>Medium</threshold>
+          <includeTests>false</includeTests>
+          <skip>${spotbugs.skip}</skip>
+          <excludeFilterFile>${maven.multiModuleProjectDirectory}/../../config/security/spotbugs-exclude.xml</excludeFilterFile>
+          <failOnError>true</failOnError>
+          <maxAllowedViolations>0</maxAllowedViolations>
+          <xmlOutput>true</xmlOutput>
+        </configuration>
+        <executions>
+          <execution>
+            <id>verify-production-bytecode</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
             </goals>
           </execution>
         </executions>

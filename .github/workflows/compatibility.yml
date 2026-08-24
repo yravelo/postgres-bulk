@@ -38,6 +38,7 @@ jobs:
       - name: Verify multi-schema starter composition
         run: >-
           ./mvnw --batch-mode --no-transfer-progress clean verify
+          -Dspotbugs.skip=true
           -pl postgres-bulk-spring-boot-starter,postgres-bulk-spring-boot-starter-data-jdbc
           -am
           -Dtest=PostgresBulkAutoConfigurationTest,PostgresBulkJdbcAutoConfigurationTest,BothStartersCoexistenceTest
@@ -68,7 +69,7 @@ jobs:
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify on Java ${{ matrix.java }}
-        run: ./mvnw --batch-mode --no-transfer-progress clean verify
+        run: ./mvnw --batch-mode --no-transfer-progress clean verify -Dspotbugs.skip=true
 
   boot-minimum:
     name: Multi-schema minimum — Java 17 / Boot + Data JDBC 3.5.0 / pgJDBC 42.7.13 / PostgreSQL 15.18
@@ -96,7 +97,10 @@ jobs:
           -am dependency:tree
           -Dincludes=org.springframework:spring-core,org.springframework:spring-jdbc,org.springframework.data:spring-data-jpa,org.springframework.data:spring-data-jdbc,org.springframework.data:spring-data-relational,org.hibernate.orm:hibernate-core,io.micrometer:micrometer-core,org.postgresql:postgresql
       - name: Verify Boot 3.5.0
-        run: ./mvnw --batch-mode --no-transfer-progress clean verify -Dspring-boot.version=3.5.0
+        run: >-
+          ./mvnw --batch-mode --no-transfer-progress clean verify
+          -Dspotbugs.skip=true
+          -Dspring-boot.version=3.5.0
 
   postgres:
     name: Multi-schema — PostgreSQL ${{ matrix.postgres }} / JDBC + JPA baseline stack
@@ -123,7 +127,10 @@ jobs:
       - name: Verify PostgreSQL ${{ matrix.postgres }}
         env:
           POSTGRES_VERSION: ${{ matrix.postgres }}
-        run: ./mvnw --batch-mode --no-transfer-progress clean verify -Dpostgres.version="${POSTGRES_VERSION}"
+        run: >-
+          ./mvnw --batch-mode --no-transfer-progress clean verify
+          -Dspotbugs.skip=true
+          -Dpostgres.version="${POSTGRES_VERSION}"
 
   newest:
     name: Multi-schema newest — Java 21 / Boot 3.5.16 / Data JDBC 3.5.13 / pgJDBC 42.7.13 / PostgreSQL 18.4
@@ -146,6 +153,7 @@ jobs:
       - name: Verify newest supported boundaries
         run: >-
           ./mvnw --batch-mode --no-transfer-progress clean verify
+          -Dspotbugs.skip=true
           -Dhibernate.version=6.6.55.Final
           -Dpostgresql.version=42.7.13
           -Dpostgres.version=18.4-alpine
@@ -183,6 +191,7 @@ jobs:
           HIBERNATE_VERSION: ${{ matrix.hibernate }}
         run: >-
           ./mvnw --batch-mode --no-transfer-progress clean verify
+          -Dspotbugs.skip=true
           -pl postgres-bulk-hibernate -am
           -Dhibernate.version="${HIBERNATE_VERSION}"
 
@@ -213,5 +222,6 @@ jobs:
           PGJDBC_VERSION: ${{ matrix.pgjdbc }}
         run: >-
           ./mvnw --batch-mode --no-transfer-progress clean verify
+          -Dspotbugs.skip=true
           -pl postgres-bulk-pgjdbc -am
           -Dpostgresql.version="${PGJDBC_VERSION}"
