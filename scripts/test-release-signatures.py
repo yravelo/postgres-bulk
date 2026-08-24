@@ -168,6 +168,22 @@ class ReleaseSignatureTests(unittest.TestCase):
         unexpected.unlink()
         self.assertIn("unexpected", result.stderr + result.stdout)
 
+    def test_unexpected_checksum_entry(self) -> None:
+        original = self.checksums.read_text(encoding="utf-8")
+        extra = self.evidence / "unexpected.txt"
+        extra.write_text("unexpected evidence\n", encoding="utf-8")
+        extra_digest = hashlib.sha256(extra.read_bytes()).hexdigest()
+        self.checksums.write_text(
+            original + f"{extra_digest}  evidence/{extra.name}\n", encoding="utf-8"
+        )
+        sign(self.home, self.signer, self.checksums)
+        result = self.checker()
+        self.checksums.write_text(original, encoding="utf-8")
+        sign(self.home, self.signer, self.checksums)
+        extra.unlink()
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("checksum inventory mismatch", result.stderr + result.stdout)
+
     def test_snapshot_candidate(self) -> None:
         result = run(
             "python3", str(GENERATOR), "--policy", str(self.policy), "--staging", str(self.staging),

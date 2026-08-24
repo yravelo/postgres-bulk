@@ -94,14 +94,13 @@ python3 "${SCRIPT_DIR}/generate-release-inventory.py" \
 
 python3 - "${CANDIDATE_ROOT}" "${SIGNED_STAGING}" "${EVIDENCE}" <<'PY'
 import hashlib
+import json
 import sys
 from pathlib import Path
 
 root, staging, evidence = map(Path, sys.argv[1:])
-files = [
-    path for path in staging.rglob("*")
-    if path.is_file() and not path.name.endswith(".asc")
-]
+inventory = json.loads((evidence / "release-inventory.json").read_text(encoding="utf-8"))
+files = [staging / item["filename"] for item in inventory["artifacts"]]
 files.extend(
     [
         evidence / "release-inventory.json",
