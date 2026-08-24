@@ -229,6 +229,13 @@ def common_semantic_errors(name: str, workflow: dict[str, Any]) -> list[str]:
                     errors.append(f"{job_name}: setup-java must not create publishing settings")
                 if isinstance(inputs, dict) and forbidden & set(inputs):
                     errors.append(f"{job_name}: setup-java contains publishing inputs")
+                if name in SELF_HOSTED_WORKFLOWS and (
+                    not isinstance(inputs, dict)
+                    or inputs.get("settings-path") != "${{ runner.temp }}"
+                ):
+                    errors.append(
+                        f"{job_name}: self-hosted setup-java settings must stay in runner.temp"
+                    )
 
         if isinstance(uses, str) and uses.startswith("actions/upload-artifact@"):
             if not isinstance(inputs, dict) or "retention-days" not in inputs:

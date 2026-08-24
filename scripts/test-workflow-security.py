@@ -100,6 +100,17 @@ class WorkflowSecurityTests(unittest.TestCase):
             workflow = self.load(name)
             self.assertEqual([], SECURITY.runner_boundary_errors(name, workflow))
 
+    def test_self_hosted_persistent_maven_settings_fail(self) -> None:
+        workflow = self.load("build.yml")
+        setup = next(
+            step
+            for step in workflow["jobs"]["verify"]["steps"]
+            if step.get("name") == "Set up Java"
+        )
+        setup["with"].pop("settings-path")
+        errors = SECURITY.common_semantic_errors("build.yml", workflow)
+        self.assertTrue(any("settings must stay in runner.temp" in error for error in errors))
+
     def test_release_remains_on_github_hosted_runner(self) -> None:
         workflow = self.load("release.yml")
         self.assertEqual([], SECURITY.runner_boundary_errors("release.yml", workflow))

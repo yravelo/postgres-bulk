@@ -56,6 +56,7 @@ jobs:
           distribution: temurin
           java-version: 17
           overwrite-settings: false
+          settings-path: ${{ runner.temp }}
           cache: maven
           cache-dependency-path: |
             code/postgres-bulk-parent/pom.xml

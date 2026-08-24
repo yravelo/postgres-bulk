@@ -38,6 +38,7 @@ jobs:
           distribution: temurin
           java-version: 17
           overwrite-settings: false
+          settings-path: ${{ runner.temp }}
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify multi-schema starter composition
@@ -76,6 +77,7 @@ jobs:
           distribution: temurin
           java-version: ${{ matrix.java }}
           overwrite-settings: false
+          settings-path: ${{ runner.temp }}
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify on Java ${{ matrix.java }}
@@ -102,6 +104,7 @@ jobs:
           distribution: temurin
           java-version: 17
           overwrite-settings: false
+          settings-path: ${{ runner.temp }}
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Audit managed stack
@@ -142,6 +145,7 @@ jobs:
           distribution: temurin
           java-version: 17
           overwrite-settings: false
+          settings-path: ${{ runner.temp }}
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify PostgreSQL ${{ matrix.postgres }}
@@ -173,6 +177,7 @@ jobs:
           distribution: temurin
           java-version: 21
           overwrite-settings: false
+          settings-path: ${{ runner.temp }}
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify newest supported boundaries
@@ -214,6 +219,7 @@ jobs:
           distribution: temurin
           java-version: 17
           overwrite-settings: false
+          settings-path: ${{ runner.temp }}
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify Hibernate adapter
@@ -250,6 +256,7 @@ jobs:
           distribution: temurin
           java-version: 17
           overwrite-settings: false
+          settings-path: ${{ runner.temp }}
           cache: maven
           cache-dependency-path: code/postgres-bulk-parent/pom.xml
       - name: Verify pgJDBC COPY adapter
