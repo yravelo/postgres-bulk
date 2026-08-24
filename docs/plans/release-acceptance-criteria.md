@@ -68,8 +68,9 @@ Estado auditado para el candidato `0.1.0` tras Phase 16E. Cada criterio usa excl
 - **PASS** — El release candidate repite el vulnerability gate antes de cualquier upload futuro;
   scanner error, inventario incompleto, production HIGH/CRITICAL sin triage o accepted risk expirado
   bloquean.
-- **PASS** — Dependabot opera semanalmente para Maven, Actions y Docker con PRs limitados, majors
-  manuales y sin auto-merge.
+- **PASS** — Dependabot opera en cinco lanes semanales Maven/Actions con PRs limitados, majors
+  manuales y sin auto-merge; Compose conserva tags explícitos y revisión manual porque las dos
+  lanes Docker reales rechazaron `compose.yaml`.
 - **PASS** — No se requiere NOTICE vacío según el contenido actualmente auditado.
 - **PASS** — SHA-256 de artifacts staged se genera e inspecciona.
 - **PASS** — OpenPGP sigue siendo obligatorio; la firma está aislada en `central-publish` y el

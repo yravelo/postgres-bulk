@@ -21,8 +21,6 @@ EXPECTED = {
     ("maven", "/examples/spring-boot-data-jdbc"),
     ("maven", "/verification/spring-boot-jdbc-consumer"),
     ("github-actions", "/"),
-    ("docker", "/examples/spring-boot-basic"),
-    ("docker", "/examples/spring-boot-data-jdbc"),
 }
 
 
@@ -72,7 +70,7 @@ def main() -> int:
         if not images or any(not isinstance(image, str) or ":" not in image or image.endswith(":latest") for image in images):
             raise ValueError(f"{path.relative_to(ROOT)} must use explicit non-latest image tags")
 
-    print("Dependabot configuration passed: 7 weekly lanes, bounded PRs, majors manual, no auto-merge")
+    print("Dependabot configuration passed: 5 weekly lanes, bounded PRs, majors manual, no auto-merge")
     return 0
 
 

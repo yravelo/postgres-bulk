@@ -55,10 +55,11 @@ outside shell blocks. Secret masking is only defense-in-depth; it is not an auth
 isolation boundary. Release credentials belong exclusively to the `central-upload` job, and no
 candidate, build, test, cache or artifact may contain them.
 
-Dependabot opens bounded weekly Maven, Actions and Docker update PRs. It never auto-merges. Review
+Dependabot opens bounded weekly Maven and Actions update PRs. It never auto-merges. Review
 each PR, keep majors and Boot generation changes manual, preserve full Action SHAs plus version
 comments and run Build plus relevant Compatibility lanes for dependency changes. Docker references
-must remain explicit non-`latest` tags.
+must remain explicit non-`latest` tags and are reviewed manually because GitHub's Docker updater did
+not recognize this repository's Compose-only manifests.
 
 ## Compatibility
 

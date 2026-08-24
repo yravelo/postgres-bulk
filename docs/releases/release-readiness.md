@@ -71,7 +71,7 @@ session data or token is stored. The real Portal user token has not been generat
 | GitHub Private Vulnerability Reporting | DEFERRED (non-blocking) — API returned 404 for this private repository; unchanged |
 | OSV dependency gate | PASS — 2.5.1 checksum-pinned; 129/129 exact package versions, zero BLOCK |
 | Accepted dependency risks | PASS — five exact WARN records expire 2026-10-24 |
-| Dependabot update policy | PASS — seven weekly bounded lanes, majors manual, no auto-merge |
+| Dependabot update policy | PASS — five weekly Maven/Actions lanes, majors manual, no auto-merge; Compose manual |
 | OpenPGP strategy | PASS — required by Central and isolated in `central-publish` |
 | Protected OpenPGP key | EXTERNAL PREREQUISITE — real key was not generated |
 | GitHub branch protection/rules | DEFERRED (non-blocking) — unavailable for this private repository on the current plan |
