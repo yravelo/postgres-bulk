@@ -115,3 +115,11 @@ Los smokes Boot JPA/JDBC ejecutan A/B/C, quoted schema, mismo transaction scope 
 mutar `getSchema`/`search_path`. Same/separate data source sólo cambia qué conexión entrega la
 aplicación; el target sigue limitado a la database ya conectada. No aparecen tags target-aware ni
 restore de estado y ADR-032 permanece `ACCEPTED`.
+
+## Evidencia posterior MS7
+
+Las lanes boundary/pairwise y los ejemplos externos vuelven a cubrir default, A/B, quoted,
+concurrencia, pool reuse, rollback y objetos ausentes sobre PostgreSQL 15.18/16.14/17.10/18.4. La
+documentación distingue database routing (`DataSource`/`Connection`) de schema/table (`TableName`)
+y asigna autorización/provisioning a la aplicación. No se añadió `setSchema`, `search_path`, estado
+ambiental, cache por target ni tags de alta cardinalidad. ADR-032 permanece `ACCEPTED`.

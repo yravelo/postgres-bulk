@@ -1,6 +1,6 @@
 # Evidencia de compatibilidad
 
-**Corte de evidencia:** 2026-08-20. Todos los comandos se ejecutaron desde
+**Corte de evidencia:** 2026-08-24, cierre MS7. Todos los comandos se ejecutaron desde
 `code/postgres-bulk-parent` en Linux, con Maven Wrapper 3.9.16, Docker 29.7.0 y sin omitir
 Enforcer ni tests de integración.
 
@@ -79,6 +79,52 @@ JAVA_HOME=/tmp/postgres-bulk-jdks/jdk21 ./mvnw --batch-mode --no-transfer-progre
 ```
 
 `JAVA_HOME` identifica aquí los JDK exactos usados; en CI `setup-java` hace esa selección.
+
+## Evidencia multi-schema MS7
+
+MS7 volvió a ejecutar localmente los full reactors J01, J02, B01, P16, P17 y N01 sobre los
+overloads target-aware ya entregados por MS2–MS6. J03, H01/H02 y D01/D02 quedaron cubiertos por el
+workflow remoto del mismo commit. La estrategia continúa siendo boundary/pairwise: cambia un eje
+por lane y añade un smoke coherente con todos los límites nuevos, sin producto cartesiano.
+
+| Área | Evidencia incluida en la matriz | Resultado |
+|---|---|---|
+| Core/pgJDBC | default + A/B/C, insert, lookup, quoted, schema/table ausente y conflicto pre-JDBC | PASS |
+| Spring Data JPA | repository singleton, default/A/B, lookup, rollback, read-only, REQUIRES_NEW y NESTED rechazado | PASS |
+| Spring Data JDBC | repository singleton, default/A/B, lookup/materialización, rollback, read-only, REQUIRES_NEW y NESTED condicionado | PASS |
+| Boot JPA-only | activación/back-off, starter real y target explícito | PASS |
+| Boot JDBC-only | activación/back-off, starter real y target explícito | PASS |
+| Ambos starters | resolvers separados, sin cross-wiring y managers caracterizados | PASS |
+| Estado de conexión | A→B pooled y concurrencia sin `setSchema`/`search_path` | PASS |
+| Aislamiento | grafo JDBC sin JPA/Hibernate/Actuator obligatorio/Testcontainers productivo/benchmarks | PASS |
+| Adopción | ejemplos standalone JPA/JDBC y consumidor JDBC aislado | PASS |
+
+Comandos adicionales ejecutados para MS7:
+
+```bash
+./mvnw spotless:check
+./mvnw test
+./mvnw verify
+JAVA_HOME=/tmp/postgres-bulk-jdks/jdk17 ./mvnw clean verify
+./mvnw install
+JAVA_HOME=/tmp/postgres-bulk-jdks/jdk17 ./mvnw --batch-mode --no-transfer-progress -q clean verify \
+  -pl postgres-bulk-spring-boot-starter,postgres-bulk-spring-boot-starter-data-jdbc -am \
+  -Dtest=PostgresBulkAutoConfigurationTest,PostgresBulkJdbcAutoConfigurationTest,BothStartersCoexistenceTest \
+  -Dit.test=PostgresBulkStarterIT,JdbcStarterSmokeIT \
+  -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false
+./mvnw --batch-mode --no-transfer-progress -q -f ../../examples/spring-boot-basic/pom.xml clean verify
+./mvnw --batch-mode --no-transfer-progress -q -f ../../examples/spring-boot-data-jdbc/pom.xml clean verify
+./mvnw --batch-mode --no-transfer-progress -q -f ../../verification/spring-boot-jdbc-consumer/pom.xml clean verify
+../../scripts/generate-public-api.sh --check
+../../scripts/check-documentation.sh
+git diff --check
+```
+
+`verify` produjo Javadocs sin warnings/errores del plugin. La baseline binaria pública no cambió,
+los dos JARs starter contienen sólo metadata Maven/manifest, los enlaces y coordinates pasan el
+audit y ningún reporte Surefire/Failsafe generado contiene failures, errors o skips. Los módulos
+benchmark se empaquetaron como parte normal del reactor, pero no se ejecutó JMH ni se generó claim
+de rendimiento.
 
 ## Evidencia Spring Data JDBC J7
 
@@ -175,11 +221,16 @@ y [descargas pgJDBC](https://jdbc.postgresql.org/download/).
 ## CI
 
 `build.yml` mantiene una baseline única y verifica ambos ejemplos como consumidores instalados.
-`compatibility.yml` declara 10 ejecuciones adicionales:
-Java 21/25, Boot 3.5.0, PostgreSQL 16.14/17.10, newest, Hibernate 6.6.15/6.6.55 y pgJDBC
+`compatibility.yml` declara 11 ejecuciones adicionales:
+composición multi-schema, Java 21/25, Boot 3.5.0, PostgreSQL 16.14/17.10, newest, Hibernate 6.6.15/6.6.55 y pgJDBC
 42.7.5/42.7.13. PostgreSQL 15.18 y Boot 3.5.16 quedan cubiertos por baseline; PostgreSQL 18.4 por
 newest. Todos los full reactors conservan JPA y añaden la evidencia JDBC; el job newest audita
 explícitamente aislamiento del starter. Ambos workflows disparan en pull request y push a `main`.
+
+La primera ejecución remota de MS7 sobre `726cbec` terminó verde el 2026-08-24:
+
+- Build [`32714347790`](https://github.com/yravelo/postgres-bulk/actions/runs/32714347790): PASS;
+- Compatibility [`32714347857`](https://github.com/yravelo/postgres-bulk/actions/runs/32714347857): PASS en sus 11 jobs.
 
 La primera ejecución remota de cierre J7 sobre `2717f10` terminó verde el 2026-08-20:
 

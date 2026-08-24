@@ -73,3 +73,12 @@ Context runners con ambos starters confirman resolvers independientes, back-off 
 sources no primary y activación con un primary. Un resolver del usuario sigue disponible para
 wiring explícito multi-store. El starter JDBC ejecuta A/B/C y los consumidores externos A/B sin
 Java productivo, contaminación JPA ni property global; ADR-030 permanece `ACCEPTED`.
+
+## Evidencia multi-schema MS7
+
+El nuevo job de composición ejecuta explícitamente autoconfiguration JPA/JDBC, ambos starters y sus
+smokes target-aware sobre Java 17/PostgreSQL 15.18. Las lanes mínima, actual y newest repiten esa
+composición mediante full reactor. Los ejemplos standalone JPA/JDBC y el consumidor JDBC aislado
+usan únicamente los starters publicados por el snapshot; `dependency:tree` y los JARs confirman
+que no aparece cross-wiring ni contaminación productiva. No cambió código de autoconfiguration,
+back-off ni properties, por lo que ADR-030 permanece `ACCEPTED`.

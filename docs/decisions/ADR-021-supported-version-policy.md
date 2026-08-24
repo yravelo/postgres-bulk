@@ -56,6 +56,18 @@ resolver, fragment discovery, `EntityRowMapper`, transacciones, autoconfiguratio
 JDBC-only, coexistencia JPA y el ejemplo ejecutable. No se infieren Boot/Data 4 ni patches no
 ejecutados.
 
+## Evidencia multi-schema MS7
+
+MS7 aplica esta misma política al contrato operation-scoped completo. Los full reactors de Java
+17/21, Boot mínimo/actual y PostgreSQL 15–18 incluyen insert/lookup target-aware de pgJDBC, JPA,
+Spring Data JDBC y Boot; el stack newest combina Java 21, Hibernate 6.6.55, pgJDBC 42.7.13 y
+PostgreSQL 18.4. Un job focalizado valida JPA-only, JDBC-only y ambos starters en la baseline. Los
+ejemplos standalone y el consumidor aislado prueban adopción fuera del reactor. Build
+`32714347790` y Compatibility `32714347857` quedaron verdes, este último con 11 jobs.
+
+La evidencia no amplía rangos ni infiere patches no ejecutados. Tampoco convierte Java 25 en
+SUPPORTED ni introduce producto cartesiano, resolución tenant, tags por target o benchmarks.
+
 ## Fuentes upstream
 
 - [Spring Boot system requirements](https://docs.spring.io/spring-boot/system-requirements.html)

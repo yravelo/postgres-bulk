@@ -118,3 +118,12 @@ no conserva `TableName`. ADR-031 permanece `ACCEPTED`.
 Boot no introduce una capa de resolución: los consumidores continúan pasando `TableName` a los
 repositories JPA/JDBC. Default+A/B/C y concurrencia reutilizan los mismos proxies y metadata; las
 autoconfiguraciones no conservan target ni crean un tipo nuevo. ADR-031 permanece `ACCEPTED`.
+
+## Evidencia posterior MS7
+
+La guía y los ejemplos de adopción mantienen `TableName` como argumento explícito. La aplicación
+resuelve un customer mediante un allow-list propio y entrega A, B o un schema quoted; input no
+autorizado se rechaza antes de invocar el repository. Default y targets alternan en los mismos
+proxies, con lookup y rollback, sin nuevo SPI, facade, property ni API pública. La baseline binaria
+permanece idéntica y la matriz Java/Boot/Hibernate/pgJDBC/PostgreSQL queda verde. ADR-031 permanece
+`ACCEPTED`.

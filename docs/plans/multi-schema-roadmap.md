@@ -216,7 +216,7 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
   `REQUIRES_NEW`, diferencia NESTED, read-only, concurrencia, quoting, SQLState, pool/cache y cero
   tags/properties target-aware. Starters/dependency boundaries y consumidores externos pasan.
 
-## MS7 — Multi-Schema Compatibility, Examples & Documentation
+## MS7 — Multi-Schema Compatibility, Examples & Documentation — DONE (2026-08-24)
 
 - **Objective:** convertir la capacidad ya robusta en un contrato de adopción respaldado por la
   matriz de versiones soportada, ejemplos ejecutables y documentación completa.
@@ -241,8 +241,14 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
   schema y claims que excedan la evidencia.
 - **Dependencies:** MS6 y ADR-021/031/032.
 - **Deferred:** benchmarks, publicación, security/supply-chain baseline and Boot 4 generation.
+- **Closure:** la matriz boundary/pairwise valida Java 17/21, Boot/Data mínimo y actual,
+  Hibernate/pgJDBC mínimo y actual y PostgreSQL 15.18–18.4; un job focalizado cubre JPA-only,
+  JDBC-only y ambos starters. Ejemplos standalone JPA/JDBC demuestran default, A/B, lookup,
+  rollback, quoted y allow-list de aplicación. Guía, API/Javadocs/docs/dependency/JAR audits y
+  consumidores externos pasan. Build `32714347790` y Compatibility `32714347857` terminan verdes
+  sin features runtime, benchmarks, security baseline, publicación ni Release.
 
-## MS8 — Multi-Schema Benchmarks and Final Closure
+## MS8 — Multi-Schema Benchmarks & Technical Closure
 
 - **Objective:** medir el overhead operation-scoped y cerrar la línea técnica sin publicar.
 - **Scope:** default frente a warm A/B/C, cardinalidad de schemas, insert/lookup, adapter frente a
@@ -274,8 +280,8 @@ MS0 investigation
           -> MS5 Spring Data JDBC
             -> MS6 Boot/coexistence
               -> MS7 compatibility/examples/documentation
-                -> MS8 benchmarks/final closure
+                -> MS8 benchmarks/technical closure
 ```
 
-La única siguiente fase autorizable después de MS6 es
-**MS7 — Multi-Schema Compatibility, Examples & Documentation**.
+La única siguiente fase autorizable después de MS7 es
+**MS8 — Multi-Schema Benchmarks & Technical Closure**.

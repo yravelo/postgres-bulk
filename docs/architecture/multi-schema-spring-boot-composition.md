@@ -149,12 +149,15 @@ Los ejemplos standalone JPA y JDBC, más el consumidor JDBC aislado, compilan co
 instalados y ejecutan insert/lookup A/B mediante API pública. Esto verifica adopción fuera del
 parent/reactor sin importar internals.
 
-## Non-goals y handoff MS7
+## Non-goals y cierre MS7
 
 MS6 no añade tenant resolver/context, routing, property global, JTA, chained managers, provisioning,
 migrations, row-level tenancy, security baseline, observability target-aware, publicación,
 benchmarks ni cierre completo de compatibilidad.
 
-La siguiente fase es **MS7 — Multi-Schema Compatibility, Examples & Documentation**: ampliar la
-matriz soportada y convertir esta evidencia en adopción/documentación final sin reabrir el modelo de
-composición.
+MS7 completó la matriz soportada, los ejemplos standalone JPA/JDBC y la guía de adopción sin
+reabrir el modelo de composición. El job focalizado JPA-only/JDBC-only/both y los full reactors
+mínimo/newest pasan, igual que Build `32714347790` y Compatibility `32714347857` (11 jobs). No se
+añadieron beans, properties o código runtime.
+
+La siguiente fase es **MS8 — Multi-Schema Benchmarks & Technical Closure**.

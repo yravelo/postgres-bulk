@@ -391,7 +391,7 @@ JOIN. Un input vacío inválido falla sin tocar JDBC. MS4 confirmó materializac
 el SELECT target-qualified. MS5 confirmó que `EntityRowMapper` Spring Data JDBC consume ese mismo
 SELECT, conserva un query y reutiliza metadata/ID variants para A/B.
 
-## Conclusión actualizada tras MS6
+## Conclusión actualizada tras MS7
 
 El diseño es viable sin hacer tenant-aware a la librería. `TableName` ya expresa el destino físico
 completo; el cambio necesario es desplazar su selección al scope de invocación y evitar que SQL
@@ -402,6 +402,12 @@ conexión. CTAS/JOIN confirma la misma hipótesis en PostgreSQL 15.18, incluido 
 concurrencia, transacciones, fallos y cleanup sin cache target-keyed. JPA y Spring Data JDBC
 propagan el mismo contrato desde repositories singleton sin estado ni caches por target. La línea
 Boot compone ambos starters respetando candidate/back-off y límites de store, y los smokes externos
-confirman default+A/B/C sin property, bean o estado target-aware. La línea puede avanzar a
-**MS7 — Multi-Schema Compatibility, Examples & Documentation** sin introducir resolución global de
-schema/tenant.
+confirman default+A/B/C sin property, bean o estado target-aware. MS7 valida ese mismo diseño sin
+introducir resolución global de schema/tenant en Java 17/21, los stacks Boot mínimo/actual, los
+límites Hibernate/pgJDBC y PostgreSQL 15–18. Los ejemplos externos y la guía convierten la
+capacidad en un contrato reproducible sin cambiar API ni runtime: la aplicación autoriza y pasa un
+`TableName` explícito; `DataSource`/`Connection` continúa seleccionando la database.
+
+La siguiente fase es **MS8 — Multi-Schema Benchmarks & Technical Closure**. Debe medir antes de
+considerar cualquier optimización y no reabrir resolución tenant, state de conexión o cache por
+target sin evidencia y decisión nuevas.

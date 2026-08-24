@@ -1,6 +1,7 @@
 # Compatibilidad soportada
 
-**Estado:** política validada el 2026-08-20. Las versiones exactas, comandos y resultados viven en
+**Estado:** política y cobertura multi-schema validadas el 2026-08-24. Las versiones exactas,
+comandos y resultados viven en
 [`compatibility-evidence.md`](compatibility-evidence.md); ADR-021 define cómo evoluciona el soporte.
 
 ## Significado de los estados
@@ -55,6 +56,27 @@ El smoke de extremos nuevos usa JDK 21 + Boot 3.5.16/Spring Data JPA/JDBC/Relati
 Hibernate 6.6.55.Final, pgJDBC 42.7.13 y PostgreSQL 18.4. Los overrides son patches dentro de las
 líneas que los adapters declaran independientemente; Enforcer permanece activo.
 
+## Compatibilidad multi-schema
+
+La política boundary/pairwise aplica también a los overloads con `TableName`. Cada full reactor de
+la matriz ejecuta la regresión default y las integraciones target-aware de pgJDBC, JPA, Spring Data
+JDBC y Boot. Un job focalizado adicional cubre JPA-only, JDBC-only y ambos starters sobre la
+baseline. No se construye un producto cartesiano.
+
+| Contrato | Cobertura validada |
+|---|---|
+| Target default y schemas A/B/C | full reactors y smokes Boot JPA/JDBC |
+| JPA-only / JDBC-only / ambos starters | baseline, mínimo, newest y job de composición |
+| Mapping estático | sin schema + target qualified permitido; schema fijo idéntico permitido; conflicto rechazado |
+| Identificadores y errores | schemas quoted, schema/table ausente, permisos y SQLState preservados |
+| Transacciones | REQUIRED/rollback/read-only; REQUIRES_NEW y diferencias NESTED representativas |
+| Concurrencia y pool | A/B concurrente y reutilización A→B sin estado de schema en conexión |
+| Activación y aislamiento | condiciones, back-off, override de usuario y grafos JPA/JDBC separados |
+
+Esta validación no añade resolución de tenant, property global de schema, `search_path`,
+`Connection.setSchema`, cache por target ni tags de observabilidad. La aplicación sigue eligiendo y
+autorizando el destino físico por operación.
+
 ## PostgreSQL
 
 La suite completa pasa en 15.18, 16.14, 17.10 y 18.4. Incluye COPY CSV
@@ -94,9 +116,16 @@ reflection ni multi-release JAR.
 ./mvnw clean verify -Dpostgres.version=18.4-alpine
 ./mvnw clean verify -pl postgres-bulk-hibernate -am -Dhibernate.version=6.6.55.Final
 ./mvnw clean verify -pl postgres-bulk-pgjdbc -am -Dpostgresql.version=42.7.13
+./mvnw clean verify \
+  -pl postgres-bulk-spring-boot-starter,postgres-bulk-spring-boot-starter-data-jdbc -am \
+  -Dtest=PostgresBulkAutoConfigurationTest,PostgresBulkJdbcAutoConfigurationTest,BothStartersCoexistenceTest \
+  -Dit.test=PostgresBulkStarterIT,JdbcStarterSmokeIT \
+  -Dsurefire.failIfNoSpecifiedTests=false -Dfailsafe.failIfNoSpecifiedTests=false
 ./mvnw -DskipTests -pl postgres-bulk-spring-boot-starter-data-jdbc -am dependency:tree
 ./mvnw install
+./mvnw -f ../../examples/spring-boot-basic/pom.xml clean verify
 ./mvnw -f ../../examples/spring-boot-data-jdbc/pom.xml clean verify
+./mvnw -f ../../verification/spring-boot-jdbc-consumer/pom.xml clean verify
 ```
 
 Spring Framework, Spring Data y Micrometer se cambian únicamente mediante
