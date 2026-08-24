@@ -19,12 +19,17 @@ defaults:
 jobs:
   multi-schema-composition:
     name: Multi-schema — JPA, JDBC and both starters / Java 17 / PostgreSQL 15.18
-    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.actor == 'yravelo' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
     timeout-minutes: 60
     steps:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          clean: true
           fetch-depth: 1
           persist-credentials: false
       - name: Set up Java 17
@@ -48,7 +53,11 @@ jobs:
 
   java:
     name: Multi-schema — Java ${{ matrix.java }} / JDBC + JPA baseline stack
-    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.actor == 'yravelo' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -58,6 +67,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          clean: true
           fetch-depth: 1
           persist-credentials: false
       - name: Set up Java
@@ -73,12 +83,17 @@ jobs:
 
   boot-minimum:
     name: Multi-schema minimum — Java 17 / Boot + Data JDBC 3.5.0 / pgJDBC 42.7.13 / PostgreSQL 15.18
-    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.actor == 'yravelo' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
     timeout-minutes: 60
     steps:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          clean: true
           fetch-depth: 1
           persist-credentials: false
       - name: Set up Java 17
@@ -104,7 +119,11 @@ jobs:
 
   postgres:
     name: Multi-schema — PostgreSQL ${{ matrix.postgres }} / JDBC + JPA baseline stack
-    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.actor == 'yravelo' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -114,6 +133,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          clean: true
           fetch-depth: 1
           persist-credentials: false
       - name: Set up Java 17
@@ -134,12 +154,17 @@ jobs:
 
   newest:
     name: Multi-schema newest — Java 21 / Boot 3.5.16 / Data JDBC 3.5.13 / pgJDBC 42.7.13 / PostgreSQL 18.4
-    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.actor == 'yravelo' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
     timeout-minutes: 60
     steps:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          clean: true
           fetch-depth: 1
           persist-credentials: false
       - name: Set up Java 21
@@ -166,7 +191,11 @@ jobs:
 
   hibernate-adapter:
     name: Hibernate adapter ${{ matrix.hibernate }}
-    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.actor == 'yravelo' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -176,6 +205,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          clean: true
           fetch-depth: 1
           persist-credentials: false
       - name: Set up Java 17
@@ -197,7 +227,11 @@ jobs:
 
   pgjdbc:
     name: pgJDBC ${{ matrix.pgjdbc }}
-    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.actor == 'yravelo' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -207,6 +241,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
+          clean: true
           fetch-depth: 1
           persist-credentials: false
       - name: Set up Java 17

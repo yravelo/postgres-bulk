@@ -53,6 +53,22 @@ BENCHMARK_PROFILES = {
     "multi-schema-smoke",
     "multi-schema-baseline",
 }
+SELF_HOSTED_WORKFLOWS = {"build.yml", "compatibility.yml"}
+SELF_HOSTED_LABELS = ["self-hosted", "linux", "x64", "postgres-bulk-ci"]
+TRUSTED_PULL_REQUEST_GUARD = (
+    "github.event_name != 'pull_request' || "
+    "(github.actor == 'yravelo' && "
+    "github.event.pull_request.head.repo.full_name == github.repository)"
+)
+COMPATIBILITY_LANES = {
+    "multi-schema-composition": None,
+    "java": ("java", ["21", "25"]),
+    "boot-minimum": None,
+    "postgres": ("postgres", ["16.14-alpine", "17.10-alpine"]),
+    "newest": None,
+    "hibernate-adapter": ("hibernate", ["6.6.15.Final", "6.6.55.Final"]),
+    "pgjdbc": ("pgjdbc", ["42.7.5", "42.7.13"]),
+}
 USES_LINE = re.compile(r"^\s*uses:\s*([^\s#]+)\s+#\s*(v\d+(?:\.\d+\.\d+)?)\s*$")
 SECRET_REFERENCE = re.compile(r"\$\{\{\s*secrets\.([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
 
@@ -193,6 +209,10 @@ def common_semantic_errors(name: str, workflow: dict[str, Any]) -> list[str]:
             expected_depth = "0" if name == "release.yml" else "1"
             if not isinstance(inputs, dict) or inputs.get("fetch-depth") != expected_depth:
                 errors.append(f"{job_name}: checkout fetch-depth must be {expected_depth}")
+            if name in SELF_HOSTED_WORKFLOWS and (
+                not isinstance(inputs, dict) or inputs.get("clean") != "true"
+            ):
+                errors.append(f"{job_name}: self-hosted checkout must set clean: true")
 
         if isinstance(uses, str) and uses.startswith("actions/setup-java@"):
             if not isinstance(inputs, dict) or inputs.get("distribution") != "temurin":
@@ -215,6 +235,56 @@ def common_semantic_errors(name: str, workflow: dict[str, Any]) -> list[str]:
                 errors.append(f"{job_name}: uploaded artifacts require explicit retention-days")
             if isinstance(inputs, dict) and inputs.get("include-hidden-files") == "true":
                 errors.append(f"{job_name}: hidden files must not be uploaded")
+    return errors
+
+
+def runner_boundary_errors(name: str, workflow: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    jobs = workflow.get("jobs", {})
+    if not isinstance(jobs, dict):
+        return ["jobs must be a mapping"]
+
+    if name in SELF_HOSTED_WORKFLOWS:
+        if secret_references(workflow):
+            errors.append("self-hosted Build/Compatibility must not reference repository secrets")
+        for job_name, job in jobs.items():
+            if not isinstance(job, dict):
+                continue
+            if job.get("runs-on") != SELF_HOSTED_LABELS:
+                errors.append(
+                    f"job {job_name} must use the exact dedicated self-hosted label set"
+                )
+            if job.get("if") != TRUSTED_PULL_REQUEST_GUARD:
+                errors.append(f"job {job_name} must use the exact trusted pull-request guard")
+    else:
+        for job_name, job in jobs.items():
+            if isinstance(job, dict) and job.get("runs-on") != "ubuntu-latest":
+                errors.append(f"job {job_name} must remain on the reviewed GitHub-hosted runner")
+    return errors
+
+
+def compatibility_errors(workflow: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    jobs = workflow.get("jobs", {})
+    if not isinstance(jobs, dict) or set(jobs) != set(COMPATIBILITY_LANES):
+        return ["Compatibility job inventory must preserve the reviewed 11-lane matrix"]
+
+    lane_count = 0
+    for job_name, expected_matrix in COMPATIBILITY_LANES.items():
+        job = jobs[job_name]
+        strategy = job.get("strategy") if isinstance(job, dict) else None
+        if expected_matrix is None:
+            if strategy is not None:
+                errors.append(f"{job_name}: unexpected matrix strategy")
+            lane_count += 1
+            continue
+        axis, values = expected_matrix
+        matrix = strategy.get("matrix") if isinstance(strategy, dict) else None
+        if matrix != {axis: values}:
+            errors.append(f"{job_name}: matrix must remain {axis}={values}")
+        lane_count += len(values)
+    if lane_count != 11:
+        errors.append(f"Compatibility must expand to 11 lanes, found {lane_count}")
     return errors
 
 
@@ -320,8 +390,11 @@ def audit_workflow(name: str, workflow: dict[str, Any], text: str) -> list[str]:
     errors.extend(permission_errors(workflow))
     errors.extend(action_errors(text))
     errors.extend(common_semantic_errors(name, workflow))
+    errors.extend(runner_boundary_errors(name, workflow))
     if name == "build.yml":
         errors.extend(build_errors(workflow))
+    elif name == "compatibility.yml":
+        errors.extend(compatibility_errors(workflow))
     elif name == "benchmarks.yml":
         errors.extend(benchmark_errors(workflow))
     elif name == "release.yml":

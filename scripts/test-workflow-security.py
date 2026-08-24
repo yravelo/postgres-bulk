@@ -19,6 +19,13 @@ SPEC.loader.exec_module(SECURITY)
 
 
 class WorkflowSecurityTests(unittest.TestCase):
+    @staticmethod
+    def load(name: str) -> dict:
+        workflow, _ = SECURITY.load_workflow(
+            Path(__file__).resolve().parents[1] / ".github" / "workflows" / name
+        )
+        return workflow
+
     def test_full_sha_with_version_comment_passes(self) -> None:
         text = (
             "      uses: actions/checkout@"
@@ -69,6 +76,35 @@ class WorkflowSecurityTests(unittest.TestCase):
         )
         self.assertEqual(2, result.returncode)
         self.assertIn("usage:", result.stderr)
+
+    def test_build_using_github_hosted_runner_fails(self) -> None:
+        workflow = self.load("build.yml")
+        workflow["jobs"]["verify"]["runs-on"] = "ubuntu-latest"
+        errors = SECURITY.runner_boundary_errors("build.yml", workflow)
+        self.assertTrue(any("dedicated self-hosted label set" in error for error in errors))
+
+    def test_build_without_dedicated_label_fails(self) -> None:
+        workflow = self.load("build.yml")
+        workflow["jobs"]["verify"]["runs-on"] = ["self-hosted", "linux", "x64"]
+        errors = SECURITY.runner_boundary_errors("build.yml", workflow)
+        self.assertTrue(any("dedicated self-hosted label set" in error for error in errors))
+
+    def test_compatibility_without_trusted_pr_guard_fails(self) -> None:
+        workflow = self.load("compatibility.yml")
+        workflow["jobs"]["java"].pop("if")
+        errors = SECURITY.runner_boundary_errors("compatibility.yml", workflow)
+        self.assertTrue(any("trusted pull-request guard" in error for error in errors))
+
+    def test_valid_self_hosted_selectors_pass(self) -> None:
+        for name in ("build.yml", "compatibility.yml"):
+            workflow = self.load(name)
+            self.assertEqual([], SECURITY.runner_boundary_errors(name, workflow))
+
+    def test_release_remains_on_github_hosted_runner(self) -> None:
+        workflow = self.load("release.yml")
+        self.assertEqual([], SECURITY.runner_boundary_errors("release.yml", workflow))
+        self.assertEqual("ubuntu-latest", workflow["jobs"]["candidate"]["runs-on"])
+        self.assertEqual("ubuntu-latest", workflow["jobs"]["central-upload"]["runs-on"])
 
 
 if __name__ == "__main__":
