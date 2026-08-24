@@ -86,7 +86,7 @@ Reglas transversales:
 | Dependencies | SEC2 dependency baseline |
 | Deferred | CodeQL future public; Semgrep only for demonstrated missing rule |
 
-## SEC4 — SBOM and Dependency/License Integrity — DONE (2026-08-24)
+## SEC4 — SBOM and Dependency/License Integrity — IMPLEMENTED, REMOTE VALIDATION BLOCKED (2026-08-24)
 
 | Campo | Definición |
 | --- | --- |
@@ -190,5 +190,8 @@ SEC0 investigation
                 -> SEC8 technical closure
 ```
 
-SEC5 — Release Signing, Inventory and Provenance Hardening es la única fase siguiente recomendada.
+SEC5 — Release Signing, Inventory and Provenance Hardening es la única fase siguiente recomendada
+cuando SEC4 pueda cerrarse. La implementación y validación local SEC4 están completas, pero GitHub
+rechazó iniciar Build `32769345221` y Compatibility `32769345298` por el estado de billing/límite de
+gasto de la cuenta; ningún step llegó a ejecutarse. SEC4 permanece abierta hasta obtener ambos PASS.
 Completar SEC4 no autoriza iniciar SEC5, crear credentials/keys/tags ni descongelar `0.1.0`.

@@ -115,6 +115,11 @@ consumer-reachable SEC2 OSV inventory; test, benchmark, example and build-tool c
 Two clean generations compare semantically. Generated evidence remains under `target/` and is not
 committed. See [SBOM and dependency/license integrity](../security/sbom-and-license-integrity.md).
 
+SEC4 local validation, release staging and reproducibility are PASS. Its pushed candidate
+`37aa43f2d0f9c4718c7a9c29b566880546ff1a20` has not received executable remote evidence: GitHub
+rejected Build `32769345221` and Compatibility `32769345298` before their first step because of the
+account billing/spending-limit state. SEC4 remains open until those workflows are rerun and pass.
+
 SEC2 adds a fail-closed dependency gate to Build and the release candidate before any future
 upload. The applicable pgJDBC HIGH finding on 42.7.11 was remediated by selecting supported
 42.7.13; the post-fix scan has no BLOCK finding. Five moderate findings are explicitly triaged with
