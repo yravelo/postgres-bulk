@@ -71,7 +71,7 @@ jobs:
         run: ./mvnw --batch-mode --no-transfer-progress clean verify
 
   boot-minimum:
-    name: Multi-schema minimum — Java 17 / Boot + Data JDBC 3.5.0 / pgJDBC 42.7.5 / PostgreSQL 15.18
+    name: Multi-schema minimum — Java 17 / Boot + Data JDBC 3.5.0 / pgJDBC 42.7.13 / PostgreSQL 15.18
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:

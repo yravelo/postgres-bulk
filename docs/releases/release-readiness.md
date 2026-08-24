@@ -72,6 +72,8 @@ session data or token is stored. The real Portal user token has not been generat
 | OSV dependency gate | PASS — 2.5.1 checksum-pinned; 129/129 exact package versions, zero BLOCK |
 | Accepted dependency risks | PASS — five exact WARN records expire 2026-10-24 |
 | Dependabot update policy | PASS — five weekly Maven/Actions lanes, majors manual, no auto-merge; Compose manual |
+| Dependabot alerts/security updates | ENABLED — private visibility unchanged; security updates enabled and unpaused |
+| GitHub dependency graph | ENABLED — bodyless endpoint check passed; no SBOM downloaded or committed |
 | OpenPGP strategy | PASS — required by Central and isolated in `central-publish` |
 | Protected OpenPGP key | EXTERNAL PREREQUISITE — real key was not generated |
 | GitHub branch protection/rules | DEFERRED (non-blocking) — unavailable for this private repository on the current plan |
@@ -106,6 +108,9 @@ upload. The applicable pgJDBC HIGH finding on 42.7.11 was remediated by selectin
 scope, reachability, owner and expiry in the accepted-risk register. Dependency inventory and raw
 OSV output remain generated under `target/security/`, not committed artifacts. OWASP
 Dependency-Check remains optional because exact OSV coverage is complete; Snyk is not connected.
+Implementation commit `46e7c1606a51574b0aeb4f86e37b93550a58604f` passed Build
+`32752820439` and all 11 jobs in Compatibility `32752820231`. Benchmarks and Release remained
+unexecuted.
 
 ## Phase 16B local validation
 

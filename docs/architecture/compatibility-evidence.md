@@ -50,15 +50,15 @@ de los adapters Hibernate y pgJDBC sin crear un producto cartesiano.
 
 | ID | Java | Boot | Data JPA/JDBC | Hibernate | Micrometer | pgJDBC | PostgreSQL | Tests | Resultado |
 |---|---|---|---|---|---|---|---|---:|---|
-| J01 baseline | 17.0.20 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 15.18 | full reactor | PASS |
-| J02 LTS | 21.0.12 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 15.18 | full reactor | PASS |
-| J03 experimental | 25.0.3 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 15.18 | full reactor | PASS |
-| B01 minimum | 17.0.20 | 3.5.0 | 3.5.0 | 6.6.15 | 1.15.0 | 42.7.5 | 15.18 | full reactor | PASS |
-| P16 server | 17.0.20 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 16.14 | full reactor | PASS |
-| P17 server | 17.0.20 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.11 | 17.10 | full reactor | PASS |
+| J01 baseline | 17.0.20 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.13 | 15.18 | full reactor | PASS |
+| J02 LTS | 21.0.12 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.13 | 15.18 | full reactor | PASS |
+| J03 experimental | 25.0.3 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.13 | 15.18 | full reactor | PASS |
+| B01 minimum | 17.0.20 | 3.5.0 | 3.5.0 | 6.6.15 | 1.15.0 | 42.7.13 | 15.18 | full reactor | PASS |
+| P16 server | 17.0.20 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.13 | 16.14 | full reactor | PASS |
+| P17 server | 17.0.20 | 3.5.16 | 3.5.13 | 6.6.53 | 1.15.12 | 42.7.13 | 17.10 | full reactor | PASS |
 | N01 newest | 21.0.12 | 3.5.16 | 3.5.13 | 6.6.55 | 1.15.12 | 42.7.13 | 18.4 | full reactor | PASS |
-| H01 adapter min | 25.0.3 | n/a | n/a | 6.6.15 | n/a | 42.7.11 test | 15.18 | 48 | PASS |
-| H02 adapter max | 25.0.3 | n/a | n/a | 6.6.55 | n/a | 42.7.11 test | 15.18 | 48 | PASS |
+| H01 adapter min | 25.0.3 | n/a | n/a | 6.6.15 | n/a | 42.7.13 test | 15.18 | 48 | PASS |
+| H02 adapter max | 25.0.3 | n/a | n/a | 6.6.55 | n/a | 42.7.13 test | 15.18 | 48 | PASS |
 | D01 driver min | 25.0.3 | n/a | n/a | n/a | n/a | 42.7.5 | 15.18 | 158 | PASS |
 | D02 driver max | 25.0.3 | n/a | n/a | n/a | n/a | 42.7.13 | 15.18 | 158 | PASS |
 
@@ -164,9 +164,9 @@ Comandos adicionales reproducibles:
 
 | Servidor exacto | Driver | Integration tests | Resultado |
 |---|---:|---:|---|
-| 15.18 | 42.7.11 | 76 | PASS |
-| 16.14 | 42.7.11 | 76 | PASS |
-| 17.10 | 42.7.11 | 76 | PASS |
+| 15.18 | 42.7.13 | 76 | PASS |
+| 16.14 | 42.7.13 | 76 | PASS |
+| 17.10 | 42.7.13 | 76 | PASS |
 | 18.4 | 42.7.13 | 76 | PASS |
 
 En cada major, la suite completa cubre COPY CSV con NULL, empty, `\N`, `\.`, delimitadores,
@@ -187,7 +187,7 @@ servidores porque el mismo `TemporaryTableBulkLookupIT` forma parte de cada ejec
 | Boot auto-config/starter | conditions, metadata, back-off y aplicación consumidora | Boot auto-config | 3.5.0, 3.5.16 | PASS |
 | Boot JDBC auto-config/starter | conditions, single candidates, override, JDBC-only y both | Boot/Data JDBC | 3.5.0, 3.5.16 | PASS |
 | Micrometer | ObservationRegistry, MeterRegistry y MeterFilter | Micrometer Observation/Core | 1.15.0, 1.15.12 | PASS |
-| pgJDBC COPY | unwrap PGConnection, CopyManager/CopyIn, cancel/end | pgJDBC COPY API | 42.7.5, 42.7.11, 42.7.13 | PASS |
+| pgJDBC COPY | unwrap PGConnection, CopyManager/CopyIn, cancel/end | pgJDBC COPY API | 42.7.5, 42.7.13 | PASS |
 | PostgreSQL SQL | COPY CSV, CTAS, ON COMMIT DROP, quoting | servidor vanilla | 15.18, 16.14, 17.10, 18.4 | PASS |
 
 ## Fallo clasificado

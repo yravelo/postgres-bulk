@@ -50,7 +50,7 @@ Reglas transversales:
 | Dependencies | SEC0 |
 | Deferred | Dependabot/OSV a SEC2; release inventory a SEC5 |
 
-## SEC2 — Dependency Vulnerability and Update Management
+## SEC2 — Dependency Vulnerability and Update Management — DONE (2026-08-24)
 
 | Campo | Definición |
 | --- | --- |
@@ -63,7 +63,7 @@ Reglas transversales:
 | Tests | resolved trees for nine publishable modules; direct/transitive/test distinction; known synthetic advisory fixture; digest/matrix smoke |
 | False positives | alias-aware accepted-risk record with scope, reachability, owner and expiry; no raw CVSS-only suppress |
 | Documentation | update cadence, outage/cache policy, triage playbook and current dependency baseline |
-| Acceptance | PR updates bounded/no auto-merge; scheduled and release scan reproducible; current production findings resolved/accepted |
+| Acceptance | 129/129 coordinates scanned; pgJDBC HIGH fixed; 0 BLOCK/5 expiring WARN; Build+11 Compatibility jobs green; bounded PRs/no auto-merge |
 | Risks | deps.dev/NVD availability, BOM update coupling, digest multi-arch drift |
 | Dependencies | SEC1 hardening before new Actions/bot config |
 | Deferred | OWASP DC/Snyk only if evidence shows coverage gap; SAST to SEC3 |
@@ -190,5 +190,5 @@ SEC0 investigation
                 -> SEC8 technical closure
 ```
 
-SEC1 es la única fase siguiente recomendada. Completar SEC0 no autoriza iniciar SEC1, crear
-credentials ni descongelar `0.1.0`.
+SEC3 — Java Static Analysis es la única fase siguiente recomendada. Completar SEC2 no autoriza
+iniciar SEC3, crear credentials ni descongelar `0.1.0`.
