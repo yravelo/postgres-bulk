@@ -45,6 +45,11 @@ This index separates adoption guidance from implementation details.
 - [Supported versions](architecture/compatibility.md)
 - [Compatibility evidence](architecture/compatibility-evidence.md)
 
+## Security
+
+- [Security and supply-chain investigation](security/security-and-supply-chain-investigation.md)
+- [Security roadmap](plans/security-roadmap.md)
+
 ## Decisions and evidence
 
 - [Architecture decision records](decisions/)
@@ -62,3 +67,4 @@ This index separates adoption guidance from implementation details.
 - [Release acceptance criteria](plans/release-acceptance-criteria.md)
 - [Spring Data JDBC roadmap](plans/spring-data-jdbc-roadmap.md)
 - [Multi-schema roadmap](plans/multi-schema-roadmap.md)
+- [Security roadmap](plans/security-roadmap.md)
