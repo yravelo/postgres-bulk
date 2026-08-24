@@ -51,6 +51,7 @@ This index separates adoption guidance from implementation details.
 - [Benchmark methodology](benchmarks/methodology.md)
 - [Benchmark baseline](benchmarks/baseline.md)
 - [Spring Data JDBC J8 benchmark baseline](benchmarks/j8-spring-data-jdbc.md)
+- [Multi-schema MS8 benchmark baseline](benchmarks/ms8-multi-schema.md)
 - [0.1.0 release notes](releases/0.1.0.md)
 - [0.1.0 release readiness](releases/release-readiness.md)
 - [0.1.0 public API baseline](releases/0.1.0-public-api.txt)

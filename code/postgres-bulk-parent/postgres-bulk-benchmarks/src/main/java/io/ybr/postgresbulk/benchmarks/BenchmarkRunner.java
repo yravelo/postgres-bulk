@@ -1,5 +1,6 @@
 package io.ybr.postgresbulk.benchmarks;
 
+import io.ybr.postgresbulk.benchmarks.jdbc.MultiSchemaCorrectnessVerifier;
 import java.util.ArrayList;
 import java.util.List;
 import org.openjdk.jmh.runner.Runner;
@@ -24,6 +25,10 @@ public final class BenchmarkRunner {
       System.setProperty("benchmark.jdbc.url", jdbcUrl);
       System.setProperty("benchmark.jdbc.username", postgres.getUsername());
       System.setProperty("benchmark.jdbc.password", postgres.getPassword());
+
+      if (Boolean.getBoolean("benchmark.multi-schema")) {
+        MultiSchemaCorrectnessVerifier.verify();
+      }
 
       List<String> forkProperties = new ArrayList<>();
       forkProperties.add("-Dbenchmark.jdbc.url=" + jdbcUrl);

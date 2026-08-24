@@ -44,6 +44,20 @@ filas, UUID asignado, pool, transacción e índices. La comparación pública/lo
 metadata. El lookup J8 compara SQL `IN` construido fuera del timing con temporary-table COPY/JOIN;
 ambos materializan con `EntityRowMapper` y confirman la transacción dentro del timing.
 
+MS8 añade comparaciones emparejadas sin modificar las rutas productivas. Para pgJDBC low-level,
+Spring Data JPA y Spring Data JDBC mide la misma operación contra el mapping default no cualificado
+y contra `TableName.of("public", "benchmark_row")`. INSERT conserva batch 1.000 y tamaños
+10/100/1K/10K/100K; lookup conserva una tabla de 100K filas y subsets 10/100/1K/10K. En ambos lados
+se usan el mismo dataset, tabla física, pool, transacción, materializador y metadata caliente; sólo
+cambia la resolución/construcción de SQL para el target explícito.
+
+La verificación MS8 ocurre antes de JMH: sobre el mismo engine preparado ejecuta
+default/A/default/B/default/C y un schema quoted, comprueba conteos y lookup aislado, y trunca todos
+los targets. `RuntimeTargetResolutionBenchmarks` caracteriza por separado 100, 1.000 y 10.000
+targets preconstruidos frente a repetir uno solo. La creación de los nombres queda fuera del timing;
+el benchmark mide resolución pura y `-prof gc` permite observar allocations. No se crea ni se mide
+una cache por target.
+
 ## Dataset y esquema
 
 Semilla fija: `0x5EED14`. Cada fila contiene UUID asignado, `code`, descripción UTF-8,
@@ -95,6 +109,12 @@ Desde la raíz, con Docker disponible y Java 21 en `JAVA_HOME`:
 ./scripts/summarize-benchmarks.sh \
   docs/benchmarks/raw/baseline-local-1.json \
   docs/benchmarks/baseline-local-1.csv
+./scripts/run-benchmarks.sh multi-schema-smoke ms8-smoke-local
+./scripts/run-benchmarks.sh multi-schema-baseline ms8-baseline-local-1
+./scripts/run-benchmarks.sh multi-schema-baseline ms8-baseline-local-2
+./scripts/summarize-multi-schema-benchmarks.sh \
+  docs/benchmarks/raw/ms8-baseline-local-1.json \
+  docs/benchmarks/ms8-baseline-local-1.csv
 ```
 
 `POSTGRES_VERSION` permite cambiar el tag explícitamente. El smoke usa `-f 0`, cero warmups y una
@@ -125,6 +145,17 @@ JDBC/Relational 3.5.13, pgJDBC 42.7.11 y JMH 1.37. Conservó heap, threads, fork
 iterations y profiler anteriores. El host seguía interactivo, sin aislamiento ni frecuencia fija.
 El informe y las nuevas evidencias están en
 [`j8-spring-data-jdbc.md`](j8-spring-data-jdbc.md); Phase 14 no fue sobrescrita.
+
+## Extensión multi-schema MS8, 2026-08-24
+
+MS8 conserva JMH 1.37, PostgreSQL 15.18 Alpine, Docker 29.7.0, heap 1–3 GiB, una hebra, un
+fork, 2x1 s de warmup, 3x1 s de medición y `gc` profiler. Se ejecutó en el mismo i7-12700H con
+30 GiB y kernel `7.0.0-28-generic`, pero con OpenJDK 25.0.3 de Ubuntu porque era el único JDK
+instalado durante esta medición; el bytecode del proyecto sigue en Java 17. Boot 3.5.16,
+Hibernate 6.6.53.Final, Spring Data JDBC/Relational 3.5.13, pgJDBC 42.7.11 y JMH 1.37 fueron las
+dependencias efectivas. El host siguió interactivo, sin CPU pinning, frecuencia fija ni reserva
+exclusiva. Por eso MS8 se compara sólo consigo mismo y no se mezcla estadísticamente con Phase 14
+o J8, medidos con Temurin 21.
 
 ## Fuentes
 

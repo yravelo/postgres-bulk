@@ -38,8 +38,19 @@ case "${profile}" in
       -wi 1 -i 3 -f 1 -p size=1000000 -prof gc \
       -rf json -rff "${results_dir}/${label}.json"
     ;;
+  multi-schema-smoke)
+    "${java_bin}" -Dbenchmark.multi-schema=true "${common[@]}" \
+      '(MultiSchema.*Benchmarks|RuntimeTargetResolutionBenchmarks).*' \
+      -wi 0 -i 1 -r 100ms -f 0 -p size=10 -p cardinality=100 \
+      -rf json -rff "${results_dir}/${label}.json"
+    ;;
+  multi-schema-baseline)
+    "${java_bin}" -Dbenchmark.multi-schema=true "${common[@]}" \
+      '(MultiSchema.*Benchmarks|RuntimeTargetResolutionBenchmarks).*' \
+      -prof gc -rf json -rff "${results_dir}/${label}.json"
+    ;;
   *)
-    echo "usage: $0 {smoke|baseline|large} [result-label]" >&2
+    echo "usage: $0 {smoke|baseline|large|multi-schema-smoke|multi-schema-baseline} [result-label]" >&2
     exit 2
     ;;
 esac

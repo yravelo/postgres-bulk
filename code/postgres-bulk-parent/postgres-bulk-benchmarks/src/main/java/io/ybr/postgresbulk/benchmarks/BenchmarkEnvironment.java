@@ -3,6 +3,7 @@ package io.ybr.postgresbulk.benchmarks;
 import io.ybr.postgresbulk.core.BulkInsertOptions;
 import io.ybr.postgresbulk.core.metadata.BulkKeyMetadata;
 import io.ybr.postgresbulk.core.metadata.ColumnMetadata;
+import io.ybr.postgresbulk.core.metadata.TableName;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,6 +18,8 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
 
 final class BenchmarkEnvironment {
+
+  static final TableName PUBLIC_TARGET = TableName.of("public", "benchmark_row");
 
   static final BulkKeyMetadata<String> CODE_KEY =
       BulkKeyMetadata.of(
@@ -112,6 +115,21 @@ final class BenchmarkEnvironment {
     BenchmarkRepository repository = observabilityEnabled ? tunedRepository : defaultRepository;
     return Math.toIntExact(
         repository.bulkInsert(rows, BulkInsertOptions.ofBatchSize(batchSize)).affectedRows());
+  }
+
+  int copyToRuntimeTarget(List<BenchmarkRow> rows, int batchSize) {
+    return Math.toIntExact(
+        tunedRepository
+            .bulkInsert(rows, BulkInsertOptions.ofBatchSize(batchSize), PUBLIC_TARGET)
+            .affectedRows());
+  }
+
+  List<BenchmarkRow> lookup(List<String> codes) {
+    return tunedRepository.findAllByBulkKey(codes, CODE_KEY);
+  }
+
+  List<BenchmarkRow> lookupRuntimeTarget(List<String> codes) {
+    return tunedRepository.findAllByBulkKey(codes, CODE_KEY, PUBLIC_TARGET);
   }
 
   void truncate() {

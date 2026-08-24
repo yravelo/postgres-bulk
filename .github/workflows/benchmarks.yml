@@ -12,6 +12,8 @@ on:
           - smoke
           - baseline
           - large
+          - multi-schema-smoke
+          - multi-schema-baseline
 
 permissions:
   contents: read
