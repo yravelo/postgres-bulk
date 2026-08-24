@@ -6,6 +6,7 @@ This index separates adoption guidance from implementation details.
 
 - [Getting started](user-guide/getting-started.md)
 - [Spring Data JDBC](user-guide/spring-data-jdbc.md)
+- [Dynamic schemas / schema-per-tenant](user-guide/multi-schema.md)
 - [Transactions](user-guide/transactions.md)
 - [Mapping support](user-guide/mapping-support.md)
 - [Bulk lookup](user-guide/bulk-lookup.md)

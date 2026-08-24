@@ -5,9 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.ybr.postgresbulk.core.BulkWriteResult;
-import io.ybr.postgresbulk.core.metadata.BulkKeyMetadata;
-import io.ybr.postgresbulk.core.metadata.ColumnMetadata;
-import io.ybr.postgresbulk.core.metadata.TableName;
 import io.ybr.postgresbulk.example.ProductImportService.IntentionalRollbackException;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -51,30 +48,53 @@ class PostgresBulkExampleApplicationTest {
   @BeforeEach
   void clearProducts() {
     products.deleteAllInBatch();
-    for (String schema : List.of("example_jpa_a", "example_jpa_b")) {
-      jdbc.execute("CREATE SCHEMA IF NOT EXISTS " + schema);
+    for (String schema : List.of("example_jpa_a", "example_jpa_b", "Example JPA Quoted")) {
+      jdbc.execute("CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
       jdbc.execute(
-          "CREATE TABLE IF NOT EXISTS " + schema + ".product (LIKE public.product INCLUDING ALL)");
-      jdbc.execute("TRUNCATE " + schema + ".product");
+          "CREATE TABLE IF NOT EXISTS \""
+              + schema
+              + "\".product (LIKE public.product INCLUDING ALL)");
+      jdbc.execute("TRUNCATE \"" + schema + "\".product");
     }
   }
 
   @Test
   void externalJpaStarterConsumerUsesRuntimeTargets() {
-    TableName a = TableName.of("example_jpa_a", "product");
-    TableName b = TableName.of("example_jpa_b", "product");
     Product onlyA = product("TARGET-A", "only a");
     Product onlyB = product("TARGET-B", "only b");
-    BulkKeyMetadata<String> sku =
-        BulkKeyMetadata.of(
-            String.class, List.of(ColumnMetadata.of("sku", String.class, value -> value)));
+    Product quoted = product("TARGET-QUOTED", "quoted");
 
-    products.bulkInsert(a, List.of(onlyA));
-    products.bulkInsert(b, List.of(onlyB));
+    service.importProductsForCustomer("customer-a", List.of(onlyA));
+    service.importProductsForCustomer("customer-b", List.of(onlyB));
+    service.importProductsForCustomer("quoted-customer", List.of(quoted));
 
-    assertEquals(1, products.findAllByBulkKey(List.of("TARGET-A", "TARGET-B"), sku, a).size());
-    assertEquals("TARGET-A", products.findAllByBulkKey(List.of("TARGET-A"), sku, a).get(0).sku());
-    assertEquals("TARGET-B", products.findAllByBulkKey(List.of("TARGET-B"), sku, b).get(0).sku());
+    assertEquals(
+        List.of("TARGET-A"),
+        service.findBySkusForCustomer("customer-a", List.of("TARGET-A", "TARGET-B")).stream()
+            .map(Product::sku)
+            .toList());
+    assertEquals(
+        List.of("TARGET-B"),
+        service.findBySkusForCustomer("customer-b", List.of("TARGET-A", "TARGET-B")).stream()
+            .map(Product::sku)
+            .toList());
+    assertEquals(
+        "TARGET-QUOTED",
+        service.findBySkusForCustomer("quoted-customer", List.of("TARGET-QUOTED")).get(0).sku());
+
+    assertThrows(
+        IntentionalRollbackException.class,
+        () ->
+            service.importForCustomerThenRollback(
+                "customer-a", List.of(product("TARGET-ROLLBACK", "rolled back"))));
+    assertEquals(
+        0,
+        jdbc.queryForObject(
+            "SELECT count(*) FROM example_jpa_a.product WHERE sku = 'TARGET-ROLLBACK'",
+            Integer.class));
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> service.importProductsForCustomer("untrusted-input", List.of(onlyA)));
   }
 
   @Test

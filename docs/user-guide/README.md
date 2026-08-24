@@ -7,6 +7,8 @@ matches the question you need to answer:
 
 - [Getting started](getting-started.md): snapshot installation and first repository.
 - [Spring Data JDBC](spring-data-jdbc.md): JDBC starter, repository API, mapping and limitations.
+- [Dynamic schemas](multi-schema.md): operation-scoped `TableName`, JPA/JDBC examples and
+  schema-per-tenant boundaries.
 - [Transactions](transactions.md): REQUIRED, rollback, REQUIRES_NEW, read-only and NESTED.
 - [Mapping support](mapping-support.md): mappings accepted, omitted or rejected.
 - [Bulk lookup](bulk-lookup.md): simple/composite keys and exact result semantics.

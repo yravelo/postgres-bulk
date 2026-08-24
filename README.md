@@ -155,6 +155,21 @@ metadata, materialization, lifecycle and transaction integration.
 The complete executable application is
 [`examples/spring-boot-data-jdbc`](examples/spring-boot-data-jdbc/README.md).
 
+## Dynamic schemas / schema-per-tenant
+
+When compatible root tables exist in multiple schemas, the application can pass an explicit
+operation-scoped target:
+
+```java
+TableName target = TableName.of("customer_a", "product");
+products.bulkInsert(target, input);
+List<Product> found = products.findAllByBulkKey(skus, skuKey, target);
+```
+
+Applications that do not use runtime schemas need no configuration or API change. postgres-bulk
+does not resolve tenants or route databases; see the
+[multi-schema user guide](docs/user-guide/multi-schema.md).
+
 ## Quick Start
 
 Use an assigned identifier in the first integration. Generated identifiers have different
@@ -378,6 +393,7 @@ Spring Data adapter
 
 - [Documentation index](docs/README.md)
 - [User guide](docs/user-guide/README.md)
+- [Dynamic schemas / schema-per-tenant](docs/user-guide/multi-schema.md)
 - [Executable Spring Boot example](examples/spring-boot-basic/README.md)
 - [Architecture](docs/architecture/overview.md)
 - [Compatibility and evidence](docs/architecture/compatibility.md)

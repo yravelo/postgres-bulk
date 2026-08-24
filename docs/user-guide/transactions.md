@@ -92,3 +92,6 @@ postgres-bulk does not select a transaction manager, datasource or `JdbcOperatio
 declaration order. Multiple managers require the application's normal `@Primary`, qualifier or
 `transactionManagerRef` configuration. The repository, manager and `JdbcOperations` must target
 the same datasource. Two local JPA/JDBC managers do not create cross-store atomicity.
+
+Runtime schemas do not change these rules. A single manager may commit or roll back qualified A/B
+operations inside one database; see [Dynamic schemas](multi-schema.md#transactions).

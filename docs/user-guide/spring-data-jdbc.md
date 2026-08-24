@@ -87,6 +87,20 @@ transaction.
 
 The library never commits, rolls back, closes or reconfigures the Spring-owned connection.
 
+## Runtime schemas
+
+For an application-authorized schema, pass a complete target to one operation:
+
+```java
+TableName target = TableName.of("customer_a", "product");
+products.bulkInsert(target, input);
+List<Product> found = products.findAllByBulkKey(skus, SKU_KEY, target);
+```
+
+Metadata, conversion and ID policy remain reusable; the repository does not retain the target.
+See [Dynamic schemas](multi-schema.md) for static-schema conflicts, database routing, transactions,
+provisioning and security responsibilities.
+
 ## Mapping and lifecycle
 
 Supported root values include standard scalars, UUID, `byte[]`, Java Time, enums, static custom
@@ -118,9 +132,9 @@ cross-store transactions.
 ## Limitations and future work
 
 PostgreSQL and a pgJDBC-unwrappable connection are required. The operation is root-only, has no
-retry, does not populate generated IDs and does not guarantee lookup order. Runtime schema/tenant
-selection is **PLANNED**, not implemented; current schema comes from mapping metadata. No global
-schema property is promised.
+retry, does not populate generated IDs and does not guarantee lookup order. Runtime schemas are
+supported through an explicit qualified `TableName`; tenant resolution and datasource routing
+remain application responsibilities. No global schema property exists.
 
 Run the [executable example](../../examples/spring-boot-data-jdbc/README.md) for a complete Boot
 application using Docker Compose manually and Testcontainers in automated verification.

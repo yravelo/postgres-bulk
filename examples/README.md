@@ -5,4 +5,6 @@
   dedicated JDBC-only starter.
 
 Both are standalone Boot applications whose direct postgres-bulk dependency is the starter for
-their persistence stack. Their Testcontainers tests use PostgreSQL rather than H2.
+their persistence stack. Their application services demonstrate default calls and application-owned
+customer-to-`TableName` allow-lists; Testcontainers executes default, A/B, quoted-target, lookup and
+rollback scenarios against PostgreSQL rather than H2.

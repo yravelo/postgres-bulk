@@ -6,8 +6,9 @@ Data JDBC repository discovery; no resolver, fragment implementation, transactio
 or Hibernate configuration is declared by the application.
 
 The example demonstrates assigned UUID identifiers, an embedded value, default and explicit COPY
-batching, `BulkWriteResult`, simple and composite lookup, outer rollback, and rejection from a
-read-only transaction. Only aggregate-root rows are written.
+batching, `BulkWriteResult`, simple and composite lookup, outer rollback, rejection from a
+read-only transaction, and application-authorized A/B/quoted runtime schemas. Only aggregate-root
+rows are written.
 
 ## Run manually
 
@@ -28,6 +29,11 @@ docker compose -f ../../examples/spring-boot-data-jdbc/compose.yaml down
 
 The schema is initialized from `schema.sql`. Reruns use unique demo SKUs.
 
+The command-line path uses the default table. The automated adoption test additionally provisions
+runtime schemas as fixtures and invokes the application service's closed customer-to-`TableName`
+mapping. Production applications must provision/migrate schemas separately and must not map
+arbitrary request input directly to an identifier.
+
 ## Verify automatically
 
 Docker must be available. Testcontainers starts the PostgreSQL patch selected by
@@ -40,4 +46,5 @@ cd code/postgres-bulk-parent
 ```
 
 The test validates Boot startup, repository/fragment discovery, default and explicit inserts,
-simple/composite lookup, rollback, and read-only rejection through public APIs.
+A/B/quoted targets, target-aware lookup and rollback, simple/composite lookup, and read-only
+rejection through public APIs.
