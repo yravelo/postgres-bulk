@@ -44,7 +44,7 @@ Cada fase entra por PR separada, parte de main verde, termina con reactor compil
 
 - [x] Parent y seis módulos construyen como un único reactor acíclico.
 - [x] Maven Wrapper oficial 3.3.4 `only-script` fija Maven 3.9.16 y valida SHA-256.
-- [x] Java 17/UTF-8 son explícitos; Enforcer exige Java 17+ y Maven 3.6.3–3.x.
+- [x] Java 17/UTF-8 son explícitos; Enforcer exige Java 17+ y Maven 3.8.9–3.x tras SEC3.
 - [x] Dependency/plugin management, plugins de lifecycle y output timestamp están centralizados.
 - [x] JUnit BOM, Surefire `*Test` y Failsafe `*IT` quedan preparados sin tests placeholder.
 - [x] Spotless verifica formato Java; Enforcer verifica convergence y la frontera de dependencias de core.

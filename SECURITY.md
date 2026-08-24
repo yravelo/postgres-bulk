@@ -36,3 +36,12 @@ reviewable in version control at `config/security/accepted-dependency-risks.json
 advisory/dependency/version, owner, evidence, review date, expiry and removal condition. The
 [dependency vulnerability policy](docs/security/dependency-vulnerability-management.md) documents
 the reproducible command, current baseline and remediation rules.
+
+## Static analysis
+
+Build and every future release candidate run SpotBugs with FindSecBugs on production bytecode.
+Analyzer failure, missing classes, inactive security detectors or a new medium/high finding blocks
+the build. Findings are reviewed by rule, source/sink, reachability and existing contracts; a real
+defect is fixed and tested before considering an exact, expiring exclusion. The
+[Java static-analysis policy](docs/security/java-static-analysis.md) records the current triage and
+local reproduction command. CodeQL, Semgrep and Sonar are not enabled baselines.

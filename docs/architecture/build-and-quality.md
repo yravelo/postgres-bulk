@@ -2,7 +2,7 @@
 
 ## Baseline reproducible
 
-El reactor se construye desde `code/postgres-bulk-parent` con Maven Wrapper `only-script` 3.3.4, fijado a Maven 3.9.16 y protegido por SHA-256. El Wrapper descarga exclusivamente desde Maven Central; no se versiona un JAR bootstrap. Maven 3.6.3 es el mínimo aceptado por Enforcer para quien decida no usar el Wrapper, y Maven 4 queda fuera hasta abandonar su estado preview.
+El reactor se construye desde `code/postgres-bulk-parent` con Maven Wrapper `only-script` 3.3.4, fijado a Maven 3.9.16 y protegido por SHA-256. El Wrapper descarga exclusivamente desde Maven Central; no se versiona un JAR bootstrap. Maven 3.8.9 es el mínimo aceptado por Enforcer para quien decida no usar el Wrapper, requerido por el gate SpotBugs Maven 4.10.4.0; Maven 4 queda fuera hasta abandonar su estado preview.
 
 El bytecode objetivo es Java 17 mediante `maven.compiler.release`; el JDK que ejecuta Maven debe
 ser 17 o superior. El build baseline usa Java 17; compatibility CI prueba Java 21 y 25 sin cambiar

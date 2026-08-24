@@ -11,7 +11,8 @@ cd code/postgres-bulk-parent
 ```
 
 The build runs unit tests, PostgreSQL Testcontainers integration tests, the standalone example
-consumer, Spotless and warning-free public Javadocs. Apply Java formatting with:
+consumer, Spotless, SpotBugs with FindSecBugs and warning-free public Javadocs. Apply Java
+formatting with:
 
 ```bash
 ./mvnw spotless:apply
@@ -24,6 +25,7 @@ Before submitting a change, also run from the repository root:
 ./scripts/test-workflow-security.py
 ./scripts/check-secrets.sh current
 ./scripts/check-vulnerabilities.sh
+./scripts/check-static-analysis.py
 ./scripts/check-documentation.sh
 git diff --check
 ```
@@ -48,6 +50,14 @@ untriaged production finding or expired accepted risk. Generated evidence stays 
 `target/security/`; reviewable exceptions belong only in
 `config/security/accepted-dependency-risks.json` with exact advisory/dependency/version, owner and
 expiry. Do not add broad ignores or override one member of the Boot BOM only to silence a finding.
+
+SpotBugs 4.10.4 with FindSecBugs 1.14.0 runs automatically during `verify` on the seven productive
+code modules. After a clean reactor build, `check-static-analysis.py` confirms detector activation,
+zero analyzer errors and zero untriaged findings. Do not bypass it in Build or Release. Fix a real
+defect with a regression test; a proven false positive or non-applicable result needs an exact
+Bug/Class/Method exclusion with rationale, owner and future review date. Package/category-wide or
+mass medium suppressions are forbidden. See the
+[Java static-analysis policy](docs/security/java-static-analysis.md).
 
 All GitHub Actions must use an approved full commit SHA with a human-readable version comment.
 Keep workflow permissions read-only, checkout credentials non-persistent and event/input expressions

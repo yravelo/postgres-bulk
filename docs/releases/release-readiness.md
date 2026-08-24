@@ -69,7 +69,8 @@ session data or token is stored. The real Portal user token has not been generat
 | Control | Status |
 | --- | --- |
 | GitHub Private Vulnerability Reporting | DEFERRED (non-blocking) — API returned 404 for this private repository; unchanged |
-| OSV dependency gate | PASS — 2.5.1 checksum-pinned; 129/129 exact package versions, zero BLOCK |
+| OSV dependency gate | PASS — 2.5.1 checksum-pinned; 132/132 exact package versions, zero BLOCK |
+| Java SAST gate | PASS — SpotBugs 4.10.4 + FindSecBugs 1.14.0; 7 modules, 6/6 initial findings triaged, 0 untriaged |
 | Accepted dependency risks | PASS — five exact WARN records expire 2026-10-24 |
 | Dependabot update policy | PASS — five weekly Maven/Actions lanes, majors manual, no auto-merge; Compose manual |
 | Dependabot alerts/security updates | ENABLED — private visibility unchanged; security updates enabled and unpaused |
@@ -111,6 +112,13 @@ Dependency-Check remains optional because exact OSV coverage is complete; Snyk i
 Implementation commit `46e7c1606a51574b0aeb4f86e37b93550a58604f` passed Build
 `32752820439` and all 11 jobs in Compatibility `32752820231`. Benchmarks and Release remained
 unexecuted.
+
+SEC3 liga SpotBugs/FindSecBugs a `verify` para los siete módulos con bytecode productivo. El scan
+inicial sin filtros encontró tres sinks SQL de FindSecBugs, dos exposiciones de listas y un
+constructor de infraestructura; los seis fueron revisados como false positive/no aplicable contra
+quoting, inmutabilidad y lifecycle reales. Seis exclusiones Bug/Class/Method con owner y revisión
+2027-02-24 dejan cero findings sin triage. Build y Release conservan el gate y validan activación
+FindSecBugs/reportes; Compatibility omite scans duplicados. No cambió source ni API productiva.
 
 ## Phase 16B local validation
 

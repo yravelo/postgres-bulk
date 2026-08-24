@@ -68,7 +68,7 @@ Reglas transversales:
 | Dependencies | SEC1 hardening before new Actions/bot config |
 | Deferred | OWASP DC/Snyk only if evidence shows coverage gap; SAST to SEC3 |
 
-## SEC3 — Java Static Analysis
+## SEC3 — Java Static Analysis — DONE (2026-08-24)
 
 | Campo | Definición |
 | --- | --- |
@@ -78,10 +78,10 @@ Reglas transversales:
 | Tools/cost | SpotBugs Maven + FindSecBugs, local OSS; €0, moderate |
 | Affected | parent POM/pluginManagement, focused filters, CI/build docs; product source sólo para confirmed finding |
 | Gates | new medium/high confidence production finding falla; SECURITY findings reciben explicit triage |
-| Tests | analyzer runs on Java 17/21 bytecode; detector fixture; zero starter/benchmark false gate; Maven lifecycle timing |
+| Tests | unfiltered Java 25 scan with real FindSecBugs SQL findings; clean Java 17 gate; zero starter/benchmark/example reports; lifecycle timing |
 | False positives | bug pattern + class/method + rationale/owner/expiry; package wildcards forbidden |
 | Documentation | supported modules, detector versions, local command and suppression review |
-| Acceptance | clean/triaged baseline, stable runtime budget and normal cause/test semantics preserved |
+| Acceptance | 7 modules, initial 6/6 findings triaged, final 0 untriaged; FindSecBugs active; Build/Release fail closed; Compatibility skips duplicate scans |
 | Risks | framework-generated patterns, version/JDK sensitivity, hidden categories |
 | Dependencies | SEC2 dependency baseline |
 | Deferred | CodeQL future public; Semgrep only for demonstrated missing rule |
@@ -190,5 +190,5 @@ SEC0 investigation
                 -> SEC8 technical closure
 ```
 
-SEC3 — Java Static Analysis es la única fase siguiente recomendada. Completar SEC2 no autoriza
-iniciar SEC3, crear credentials ni descongelar `0.1.0`.
+SEC4 — SBOM and Dependency/License Integrity es la única fase siguiente recomendada. Completar
+SEC3 no autoriza iniciar SEC4, crear credentials ni descongelar `0.1.0`.

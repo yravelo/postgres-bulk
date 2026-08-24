@@ -17,7 +17,7 @@ El proyecto necesita un build reproducible desde un checkout limpio, compatible 
 
 ## Decisión
 
-- Maven Wrapper 3.3.4 `only-script`, Maven 3.9.16 y checksum de distribución; Maven mínimo 3.6.3 si se evita el Wrapper.
+- Maven Wrapper 3.3.4 `only-script`, Maven 3.9.16 y checksum de distribución; Maven mínimo 3.8.9 si se evita el Wrapper (elevado por SpotBugs Maven 4.10.4.0 en SEC3).
 - Java 17 como `release` y runtime mínimo del build; CI en 17/21.
 - JUnit 5 mediante BOM 5.12.2; Surefire/Failsafe 3.5.4 alineados para `*Test`/`*IT`.
 - Spotless 3.9.0 con google-java-format 1.28.0 como única autoridad de formato.
