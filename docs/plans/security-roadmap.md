@@ -86,7 +86,7 @@ Reglas transversales:
 | Dependencies | SEC2 dependency baseline |
 | Deferred | CodeQL future public; Semgrep only for demonstrated missing rule |
 
-## SEC4 — SBOM and Dependency/License Integrity — IMPLEMENTED, REMOTE VALIDATION BLOCKED (2026-08-24)
+## SEC4 — SBOM and Dependency/License Integrity — DONE (2026-08-24)
 
 | Campo | Definición |
 | --- | --- |
@@ -99,7 +99,7 @@ Reglas transversales:
 | Tests | schema validation, reproducibility/normalization, isolated JPA and JDBC consumers, attachment/classifier inspection |
 | False positives | license exception includes exact coordinate/text/legal rationale/owner/expiry; no global license allow |
 | Documentation | SBOM lifecycle, format/schema, publication/retention and consumer verification |
-| Acceptance | 9 per-artifact + aggregate CycloneDX 1.6 JSON; 55 external production components; 0 unknown/0 BLOCK; no generated file in Git |
+| Acceptance | 9 per-artifact + aggregate CycloneDX 1.6 JSON; 55 external production components; 0 unknown/0 BLOCK; no generated file in Git; self-hosted Build PASS and Compatibility 11/11 PASS |
 | Risks | aggregate includes non-published modules, serial/timestamp nondeterminism, POM metadata errors |
 | Dependencies | SEC2 inventory and SEC3 stable build |
 | Deferred | signing/provenance to SEC5 |
@@ -190,8 +190,10 @@ SEC0 investigation
                 -> SEC8 technical closure
 ```
 
-SEC5 — Release Signing, Inventory and Provenance Hardening es la única fase siguiente recomendada
-cuando SEC4 pueda cerrarse. La implementación y validación local SEC4 están completas, pero GitHub
-rechazó iniciar Build `32769345221` y Compatibility `32769345298` por el estado de billing/límite de
-gasto de la cuenta; ningún step llegó a ejecutarse. SEC4 permanece abierta hasta obtener ambos PASS.
-Completar SEC4 no autoriza iniciar SEC5, crear credentials/keys/tags ni descongelar `0.1.0`.
+SEC4 está cerrado. El runner repository-scoped compensó el rechazo por billing de los runners
+hosted sin cambiar plan/visibilidad: Build `32774191694` pasó y Compatibility `32774191674` pasó
+11/11 para `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`. Los jobs ejecutaron sobre el selector dedicado,
+sin secrets y con PRs externos/no confiables excluidos por guard fail-safe. Benchmarks y Release no
+se ejecutaron. SEC5 — Release Signing, Inventory and Provenance Hardening es la única fase siguiente
+recomendada, pero sigue `NOT STARTED`: cerrar SEC4 no autoriza credentials/keys/tags ni descongelar
+`0.1.0`.

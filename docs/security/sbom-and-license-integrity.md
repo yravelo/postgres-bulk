@@ -141,6 +141,13 @@ Warm local SEC4 runs measured approximately 45–57 seconds for one complete gen
 (release-profile install, nine independent dependency trees, aggregate and policy checks). This is
 why Build pays the roughly one-minute cost once and Compatibility does not duplicate it.
 
+Remote closure is PASS. On 2026-08-24, repository-scoped self-hosted Build `32774191694` generated
+and audited the canonical nine per-artifact SBOMs plus aggregate as part of its complete successful
+run for `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`. Compatibility `32774191674` passed 11/11 on the
+same SHA. Dedicated runner labels and the owner+same-repository PR guard remove automatic execution
+of untrusted fork code; no repository secret, signing key, provenance, upload or publication was
+introduced. SEC4 is therefore `DONE`; SEC5 remains `NOT STARTED`.
+
 Future policy is to deploy each per-artifact SBOM with Maven classifier `cyclonedx` and attach the
 aggregate plus audit summary/checksums as GitHub Release evidence. That attachment decision is
 documented but no GitHub release upload is activated in SEC4. OpenPGP `.asc` signatures, provenance

@@ -120,6 +120,10 @@ Estado auditado para el candidato `0.1.0` tras Phase 16E. Cada criterio usa excl
 - **PASS** — El hardening SHA `457681c7be28222fa2cd5b715f613da8523abc5a` pasa Build
   `32274812469` y los 10 jobs de Compatibility `32274812453` (PostgreSQL 16.14 pasó al reintentar
   únicamente el job fallido, sin cambios ni reducción de matriz).
+- **PASS** — SEC4 queda cerrado para `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`: Build
+  self-hosted `32774191694` pasó todos los gates y Compatibility `32774191674` pasó 11/11. El runner
+  es repository-scoped, non-root y usa labels dedicadas; PRs fork/no confiables no se ejecutan
+  automáticamente. No se ejecutaron Benchmarks ni Release y SEC5 sigue `NOT STARTED`.
 - **EXTERNAL PREREQUISITE** — Crear `v0.1.0` y autorizar upload/publicación; el canal privado sigue
   diferido como non-blocking.
 - **PASS** — Release es `workflow_dispatch` only desde `main` por `yravelo`; exige stable SemVer,

@@ -76,7 +76,8 @@ use.
 
 `actions/setup-java` retains the existing Maven cache behavior. The service account's local
 `~/.m2/repository` and the Actions cache may contain public dependencies and locally built project
-snapshots, but no publishing settings or credentials. This is acceptable only because all eligible
+snapshots. Any generated Maven `settings.xml` is forced into the job-scoped `runner.temp`, not the
+persistent home, and contains no publishing credentials. This is acceptable only because all eligible
 jobs are trusted, secret-free repository jobs and every reactor command uses `clean`. On a suspected
 cache or host compromise, stop and deregister the runner first, then discard the affected workspace
 and cache selectively before rebuilding them from reviewed sources.
@@ -133,6 +134,19 @@ store a registration/removal token in this repository, documentation or shell pr
 - The official service has boot autostart but no automatic restart-on-failure override.
 - Hosted-runner billing independence applies only to Build and Compatibility. It does not activate
   or execute Benchmarks, Release, signing, provenance, upload or publication.
+
+## SEC4R validation evidence
+
+For commit `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`, Build run `32774191694` passed every security,
+reactor, SBOM/license, consumer and documentation step on `postgres-bulk-owner-ubuntu`.
+Compatibility run `32774191674` passed all 11 lanes on the same runner and SHA. A post-run audit
+found zero Testcontainers-labelled containers, networks or volumes and confirmed the runner stayed
+online with zero Repository Actions Secrets.
+
+That audit also found an empty, credential-free `~/.m2/settings.xml` created by `setup-java` despite
+`overwrite-settings: false`. It was removed, and the workflows/gate now require `settings-path`
+under `runner.temp` so subsequent jobs cannot persist it in the service account home. No token or
+credential field was present in the removed file.
 
 ## Official references
 

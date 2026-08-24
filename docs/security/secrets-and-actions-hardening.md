@@ -59,7 +59,8 @@ y tag. LFS y submodules permanecen false. Ningún checkout recibe token custom n
 
 Los jobs Build/candidate/test fijan `overwrite-settings: false`: `setup-java` instala Temurin y
 puede usar cache Maven, pero no genera un `settings.xml` publicador, no recibe server credentials ni
-importa GPG. `central-upload` es la única excepción: declara Central, settings bajo
+importa GPG. En Build/Compatibility, `settings-path` queda aislado bajo `runner.temp` para que el
+host persistente no conserve settings en su home. `central-upload` es la única excepción: declara Central, settings bajo
 `RUNNER_TEMP` y key input. Un step `always()` elimina settings y el `GNUPGHOME` únicamente si éste
 está dentro de `RUNNER_TEMP`.
 

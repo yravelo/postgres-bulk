@@ -83,6 +83,7 @@ session data or token is stored. The real Portal user token has not been generat
 | Protected OpenPGP key | EXTERNAL PREREQUISITE — real key was not generated |
 | GitHub branch protection/rules | DEFERRED (non-blocking) — unavailable for this private repository on the current plan |
 | Repository Secrets model | PASS — explicitly selected for the current private, single-maintainer threat model |
+| Trusted self-hosted Build/Compatibility runner | PASS — repository-scoped, non-root, dedicated labels, owner+same-repo PR guard; 11/11 lanes |
 | GitHub environment `maven-central` | DEFERRED (non-blocking) — retained as an inert marker; not referenced by release workflow |
 | Environment protection | DEFERRED (non-blocking) — unavailable for this private repository on the current entitlement |
 | `CENTRAL_USERNAME` / `CENTRAL_PASSWORD` | MISSING |
@@ -115,10 +116,13 @@ consumer-reachable SEC2 OSV inventory; test, benchmark, example and build-tool c
 Two clean generations compare semantically. Generated evidence remains under `target/` and is not
 committed. See [SBOM and dependency/license integrity](../security/sbom-and-license-integrity.md).
 
-SEC4 local validation, release staging and reproducibility are PASS. Its pushed candidate
-`37aa43f2d0f9c4718c7a9c29b566880546ff1a20` has not received executable remote evidence: GitHub
-rejected Build `32769345221` and Compatibility `32769345298` before their first step because of the
-account billing/spending-limit state. SEC4 remains open until those workflows are rerun and pass.
+SEC4 local validation, release staging and reproducibility are PASS. A repository-scoped trusted
+self-hosted runner removed the GitHub-hosted billing dependency without changing plan, visibility
+or coverage. For `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`, Build `32774191694` passed all security,
+reactor, SBOM/license, consumer and documentation steps on the dedicated runner; Compatibility
+`32774191674` passed all 11 lanes. The earlier pre-step billing rejections remain historical
+evidence, not an open SEC4 blocker. Benchmarks and Release were not executed. SEC4 is `DONE`; SEC5
+is `NOT STARTED`.
 
 SEC2 adds a fail-closed dependency gate to Build and the release candidate before any future
 upload. The applicable pgJDBC HIGH finding on 42.7.11 was remediated by selecting supported
