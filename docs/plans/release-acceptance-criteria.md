@@ -63,6 +63,13 @@ Estado auditado para el candidato `0.1.0` tras Phase 16E. Cada criterio usa excl
 
 - **PASS** — LICENSE, POMs y documentación son consistentes con Apache-2.0.
 - **PASS** — Auditoría reproducible de licencias productivas no presenta metadata desconocida.
+- **PASS** — OSV-Scanner 2.5.1 verifica por checksum e inspecciona 129/129 coordenadas externas;
+  no queda ningún BLOCK y los cinco WARN exactos tienen owner, evidencia y expiry revisable.
+- **PASS** — El release candidate repite el vulnerability gate antes de cualquier upload futuro;
+  scanner error, inventario incompleto, production HIGH/CRITICAL sin triage o accepted risk expirado
+  bloquean.
+- **PASS** — Dependabot opera semanalmente para Maven, Actions y Docker con PRs limitados, majors
+  manuales y sin auto-merge.
 - **PASS** — No se requiere NOTICE vacío según el contenido actualmente auditado.
 - **PASS** — SHA-256 de artifacts staged se genera e inspecciona.
 - **PASS** — OpenPGP sigue siendo obligatorio; la firma está aislada en `central-publish` y el

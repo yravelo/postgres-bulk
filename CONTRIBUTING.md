@@ -23,6 +23,7 @@ Before submitting a change, also run from the repository root:
 ./scripts/check-workflow-security.py
 ./scripts/test-workflow-security.py
 ./scripts/check-secrets.sh current
+./scripts/check-vulnerabilities.sh
 ./scripts/check-documentation.sh
 git diff --check
 ```
@@ -40,11 +41,24 @@ change, revoke or rotate real credentials first, then investigate cleanup. Do no
 add a broad allow-list or paste the value into an issue, log or chat. If an exception is genuinely
 required, it must be rule/path-specific and document evidence, owner and expiry.
 
+The dependency wrapper builds JSON Maven trees for the full reactor, validates the explicit build
+tool inventory and scans every unique external name/version with checksum-pinned OSV-Scanner
+2.5.1. It requires network access and fails closed on a tool error, incomplete package set,
+untriaged production finding or expired accepted risk. Generated evidence stays under
+`target/security/`; reviewable exceptions belong only in
+`config/security/accepted-dependency-risks.json` with exact advisory/dependency/version, owner and
+expiry. Do not add broad ignores or override one member of the Boot BOM only to silence a finding.
+
 All GitHub Actions must use an approved full commit SHA with a human-readable version comment.
 Keep workflow permissions read-only, checkout credentials non-persistent and event/input expressions
 outside shell blocks. Secret masking is only defense-in-depth; it is not an authorization or
 isolation boundary. Release credentials belong exclusively to the `central-upload` job, and no
 candidate, build, test, cache or artifact may contain them.
+
+Dependabot opens bounded weekly Maven, Actions and Docker update PRs. It never auto-merges. Review
+each PR, keep majors and Boot generation changes manual, preserve full Action SHAs plus version
+comments and run Build plus relevant Compatibility lanes for dependency changes. Docker references
+must remain explicit non-`latest` tags.
 
 ## Compatibility
 

@@ -49,6 +49,7 @@ This index separates adoption guidance from implementation details.
 
 - [Security and supply-chain investigation](security/security-and-supply-chain-investigation.md)
 - [Secrets and GitHub Actions hardening](security/secrets-and-actions-hardening.md)
+- [Dependency vulnerability and update management](security/dependency-vulnerability-management.md)
 - [Security roadmap](plans/security-roadmap.md)
 
 ## Decisions and evidence

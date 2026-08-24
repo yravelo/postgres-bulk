@@ -69,6 +69,9 @@ session data or token is stored. The real Portal user token has not been generat
 | Control | Status |
 | --- | --- |
 | GitHub Private Vulnerability Reporting | DEFERRED (non-blocking) — API returned 404 for this private repository; unchanged |
+| OSV dependency gate | PASS — 2.5.1 checksum-pinned; 129/129 exact package versions, zero BLOCK |
+| Accepted dependency risks | PASS — five exact WARN records expire 2026-10-24 |
+| Dependabot update policy | PASS — seven weekly bounded lanes, majors manual, no auto-merge |
 | OpenPGP strategy | PASS — required by Central and isolated in `central-publish` |
 | Protected OpenPGP key | EXTERNAL PREREQUISITE — real key was not generated |
 | GitHub branch protection/rules | DEFERRED (non-blocking) — unavailable for this private repository on the current plan |
@@ -96,6 +99,13 @@ audit must remain free of unknown metadata. Each Java module attaches binary, so
 Javadocs; the code-free starter uses explanatory archives. Staging emits SHA-256, and two clean
 release builds compare the parent POM plus four files for each of the six modules: 25 primary
 artifacts total. SBOM and provenance remain deferred non-blocking decisions.
+
+SEC2 adds a fail-closed dependency gate to Build and the release candidate before any future
+upload. The applicable pgJDBC HIGH finding on 42.7.11 was remediated by selecting supported
+42.7.13; the post-fix scan has no BLOCK finding. Five moderate findings are explicitly triaged with
+scope, reachability, owner and expiry in the accepted-risk register. Dependency inventory and raw
+OSV output remain generated under `target/security/`, not committed artifacts. OWASP
+Dependency-Check remains optional because exact OSV coverage is complete; Snyk is not connected.
 
 ## Phase 16B local validation
 

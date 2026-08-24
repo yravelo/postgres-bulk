@@ -36,20 +36,21 @@ hasta actualizar la matriz.
 
 ## Baseline por defecto
 
-El parent fija Java 17 bytecode, Boot 3.5.16, JUnit 5.12.2, Testcontainers 2.0.5 y
-`postgres.version=15.18-alpine`. El BOM resuelve:
+El parent fija Java 17 bytecode, Boot 3.5.16, JUnit 5.12.2, Testcontainers 2.0.5,
+`postgres.version=15.18-alpine` y el patch de seguridad pgJDBC 42.7.13. El BOM resuelve el resto:
 
 | Spring Framework | Spring Data JPA | Spring Data JDBC/Relational | Hibernate | Micrometer | pgJDBC |
 |---:|---:|---:|---:|---:|---:|
-| 6.2.19 | 3.5.13 | 3.5.13 | 6.6.53.Final | 1.15.12 | 42.7.11 |
+| 6.2.19 | 3.5.13 | 3.5.13 | 6.6.53.Final | 1.15.12 | 42.7.13 |
 
 `./mvnw clean verify` usa sólo esa baseline PostgreSQL para conservar un loop local razonable.
 
 ## Stack mínimo y extremo nuevo
 
 El límite mínimo coherente usa JDK 17 + Boot 3.5.0, que gestiona Spring Framework 6.2.7,
-Spring Data JPA/JDBC/Relational 3.5.0, Hibernate 6.6.15.Final, Micrometer 1.15.0 y pgJDBC 42.7.5,
-sobre PostgreSQL 15.18.
+Spring Data JPA/JDBC/Relational 3.5.0, Hibernate 6.6.15.Final y Micrometer 1.15.0, con el patch
+pgJDBC 42.7.13 sobre PostgreSQL 15.18. El adapter aislado conserva la prueba explícita del límite
+pgJDBC 42.7.5, pero ese patch vulnerable histórico ya no es el default de ningún consumer.
 
 El smoke de extremos nuevos usa JDK 21 + Boot 3.5.16/Spring Data JPA/JDBC/Relational
 3.5.13/Micrometer 1.15.12,

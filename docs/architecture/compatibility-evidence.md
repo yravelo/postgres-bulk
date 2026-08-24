@@ -1,6 +1,6 @@
 # Evidencia de compatibilidad
 
-**Corte de evidencia:** 2026-08-24, cierre MS7. Todos los comandos se ejecutaron desde
+**Corte de evidencia:** 2026-08-24, SEC2. Todos los comandos se ejecutaron desde
 `code/postgres-bulk-parent` en Linux, con Maven Wrapper 3.9.16, Docker 29.7.0 y sin omitir
 Enforcer ni tests de integración.
 
@@ -16,14 +16,14 @@ Enforcer ni tests de integración.
 | Spring Data Relational | gobernado por Boot | 3.5.13 | 3.5.0, 3.5.13 | dependency tree, mapping/materialization tests |
 | Hibernate ORM | 6.6.15–6.6.55 | 6.6.53.Final | 6.6.15, 6.6.53, 6.6.55 | BOM y H01/H02/full stack |
 | Micrometer | gobernado por Boot | 1.15.12 | 1.15.0, 1.15.12 | dependency tree y observability tests |
-| pgJDBC | 42.7.5–42.7.13 | 42.7.11 | 42.7.5, 42.7.11, 42.7.13 | BOM y D01/D02/full stack |
+| pgJDBC | 42.7.5–42.7.13 | 42.7.13 | 42.7.5, 42.7.11, 42.7.13 | override de seguridad, D01/D02/full stack |
 | PostgreSQL | majors 15–18 | `15.18-alpine` | 15.18, 16.14, 17.10, 18.4 | parent `postgres.version` y Testcontainers |
 
 La baseline real del POM es Boot 3.5.16, Spring Framework 6.2.19, Spring Data
 JPA/JDBC/Relational 3.5.13,
-Hibernate 6.6.53.Final, Micrometer 1.15.12, pgJDBC 42.7.11 y PostgreSQL 15.18. Esto corrige
-referencias históricas de fases anteriores que usaron manualmente Hibernate 6.6.55/pgJDBC 42.7.13
-antes de integrar el BOM Boot.
+Hibernate 6.6.53.Final, Micrometer 1.15.12, pgJDBC 42.7.13 y PostgreSQL 15.18. SEC2 cambió el
+default pgJDBC de 42.7.11 a 42.7.13 tras resolver el finding HIGH
+`GHSA-j92g-9f8w-j867`; es un patch dentro del rango ya validado, no un cambio de compatibilidad.
 
 ## Auditoría de los BOM límite
 
@@ -39,8 +39,8 @@ Comando, repetido con `3.5.0` y `3.5.16`:
 
 | Boot | Framework | Data JPA | Data JDBC/Relational | Hibernate | Micrometer | pgJDBC | Resultado |
 |---|---|---|---|---|---|---|---|
-| 3.5.0 | 6.2.7 | 3.5.0 | 3.5.0 | 6.6.15.Final | 1.15.0 | 42.7.5 | PASS |
-| 3.5.16 | 6.2.19 | 3.5.13 | 3.5.13 | 6.6.53.Final | 1.15.12 | 42.7.11 | PASS |
+| 3.5.0 | 6.2.7 | 3.5.0 | 3.5.0 | 6.6.15.Final | 1.15.0 | 42.7.13 | PASS |
+| 3.5.16 | 6.2.19 | 3.5.13 | 3.5.13 | 6.6.53.Final | 1.15.12 | 42.7.13 | PASS |
 
 ## Matriz ejecutada
 
