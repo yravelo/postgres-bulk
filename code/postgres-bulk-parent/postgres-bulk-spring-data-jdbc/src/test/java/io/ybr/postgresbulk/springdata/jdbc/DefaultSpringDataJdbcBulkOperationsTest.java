@@ -11,6 +11,7 @@ import io.ybr.postgresbulk.core.BulkWriteResult;
 import io.ybr.postgresbulk.core.metadata.BulkKeyMetadata;
 import io.ybr.postgresbulk.core.metadata.ColumnMetadata;
 import io.ybr.postgresbulk.core.metadata.EntityMetadata;
+import io.ybr.postgresbulk.core.metadata.TableName;
 import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -117,6 +118,115 @@ class DefaultSpringDataJdbcBulkOperationsTest {
     assertEquals(1, factoryCount.get());
     assertEquals(1, callbackCount.get());
     assertEquals(0, connectionState.forbiddenCalls.get());
+  }
+
+  @Test
+  void targetInsertPropagatesDomainOptionsTargetRowsAndSameConnection() {
+    inWritableTransaction();
+    ConnectionState connectionState = new ConnectionState(false, false);
+    Connection connection = connectionState.proxy();
+    AtomicInteger callbacks = new AtomicInteger();
+    AtomicInteger iterators = new AtomicInteger();
+    List<GeneratedRow> rows = List.of(new GeneratedRow(null, "target"));
+    BulkInsertOptions options = BulkInsertOptions.ofBatchSize(17);
+    TableName target = TableName.of("tenant_a", "generated_row");
+    BulkWriteResult expected = new BulkWriteResult(1, 1);
+
+    DefaultSpringDataJdbcBulkOperations<GeneratedRow> operations =
+        operations(
+            jdbcOperations(connection, callbacks),
+            new DefaultSpringDataJdbcBulkOperations.BulkOperationFactory() {
+              @Override
+              public <E> DefaultSpringDataJdbcBulkOperations.PreparedBulkOperation<E> prepare(
+                  EntityMetadata<E> metadata) {
+                assertEquals("generated_row", metadata.table().table());
+                return new DefaultSpringDataJdbcBulkOperations.PreparedBulkOperation<>() {
+                  @Override
+                  public BulkWriteResult bulkInsert(
+                      Connection actualConnection,
+                      Iterable<? extends E> actualItems,
+                      BulkInsertOptions actualOptions) {
+                    throw new AssertionError("default insert must not be called");
+                  }
+
+                  @Override
+                  public BulkWriteResult bulkInsert(
+                      Connection actualConnection,
+                      Iterable<? extends E> actualItems,
+                      BulkInsertOptions actualOptions,
+                      TableName actualTarget) {
+                    assertSame(connection, actualConnection);
+                    assertSame(options, actualOptions);
+                    assertSame(target, actualTarget);
+                    assertEquals(rows, consume(actualItems));
+                    return expected;
+                  }
+                };
+              }
+            });
+
+    assertSame(
+        expected,
+        operations.bulkInsert(GeneratedRow.class, oneShot(rows, iterators), options, target));
+    assertEquals(1, iterators.get());
+    assertEquals(1, callbacks.get());
+    assertEquals(0, connectionState.forbiddenCalls.get());
+  }
+
+  @Test
+  void targetEmptyInsertValidatesMappingWithoutTransactionFactoryOrConnection() {
+    AtomicInteger iterators = new AtomicInteger();
+    AtomicBoolean factoryCalled = new AtomicBoolean();
+    DefaultSpringDataJdbcBulkOperations<GeneratedRow> operations =
+        operations(failingJdbcOperations(), failingFactory(factoryCalled));
+
+    assertEquals(
+        BulkWriteResult.empty(),
+        operations.bulkInsert(
+            GeneratedRow.class,
+            oneShot(List.of(), iterators),
+            BulkInsertOptions.defaults(),
+            TableName.of("tenant_a", "generated_row")));
+    assertEquals(1, iterators.get());
+    assertFalse(factoryCalled.get());
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            operations.bulkInsert(
+                GeneratedRow.class,
+                List.of(),
+                BulkInsertOptions.defaults(),
+                TableName.of("different_table")));
+  }
+
+  @Test
+  void targetNonEmptyOperationsRejectMissingLogicalTransactionBeforeConnection() {
+    DefaultSpringDataJdbcBulkOperations<GeneratedRow> inserts =
+        operations(failingJdbcOperations(), unusedFactory());
+    InvalidDataAccessApiUsageException insertFailure =
+        assertThrows(
+            InvalidDataAccessApiUsageException.class,
+            () ->
+                inserts.bulkInsert(
+                    GeneratedRow.class,
+                    List.of(new GeneratedRow(1L, "value")),
+                    BulkInsertOptions.defaults(),
+                    TableName.of("tenant_a", "generated_row")));
+    assertTrue(insertFailure.getMessage().contains("active JDBC transaction"));
+
+    DefaultSpringDataJdbcBulkOperations<GeneratedRow> lookups =
+        lookupOperations(failingJdbcOperations(), unusedLookupFactory());
+    InvalidDataAccessApiUsageException lookupFailure =
+        assertThrows(
+            InvalidDataAccessApiUsageException.class,
+            () ->
+                lookups.findAllByBulkKey(
+                    GeneratedRow.class,
+                    List.of("value"),
+                    simpleKeyMetadata(),
+                    TableName.of("tenant_a", "generated_row")));
+    assertTrue(lookupFailure.getMessage().contains("active JDBC transaction"));
   }
 
   @Test
@@ -347,6 +457,101 @@ class DefaultSpringDataJdbcBulkOperationsTest {
     assertEquals(1, iterators.get());
     assertEquals(1, callbacks.get());
     assertEquals(0, connectionState.forbiddenCalls.get());
+  }
+
+  @Test
+  void targetLookupPropagatesTargetMetadataKeysAndSameConnection() {
+    inWritableTransaction();
+    ConnectionState connectionState = new ConnectionState(false, false);
+    Connection connection = connectionState.proxy();
+    AtomicInteger callbacks = new AtomicInteger();
+    AtomicInteger iterators = new AtomicInteger();
+    List<String> keys = List.of("target");
+    BulkKeyMetadata<String> keyMetadata = simpleKeyMetadata();
+    TableName target = TableName.of("tenant_b", "generated_row");
+    List<GeneratedRow> expected = List.of(new GeneratedRow(9L, "target"));
+
+    DefaultSpringDataJdbcBulkOperations<GeneratedRow> operations =
+        lookupOperations(
+            jdbcOperations(connection, callbacks),
+            new DefaultSpringDataJdbcBulkOperations.LookupOperationFactory() {
+              @Override
+              public <E> DefaultSpringDataJdbcBulkOperations.PreparedLookupOperation<E> prepare(
+                  EntityMetadata<E> metadata) {
+                return new DefaultSpringDataJdbcBulkOperations.PreparedLookupOperation<>() {
+                  @Override
+                  public <K> List<E> findAllByBulkKey(
+                      Connection actualConnection,
+                      Iterable<? extends K> actualKeys,
+                      BulkKeyMetadata<K> actualMetadata,
+                      DefaultSpringDataJdbcBulkOperations.LookupResultMaterializer<E>
+                          materializer) {
+                    throw new AssertionError("default lookup must not be called");
+                  }
+
+                  @SuppressWarnings("unchecked")
+                  @Override
+                  public <K> List<E> findAllByBulkKey(
+                      Connection actualConnection,
+                      Iterable<? extends K> actualKeys,
+                      BulkKeyMetadata<K> actualMetadata,
+                      DefaultSpringDataJdbcBulkOperations.LookupResultMaterializer<E> materializer,
+                      TableName actualTarget) {
+                    assertSame(connection, actualConnection);
+                    assertSame(keyMetadata, actualMetadata);
+                    assertSame(target, actualTarget);
+                    assertEquals(keys, consume(actualKeys));
+                    return (List<E>) expected;
+                  }
+                };
+              }
+            });
+
+    assertSame(
+        expected,
+        operations.findAllByBulkKey(
+            GeneratedRow.class, oneShot(keys, iterators), keyMetadata, target));
+    assertEquals(1, iterators.get());
+    assertEquals(1, callbacks.get());
+    assertEquals(0, connectionState.forbiddenCalls.get());
+  }
+
+  @Test
+  void targetEmptyLookupValidatesMappingWithoutTransactionFactoryOrConnection() {
+    AtomicInteger iterators = new AtomicInteger();
+    AtomicBoolean lookupFactoryCalled = new AtomicBoolean();
+    DefaultSpringDataJdbcBulkOperations<GeneratedRow> operations =
+        new DefaultSpringDataJdbcBulkOperations<>(
+            failingJdbcOperations(),
+            resolver(),
+            unusedFactory(),
+            new DefaultSpringDataJdbcBulkOperations.LookupOperationFactory() {
+              @Override
+              public <E> DefaultSpringDataJdbcBulkOperations.PreparedLookupOperation<E> prepare(
+                  EntityMetadata<E> metadata) {
+                lookupFactoryCalled.set(true);
+                throw new AssertionError("lookup factory must not be called");
+              }
+            },
+            new DefaultSpringDataJdbcBulkOperations.ResultMaterializerFactory() {
+              @Override
+              public <E> DefaultSpringDataJdbcBulkOperations.LookupResultMaterializer<E> prepare(
+                  org.springframework.data.relational.core.mapping.RelationalPersistentEntity<E>
+                      entity,
+                  org.springframework.data.jdbc.core.convert.JdbcConverter converter) {
+                throw new AssertionError("materializer must not be created");
+              }
+            });
+
+    assertEquals(
+        List.of(),
+        operations.findAllByBulkKey(
+            GeneratedRow.class,
+            oneShot(List.of(), iterators),
+            simpleKeyMetadata(),
+            TableName.of("tenant_a", "generated_row")));
+    assertEquals(1, iterators.get());
+    assertFalse(lookupFactoryCalled.get());
   }
 
   @Test

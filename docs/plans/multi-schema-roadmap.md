@@ -9,8 +9,8 @@ introducir `TenantContext`, tenant ids, ThreadLocal, `search_path`, `Connection.
 global Boot, cache por tenant, provisioning, publicación o security baseline sin autorización y
 ADR separados.
 
-ADR-031 está `ACCEPTED` con evidencia Java pura de MS1 y COPY/lookup/JPA reales de MS2–MS4; ADR-032
-está `ACCEPTED` con evidencia pgJDBC/JPA MS2–MS4. "Multi-schema" en este roadmap
+ADR-031 está `ACCEPTED` con evidencia Java pura de MS1 y COPY/lookup/JPA/JDBC reales de MS2–MS5;
+ADR-032 está `ACCEPTED` con evidencia pgJDBC/JPA/JDBC MS2–MS5. "Multi-schema" en este roadmap
 significa target `schema + table` explícito por operación dentro de una conexión ya elegida; no
 significa database routing, row-level tenancy ni Hibernate multi-tenancy.
 
@@ -156,7 +156,7 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
   quoting, conflictos, SQLStates y cache estructural por identidad. Native materialization consume
   el JOIN qualified; no hay API tenant, target cache, metadata mutation ni cambios Boot/JDBC.
 
-## MS5 — Spring Data JDBC Target Integration
+## MS5 — Spring Data JDBC Target Integration — DONE (2026-08-24)
 
 - **Objective:** exponer el mismo target físico en el fragmento JDBC conservando root-only,
   conversiones e ID policy.
@@ -179,6 +179,12 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
 - **Risks:** metadata qualified estática inesperada, mixed ID failure mid-COPY y APIs divergentes.
 - **Dependencies:** MS4 y ADR-024–030.
 - **Deferred:** Boot configuration and full matrix.
+- **Closure:** el fragmento JDBC publica las tres formas target-aware simétricas con JPA y propaga
+  el target por `JdbcOperations.execute(ConnectionCallback)` al engine pgJDBC existente. PostgreSQL
+  15.18 confirma mismo proxy A/B, insert/lookup aislados, concurrencia, conexión física,
+  commit/rollback multi-schema, REQUIRED/REQUIRES_NEW/NESTED condicionado, read-only, IDs,
+  converters/embedded/reference, quoting, conflictos, SQLStates, `25P02`, pool/cleanup y cache
+  estructural por identidad. No hay target cache/state, resolución tenant ni cambios Boot.
 
 ## MS6 — Spring Boot Composition and Store Coexistence
 
@@ -271,5 +277,5 @@ MS0 investigation
                 -> MS8 compatibility/docs/benchmarks/closure
 ```
 
-La única siguiente fase autorizable después de MS4 es
-**MS5 — Spring Data JDBC Target Integration**.
+La única siguiente fase autorizable después de MS5 es
+**MS6 — Spring Boot Composition and Store Coexistence**.

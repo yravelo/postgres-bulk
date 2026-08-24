@@ -17,7 +17,8 @@ publicos.
 J1 de la evolución Spring Data JDBC añade un único tipo público experimental al release line
 todavía no publicado: `SpringDataJdbcEntityMetadataResolver`. J2/J3 añaden ejecución root-only
 package-private y cero tipos públicos. J4 añade la primera API de operaciones JDBC:
-`PostgresBulkJdbcRepository<T>`. J6 añade sólo `PostgresBulkJdbcAutoConfiguration` como
+`PostgresBulkJdbcRepository<T>`. MS5 añade tres overloads target-aware a ese fragmento sin tipos
+nuevos. J6 añade sólo `PostgresBulkJdbcAutoConfiguration` como
 infraestructura pública de framework; el starter JDBC no tiene clases y no cambia las firmas de
 operaciones.
 
@@ -309,7 +310,7 @@ public final class SpringDataJdbcEntityMetadataResolver
 }
 ```
 
-## Fragmento público añadido en Spring Data JDBC J4
+## Fragmento público añadido en Spring Data JDBC J4 y ampliado en MS5
 
 - `PostgresBulkJdbcRepository<T>`: fragmento opt-in específico de Spring Data JDBC. Extiende
   `BulkOperations<T>` y añade lookup tipado con la misma `BulkKeyMetadata<K>` core.
@@ -329,12 +330,33 @@ public interface PostgresBulkJdbcRepository<T> extends BulkOperations<T> {
         BulkInsertOptions options
     );
 
+    default BulkWriteResult bulkInsert(
+        TableName runtimeTarget,
+        Iterable<? extends T> items
+    );
+
+    BulkWriteResult bulkInsert(
+        Iterable<? extends T> items,
+        BulkInsertOptions options,
+        TableName runtimeTarget
+    );
+
     <K> List<T> findAllByBulkKey(
         Iterable<? extends K> keys,
         BulkKeyMetadata<K> keyMetadata
     );
+
+    <K> List<T> findAllByBulkKey(
+        Iterable<? extends K> keys,
+        BulkKeyMetadata<K> keyMetadata,
+        TableName runtimeTarget
+    );
 }
 ```
+
+MS5 replica deliberadamente el shape JPA/MS4. La forma corta target-first evita ambigüedad con
+`bulkInsert(items, null)`; los overloads completos de insert y lookup conservan items/keys primero.
+El cambio es aditivo dentro de una línea todavía no publicada y no amplía `BulkOperations<T>`.
 
 ## Fuera de la API publica
 

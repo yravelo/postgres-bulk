@@ -93,12 +93,12 @@ insert -> lookup y lookup -> insert en una transacción. Dos lookups concurrente
 físicos y nombres temporales independientes, obtienen resultados correctos y terminan sin estado
 temporal compartido.
 
-## Compatibilidad multi-schema futura
+## Integración multi-schema MS5
 
-J3 no añade `TenantContext`, ThreadLocal, `search_path`, `setSchema` ni cache global. La tabla se
-resuelve por operación desde metadata y las keys permanecen explícitas. Un futuro diseño
-multi-schema puede seleccionar metadata/table por invocation sin cambiar el motor ni el
-materializador.
+MS5 propaga un `TableName` explícito al lookup pgJDBC. CTAS y JOIN usan el mismo target qualified y
+`EntityRowMapper` consume el SELECT resultante; no vuelve al mapping default. Keys, materializador y
+cache estructural permanecen iguales. No aparecen `TenantContext`, ThreadLocal, `search_path`,
+`setSchema` ni cache global/por target.
 
 ## Unsupported y diferido
 

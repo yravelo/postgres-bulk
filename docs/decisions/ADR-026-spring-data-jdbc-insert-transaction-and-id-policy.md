@@ -87,3 +87,9 @@ independiente en ambas direcciones.
 Los cuatro contenders usaron UUID assigned y commit dentro del límite medido; los checks de
 correctness quedaron fuera. La API pública conservó la conexión transaccional y la política por
 llamada. No hubo bug ni cambio productivo; el ADR permanece `ACCEPTED`.
+
+## Evidencia MS5 (2026-08-24)
+
+Insert target-aware conserva lookahead one-shot, O(1), batches, ID assigned/generated y rechazo
+mixed. A+B commit/rollback, `REQUIRES_NEW`, NESTED condicionado, read-only y `25P02` pasan sin que
+el target altere ownership o política de IDs. El ADR permanece `ACCEPTED`.

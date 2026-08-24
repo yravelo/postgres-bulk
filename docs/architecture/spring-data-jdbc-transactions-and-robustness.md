@@ -102,6 +102,14 @@ Tras `pg_terminate_backend`, la excepción llega al caller; Hikari invalida la c
 siguiente adquisición usa otro PID y completa insert/lookup. postgres-bulk no inspecciona el pool,
 no reemplaza conexiones y no intenta continuar una transacción abortada.
 
+## Destinos multi-schema MS5
+
+Los overloads JDBC target-aware conservan íntegramente esta matriz. A y B pueden participar en el
+mismo `REQUIRED` y backend porque COPY/CTAS/JOIN usan identifiers qualified; rollback revierte
+ambos. `REQUIRES_NEW` y NESTED condicionado siguen perteneciendo al manager. Read-only, no-tx y
+`25P02` no tienen bypass target-aware. Hikari reutiliza A→B sin restaurar schema/search path y el
+lookup no deja temporales después de éxito, fallo o rollback a savepoint.
+
 ## Retry
 
 No hay retry automático para fallos de productor, conversión, SQL, conexión o commit incierto.

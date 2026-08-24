@@ -4,6 +4,7 @@ import io.ybr.postgresbulk.core.BulkInsertOptions;
 import io.ybr.postgresbulk.core.BulkWriteResult;
 import io.ybr.postgresbulk.core.metadata.BulkKeyMetadata;
 import io.ybr.postgresbulk.core.metadata.EntityMetadata;
+import io.ybr.postgresbulk.core.metadata.TableName;
 import io.ybr.postgresbulk.pgjdbc.copy.PostgresBulkJdbcOperations;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -113,6 +114,40 @@ final class DefaultSpringDataJdbcBulkOperations<T> {
     return Objects.requireNonNull(result, "JdbcOperations returned a null bulk write result");
   }
 
+  BulkWriteResult bulkInsert(
+      Class<T> entityType,
+      Iterable<? extends T> items,
+      BulkInsertOptions options,
+      TableName runtimeTarget) {
+    Objects.requireNonNull(entityType, "entityType must not be null");
+    Objects.requireNonNull(items, "items must not be null");
+    Objects.requireNonNull(options, "options must not be null");
+    Objects.requireNonNull(runtimeTarget, "runtimeTarget must not be null");
+
+    Iterator<? extends T> source =
+        Objects.requireNonNull(items.iterator(), "items.iterator() must not return null");
+    if (!source.hasNext()) {
+      metadataResolver.resolve(entityType).table().resolveRuntimeTarget(runtimeTarget);
+      return BulkWriteResult.empty();
+    }
+
+    T first = requireItem(source.next(), 1);
+    requireWritableTransaction("bulk insert");
+    EntityMetadata<T> expectedMetadata = metadataResolver.resolveFor(first);
+    PreparedBulkOperation<T> operation = operationFactory.prepare(expectedMetadata);
+    Iterable<T> preparedItems =
+        new HomogeneousIterable<>(source, first, expectedMetadata, metadataResolver);
+
+    BulkWriteResult result =
+        jdbcOperations.execute(
+            (ConnectionCallback<BulkWriteResult>)
+                connection -> {
+                  requirePhysicalTransaction(connection, "bulk insert");
+                  return operation.bulkInsert(connection, preparedItems, options, runtimeTarget);
+                });
+    return Objects.requireNonNull(result, "JdbcOperations returned a null bulk write result");
+  }
+
   <K> List<T> findAllByBulkKey(
       Class<T> entityType, Iterable<? extends K> keys, BulkKeyMetadata<K> keyMetadata) {
     Objects.requireNonNull(entityType, "entityType must not be null");
@@ -141,6 +176,43 @@ final class DefaultSpringDataJdbcBulkOperations<T> {
                   requirePhysicalTransaction(connection, "bulk lookup");
                   return operation.findAllByBulkKey(
                       connection, preparedKeys, keyMetadata, materializer);
+                });
+    return Objects.requireNonNull(result, "JdbcOperations returned a null bulk lookup result");
+  }
+
+  <K> List<T> findAllByBulkKey(
+      Class<T> entityType,
+      Iterable<? extends K> keys,
+      BulkKeyMetadata<K> keyMetadata,
+      TableName runtimeTarget) {
+    Objects.requireNonNull(entityType, "entityType must not be null");
+    Objects.requireNonNull(keys, "keys must not be null");
+    Objects.requireNonNull(keyMetadata, "keyMetadata must not be null");
+    Objects.requireNonNull(runtimeTarget, "runtimeTarget must not be null");
+
+    Iterator<? extends K> source =
+        Objects.requireNonNull(keys.iterator(), "keys.iterator() must not return null");
+    EntityMetadata<T> metadata = metadataResolver.resolve(entityType);
+    if (!source.hasNext()) {
+      metadata.table().resolveRuntimeTarget(runtimeTarget);
+      return List.of();
+    }
+
+    K first = requireKey(source.next(), 1);
+    requireWritableTransaction("bulk lookup");
+    RelationalPersistentEntity<T> persistentEntity = metadataResolver.persistentEntity(entityType);
+    PreparedLookupOperation<T> operation = lookupOperationFactory.prepare(metadata);
+    LookupResultMaterializer<T> materializer =
+        resultMaterializerFactory.prepare(persistentEntity, metadataResolver.jdbcConverter());
+    Iterable<K> preparedKeys = new PreparedKeyIterable<>(source, first);
+
+    List<T> result =
+        jdbcOperations.execute(
+            (ConnectionCallback<List<T>>)
+                connection -> {
+                  requirePhysicalTransaction(connection, "bulk lookup");
+                  return operation.findAllByBulkKey(
+                      connection, preparedKeys, keyMetadata, materializer, runtimeTarget);
                 });
     return Objects.requireNonNull(result, "JdbcOperations returned a null bulk lookup result");
   }
@@ -195,6 +267,14 @@ final class DefaultSpringDataJdbcBulkOperations<T> {
   interface PreparedBulkOperation<E> {
     BulkWriteResult bulkInsert(
         Connection connection, Iterable<? extends E> items, BulkInsertOptions options);
+
+    default BulkWriteResult bulkInsert(
+        Connection connection,
+        Iterable<? extends E> items,
+        BulkInsertOptions options,
+        TableName runtimeTarget) {
+      throw new UnsupportedOperationException("target-aware bulk insert is not implemented");
+    }
   }
 
   @FunctionalInterface
@@ -209,6 +289,15 @@ final class DefaultSpringDataJdbcBulkOperations<T> {
         Iterable<? extends K> keys,
         BulkKeyMetadata<K> keyMetadata,
         LookupResultMaterializer<E> materializer);
+
+    default <K> List<E> findAllByBulkKey(
+        Connection connection,
+        Iterable<? extends K> keys,
+        BulkKeyMetadata<K> keyMetadata,
+        LookupResultMaterializer<E> materializer,
+        TableName runtimeTarget) {
+      throw new UnsupportedOperationException("target-aware bulk lookup is not implemented");
+    }
   }
 
   @FunctionalInterface
@@ -236,6 +325,15 @@ final class DefaultSpringDataJdbcBulkOperations<T> {
         Connection connection, Iterable<? extends E> items, BulkInsertOptions options) {
       return delegate.bulkInsert(connection, items, options);
     }
+
+    @Override
+    public BulkWriteResult bulkInsert(
+        Connection connection,
+        Iterable<? extends E> items,
+        BulkInsertOptions options,
+        TableName runtimeTarget) {
+      return delegate.bulkInsert(connection, items, options, runtimeTarget);
+    }
   }
 
   private static final class PgJdbcLookupOperation<E> implements PreparedLookupOperation<E> {
@@ -254,6 +352,17 @@ final class DefaultSpringDataJdbcBulkOperations<T> {
         LookupResultMaterializer<E> materializer) {
       return delegate.findAllByBulkKey(
           connection, keys, keyMetadata, List.of(), materializer::materialize);
+    }
+
+    @Override
+    public <K> List<E> findAllByBulkKey(
+        Connection connection,
+        Iterable<? extends K> keys,
+        BulkKeyMetadata<K> keyMetadata,
+        LookupResultMaterializer<E> materializer,
+        TableName runtimeTarget) {
+      return delegate.findAllByBulkKey(
+          connection, keys, keyMetadata, List.of(), materializer::materialize, runtimeTarget);
     }
   }
 

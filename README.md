@@ -131,6 +131,20 @@ public List<Product> findBySkus(List<String> skus) {
 }
 ```
 
+For an application-authorized physical target, Spring Data JDBC uses the same operation-scoped
+shape as JPA:
+
+```java
+TableName tenantA = TableName.of("tenant_a", "product");
+
+products.bulkInsert(tenantA, input);
+products.bulkInsert(input, BulkInsertOptions.ofBatchSize(5_000), tenantA);
+List<Product> found = products.findAllByBulkKey(skus, skuKey, tenantA);
+```
+
+The resolver metadata, ID policy and `EntityRowMapper` stay structural; the target is not retained
+by the repository or inferred from tenant context.
+
 The JDBC path writes only aggregate-root columns: it does not persist child collections, invoke
 callbacks/auditing, or populate generated identifiers. Assigned IDs are copied; generated numeric
 IDs are omitted and remain unset in the input object. Read-only and unproxied no-transaction calls
@@ -342,8 +356,8 @@ recommended key-count threshold. See the [performance guide](docs/user-guide/per
 - No built-in JSON/JSONB, array or arbitrary custom-type encoder.
 - No automatic retry, adaptive lookup strategy, index/`ANALYZE` tuning or guaranteed result order.
 - Runtime multi-schema insert and lookup accept an explicit qualified `TableName` through the
-  low-level pgJDBC facade and the Spring Data JPA fragment. Spring Data JDBC and Boot composition
-  do not yet propagate a target; their existing operations still use mapped metadata.
+  low-level pgJDBC facade and both Spring Data JPA and JDBC fragments. Boot composition does not
+  resolve or retain a target; existing target-free operations still use mapped metadata.
 - Spring Boot 4, Spring Data 4 and Hibernate 7 are unsupported in this artifact generation.
 
 ## How it fits
@@ -372,6 +386,7 @@ Spring Data adapter
 - [Low-level multi-schema bulk insert](docs/architecture/multi-schema-bulk-insert.md)
 - [Low-level multi-schema bulk lookup](docs/architecture/multi-schema-bulk-lookup.md)
 - [Hibernate/Spring Data JPA multi-schema](docs/architecture/multi-schema-hibernate-jpa.md)
+- [Spring Data JDBC multi-schema](docs/architecture/multi-schema-spring-data-jdbc.md)
 - [Contributing](CONTRIBUTING.md)
 
 ## License

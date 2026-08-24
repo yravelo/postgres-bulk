@@ -1,11 +1,11 @@
 # Metadata Spring Data JDBC
 
-## Alcance J1
+## Alcance J1 y reutilización MS5
 
 `postgres-bulk-spring-data-jdbc` traduce el mapping efectivo de una aggregate root a
 `EntityMetadata<T>`. J1 termina en metadata y characterization: no contiene bulk insert público,
 lookup, repository fragment, acceso transaccional, auto-configuración Boot, starter ni lifecycle
-de aggregates.
+de aggregates. MS5 reutiliza esa metadata con un `TableName` runtime local sin cambiar la cache.
 
 La frontera productiva exacta es:
 
@@ -183,7 +183,7 @@ arrancarlo, `verify` falla visiblemente.
 - J4 congeló `PostgresBulkJdbcRepository<T>` y reutiliza este resolver por inyección.
 - J5/J6 cerrarán transacciones, coexistencia y Boot.
 - El lane mínimo Spring Data JDBC 3.5.0 y la matrix completa pertenecen a fases de compatibilidad.
-- Schema runtime por tenant requiere un boundary explícito por operación, no otra cache global.
+- MS5 aporta schema runtime mediante un boundary explícito por operación, no otra cache global.
 
 ## Evidencia de consumo J2
 

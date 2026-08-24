@@ -80,3 +80,9 @@ con la clase package-private. El test de candidates demuestra fallo determinista
 J8 midió directamente `PostgresBulkJdbcRepository.bulkInsert`; el adapter warm no mostró coste
 temporal o de allocation consistente frente a low-level COPY. No se añadió método, tipo o promesa
 de rendimiento. La API baseline permanece estable y el ADR `ACCEPTED`.
+
+## Evidencia MS5 (2026-08-24)
+
+La API añade insert corto target-first, insert con options+target y lookup con target, simétricos con
+JPA/MS4. El orden corto evita ambigüedad con `bulkInsert(items, null)` y method references. No nace
+tipo target alternativo y las firmas default siguen intactas. El ADR permanece `ACCEPTED`.

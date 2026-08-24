@@ -1,6 +1,6 @@
 # Repository fragment público para Spring Data JDBC
 
-## Contrato J4
+## Contrato J4 y overloads MS5
 
 J4 publica `PostgresBulkJdbcRepository<T>` en
 `io.ybr.postgresbulk.springdata.jdbc.repository`. El nombre mantiene `PostgresBulk` como capacidad
@@ -27,7 +27,28 @@ BulkWriteResult bulkInsert(
     Iterable<? extends K> keys,
     BulkKeyMetadata<K> keyMetadata
 );
+
+BulkWriteResult bulkInsert(
+    TableName runtimeTarget,
+    Iterable<? extends T> items
+);
+
+BulkWriteResult bulkInsert(
+    Iterable<? extends T> items,
+    BulkInsertOptions options,
+    TableName runtimeTarget
+);
+
+<K> List<T> findAllByBulkKey(
+    Iterable<? extends K> keys,
+    BulkKeyMetadata<K> keyMetadata,
+    TableName runtimeTarget
+);
 ```
+
+MS5 añade sólo las tres últimas formas. La variante corta target-first conserva inequívocas las
+llamadas históricas con `null` al overload de options y mantiene simetría con JPA/MS4. El target es
+schema-qualified, root-only, local a la invocación y no introduce resolución tenant.
 
 No se publica la implementación, un factory, una DSL de keys ni configuración Boot. El resolver
 de metadata introducido en J1 continúa siendo el único tipo público de infraestructura JDBC.
@@ -153,6 +174,11 @@ insert y lectura JPA siguen operativos. El POM publicado de cada adapter conserv
 Enforcer valida el classpath JDBC-only y el grafo productivo valida el consumo JPA-only.
 Los suites J2/J3 continúan cubriendo embedded, nested embedded, references, connection identity,
 cleanup, query count y fallos durante el pipeline delegado.
+
+MS5 añade evidencia pública con el mismo proxy para A/B: insert/lookup aislados, concurrencia,
+transacción multi-schema, REQUIRES_NEW/NESTED, read-only, IDs, mappings, quoting, conflictos,
+SQLStates, pool/cleanup y reuse por identidad de metadata. La implementación continúa sin fields o
+caches de target.
 
 Fuentes oficiales consultadas:
 

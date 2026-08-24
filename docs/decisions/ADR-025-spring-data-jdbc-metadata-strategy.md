@@ -164,3 +164,9 @@ null; no es una promesa pendiente. Los tests cubren converters a tipos relaciona
 J8 reutilizó el resolver con metadata caliente y confirmó round-trip de los escalares
 representativos fuera del timing. No añadió mapping ni cambió la estrategia. Con los gates del
 subset soportado cerrados, este ADR pasa a `ACCEPTED`.
+
+## Evidencia MS5 (2026-08-24)
+
+Los targets A/B reutilizan por identidad la misma entrada estructural y las mismas variantes de ID.
+Converter, enum, embedded nested/null y `AggregateReference` funcionan target-aware sin añadir
+`TableName` a la cache ni mutar metadata. La estrategia permanece `ACCEPTED`.

@@ -3,6 +3,7 @@ package io.ybr.postgresbulk.springdata.jdbc;
 import io.ybr.postgresbulk.core.BulkInsertOptions;
 import io.ybr.postgresbulk.core.BulkWriteResult;
 import io.ybr.postgresbulk.core.metadata.BulkKeyMetadata;
+import io.ybr.postgresbulk.core.metadata.TableName;
 import io.ybr.postgresbulk.springdata.jdbc.repository.PostgresBulkJdbcRepository;
 import java.util.List;
 import java.util.Objects;
@@ -42,10 +43,28 @@ class DefaultPostgresBulkJdbcOperations<T>
 
   @Override
   @Transactional
+  public BulkWriteResult bulkInsert(
+      Iterable<? extends T> items, BulkInsertOptions options, TableName runtimeTarget) {
+    RepositoryMetadata metadata = repositoryMetadata();
+    rejectMixedStoreRepository(metadata);
+    return delegate.bulkInsert(domainType(metadata), items, options, runtimeTarget);
+  }
+
+  @Override
+  @Transactional
   public <K> List<T> findAllByBulkKey(Iterable<? extends K> keys, BulkKeyMetadata<K> keyMetadata) {
     RepositoryMetadata metadata = repositoryMetadata();
     rejectMixedStoreRepository(metadata);
     return delegate.findAllByBulkKey(domainType(metadata), keys, keyMetadata);
+  }
+
+  @Override
+  @Transactional
+  public <K> List<T> findAllByBulkKey(
+      Iterable<? extends K> keys, BulkKeyMetadata<K> keyMetadata, TableName runtimeTarget) {
+    RepositoryMetadata metadata = repositoryMetadata();
+    rejectMixedStoreRepository(metadata);
+    return delegate.findAllByBulkKey(domainType(metadata), keys, keyMetadata, runtimeTarget);
   }
 
   private static RepositoryMetadata repositoryMetadata() {

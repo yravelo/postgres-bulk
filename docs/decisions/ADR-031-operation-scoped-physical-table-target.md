@@ -105,3 +105,10 @@ no-op vacío el adapter usa una vez el mismo método core sin adquirir conexión
 target-first evita ambigüedad source con `BulkInsertOptions`. Un repository singleton funciona
 secuencial y concurrentemente sin field/cache `TableName`; mapping con schema fijo conserva el
 conflicto central. No nace facade target-bound, tipo alternativo ni decisión tenant.
+
+## Evidencia posterior MS5
+
+Spring Data JDBC publica el mismo argumento explícito que JPA y lo propaga al engine pgJDBC. Para
+input vacío aplica una vez el resolver core sin conexión; para input no vacío pgJDBC sigue siendo
+fuente de verdad. Metadata/ID variants se reutilizan por identidad para A/B y el fragmento singleton
+no conserva `TableName`. ADR-031 permanece `ACCEPTED`.

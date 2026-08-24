@@ -161,3 +161,10 @@ J7 y no reabren esta decisión arquitectónica.
 Los benchmarks ejercitaron el fragmento público JDBC y el engine low-level con metadata caliente,
 misma tabla y misma transacción. No apareció razón para cambiar boundaries, crear módulo common o
 mezclar starters. Core/pgJDBC y API pública no cambiaron. El ADR permanece `ACCEPTED`.
+
+## Evidencia MS5 (2026-08-24)
+
+El fragmento JDBC propaga `TableName` explícito por `RepositoryMethodContext`, coordinador y
+`ConnectionCallback` a los motores MS2/MS3. A/B usa el mismo proxy y conexión transaction-bound sin
+estado target, multitenancy, cambios core/pgJDBC ni wiring Boot. La arquitectura permanece
+`ACCEPTED`.

@@ -74,3 +74,9 @@ SQLState ni semántica cross-stack.
 Cada operación medida incluyó commit y usó una transacción write comparable; fixtures y checks
 quedaron fuera del timing. La ejecución repetida no detectó pérdida de conexión, estado contaminado
 ni fallo productivo. No se añadió retry ni se alteró ownership. El ADR permanece `ACCEPTED`.
+
+## Evidencia MS5 (2026-08-24)
+
+El mismo proxy ejecuta A/B concurrentes, una transacción puede confirmar o revertir ambos schemas y
+`REQUIRES_NEW`/NESTED conservan sus scopes. Pool A→B, `25P02`, temporales y read-only mantienen la
+matriz existente sin schema state ni recuperación interna. El ADR permanece `ACCEPTED`.

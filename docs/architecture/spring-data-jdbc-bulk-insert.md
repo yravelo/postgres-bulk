@@ -94,12 +94,12 @@ un error SQL, `25P02` permanece visible hasta rollback; el adapter no recupera n
 Hikari y Testcontainers prueban success, fallo+rollback y operación posterior. Tras completar el
 scope no queda conexión activa prestada y el pool puede reutilizarla.
 
-## Compatibilidad multi-schema futura
+## Integración multi-schema MS5
 
-J2 no introduce tenant context, ThreadLocal, `search_path`, `setSchema` ni cache tenant-specific.
-El resolver conserva la tabla estructural por application context. Un futuro override per-operation
-podrá combinar las mismas columnas con otro `TableName`; el coordinador no congela schema adicional
-ni añade una key global por entity class.
+MS5 añade un overload que recibe `TableName` completo por operación y lo entrega al engine
+preparado. El resolver conserva la tabla estructural por application context y la misma variante de
+ID para A/B; el target no entra en metadata ni cache. Input vacío valida el contrato core sin
+conexión. No aparecen tenant context, ThreadLocal, `search_path`, `setSchema` ni cache target-specific.
 
 ## Non-goals
 

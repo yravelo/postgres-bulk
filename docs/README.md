@@ -36,6 +36,7 @@ This index separates adoption guidance from implementation details.
 - [pgJDBC multi-schema bulk insert](architecture/multi-schema-bulk-insert.md)
 - [pgJDBC multi-schema bulk lookup](architecture/multi-schema-bulk-lookup.md)
 - [Hibernate/Spring Data JPA multi-schema](architecture/multi-schema-hibernate-jpa.md)
+- [Spring Data JDBC multi-schema](architecture/multi-schema-spring-data-jdbc.md)
 
 ## Compatibility
 

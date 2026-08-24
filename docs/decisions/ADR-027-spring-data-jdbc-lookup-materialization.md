@@ -73,3 +73,9 @@ El benchmark comparó SQL `IN` y temporary-table COPY/JOIN con el mismo target, 
 `EntityRowMapper`, transacción y shape. SQL `IN` ganó los point estimates hasta 10K, mientras el
 lookup compuesto confirmó viabilidad de la estrategia existente. No existe evidencia para un
 threshold universal, index/ANALYZE automático o adaptive lookup. El ADR permanece `ACCEPTED`.
+
+## Evidencia MS5 (2026-08-24)
+
+El target runtime alimenta CTAS y JOIN y el mismo `EntityRowMapper` consume ese SELECT en la
+conexión prestada. A/B, converters/embedded/reference, un SELECT, cleanup y SQLState permanecen
+correctos; no se re-resuelve la tabla default. El ADR permanece `ACCEPTED`.

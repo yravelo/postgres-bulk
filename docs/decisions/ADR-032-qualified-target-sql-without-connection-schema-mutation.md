@@ -99,5 +99,12 @@ La evidencia detallada está en
 El repository JPA propaga el mismo target qualified a COPY y lookup. `Session#doReturningWork` y la
 native query comparten backend físico; A/B funciona en el mismo proxy, en una transacción y en dos
 threads. Un schema quoted se materializa correctamente y no se añade `setSchema`, `search_path`,
-hint Hibernate, target tag ni log propio. Spring Data JPA aplica así ADR-032 sin reabrirla; Boot y
-Spring Data JDBC permanecen sin propagación.
+hint Hibernate, target tag ni log propio. Spring Data JPA aplica así ADR-032 sin reabrirla; al
+cierre de MS4, Boot y Spring Data JDBC permanecían sin propagación.
+
+## Evidencia posterior MS5
+
+El fragmento JDBC entrega el target a COPY/CTAS/JOIN sobre la conexión de
+`JdbcOperations.execute(ConnectionCallback)`. A/B comparte proxy, transacción y backend; quoting,
+pool reuse, conflictos, SQLStates y cleanup pasan sin `setSchema`, `search_path`, target tags ni
+cache SQL por target. Boot permanece sin resolución de target y ADR-032 sigue `ACCEPTED`.
