@@ -186,82 +186,82 @@ significa database routing, row-level tenancy ni Hibernate multi-tenancy.
   converters/embedded/reference, quoting, conflictos, SQLStates, `25P02`, pool/cleanup y cache
   estructural por identidad. No hay target cache/state, resolución tenant ni cambios Boot.
 
-## MS6 — Spring Boot Composition and Store Coexistence
+## MS6 — Spring Boot Composition and Store Coexistence — DONE (2026-08-24)
 
 - **Objective:** validar que ambos starters componen la capacidad sin introducir configuración
   global de schema/tenant ni seleccionar infraestructura.
-- **Scope:** conditions/back-off, JPA-only/JDBC-only/both, user-provided neutral helpers only if
-  needed, zero startup I/O.
+- **Scope:** conditions/back-off, JPA-only/JDBC-only/both, same/separate infrastructure,
+  transaction characterization, pool/cache/concurrency and zero startup I/O.
 - **Non-goals:** `postgres-bulk.schema`, tenant resolver bean, routing datasource, transaction
   manager creation, unified starter o release activation.
 - **Modules/files:** ambos autoconfigure modules, starters as dependency-only, context/smoke docs.
-- **API impact:** idealmente cero; ninguna property nueva prevista.
+- **API impact:** cero; ninguna property nueva.
 - **Architecture constraints:** target sigue siendo argumento de operación; Boot no guarda default
   mutable ni lo resuelve.
 - **Tasks:** context runners; filtered classpaths; back-off; both-store collision tests; starter JAR
   and dependency audits.
 - **Tests:** missing classes/beans, custom resolver, multiple candidates, both starters, no target
-  beans, zero connections at startup, PostgreSQL A/B smoke for each store.
+  beans, zero connections at startup, PostgreSQL default+A/B/C smoke for each store, transactions,
+  concurrency, quoting/errors and external consumers.
 - **Documentation:** conditions, explicit application resolver example outside library and
   coexistence.
 - **Acceptance criteria:** normal starter adoption funciona con target explícito; no JPA pollution
   in JDBC starter; no Java in starters; no global schema property.
 - **Risks:** auto-config temptation to hide target selection, ambiguous beans and store collision.
 - **Dependencies:** MS5 and ADR-018/030.
-- **Deferred:** exhaustive compatibility, examples and benchmarks.
+- **Deferred:** exhaustive compatibility, final examples/documentation and benchmarks.
+- **Closure:** ambos starters componen los overloads MS4/MS5 sin cambio productivo. JPA-only,
+  JDBC-only y ambos resolvers arrancan; datasource ambiguo hace back-off y primary/wiring explícito
+  funciona. PostgreSQL 15.18 confirma default+A/B/C, aislamiento, same proxy, transacciones,
+  `REQUIRES_NEW`, diferencia NESTED, read-only, concurrencia, quoting, SQLState, pool/cache y cero
+  tags/properties target-aware. Starters/dependency boundaries y consumidores externos pasan.
 
-## MS7 — Transactions, Concurrency, Security and Robustness
+## MS7 — Multi-Schema Compatibility, Examples & Documentation
 
-- **Objective:** cerrar invariants runtime antes de declarar la capacidad adoptable.
-- **Scope:** fault injection, pool reuse, same-connection A→B, parallel singleton, SQLState,
-  privilege errors, identifier privacy and no state leakage.
-- **Non-goals:** automated retry, distributed transactions, authorization engine, provisioning,
-  row-level security implementation and security baseline program.
-- **Modules/files:** tests across pgjdbc/JPA/JDBC, architecture/transactions/user guides and ADR
-  acceptance updates.
-- **API impact:** none expected; corrections require reopening the owning phase.
-- **Architecture constraints:** first failure primary; no connection mutation; no tenant/schema
-  observability tags; same transaction may touch several schemas.
-- **Tasks:** inject failures per stage/target; audit methods/bytecode; inspect pool state and cache;
-  test privileges and sanitized library messages.
-- **Tests:** COPY/CTAS/SELECT/DROP failures in A then healthy B after rollback, backend loss,
-  Hikari size one, 100 A/B alternations, eight threads, conflicting mappings, NUL/raw SQL rejection,
-  metrics cardinality and heap/cache boundedness.
-- **Documentation:** transaction matrix, threat model boundary, error/privacy and operational
-  guidance.
-- **Acceptance criteria:** no target leakage, no stale SQL, no temp/cache growth, cause/SQLState
-  preserved and database privileges authoritative.
-- **Risks:** framework/pool state not restored by owner, server messages reveal identifiers,
-  insufficient pool for REQUIRES_NEW.
-- **Dependencies:** MS6 and ADR-019/020/029/032.
-- **Deferred:** versions/docs/performance closure.
+- **Objective:** convertir la capacidad ya robusta en un contrato de adopción respaldado por la
+  matriz de versiones soportada, ejemplos ejecutables y documentación completa.
+- **Scope:** Java 17/21, Boot/Data/Hibernate/pgJDBC soportados, PostgreSQL 15–18, ejemplos JPA/JDBC,
+  API diff, consumers limpios, guías operativas y evidence index.
+- **Non-goals:** publicación, release/tag, Boot 4, resolver tenant, security baseline, benchmarks o
+  nuevas semánticas de operación.
+- **Modules/files:** compatibility workflow, examples/verification, user guide, architecture,
+  release-readiness note and roadmap.
+- **API impact:** ninguno esperado; freeze de la API aditiva MS1–MS5.
+- **Architecture constraints:** target explícito, SQL qualified, cero cache/state tenant-aware y
+  claims públicos limitados a jobs/evidencia.
+- **Tasks:** ampliar lanes pairwise, ejecutar ejemplos externos, completar migration/security/error
+  guidance, API/docs/JAR/dependency audits y cierre de riesgos.
+- **Tests:** matriz soportada, examples/consumers A/B, API baseline, docs links, dependency/JAR audit
+  and full PostgreSQL lanes.
+- **Documentation:** getting started JPA/JDBC, composition, transactions, migrations, authorization
+  boundary, errors, observability and limitations.
+- **Acceptance criteria:** jobs obligatorios verdes, ejemplos sólo con API pública, A/B probado en
+  la matriz, docs consistentes y decisiones diferidas explícitas.
+- **Risks:** coste combinatorio de CI, examples que conviertan input no confiable directamente en
+  schema y claims que excedan la evidencia.
+- **Dependencies:** MS6 y ADR-021/031/032.
+- **Deferred:** benchmarks, publicación, security/supply-chain baseline and Boot 4 generation.
 
-## MS8 — Compatibility, Documentation, Examples, Benchmarks and Closure
+## MS8 — Multi-Schema Benchmarks and Final Closure
 
-- **Objective:** convertir la capacidad en un contrato respaldado por la matriz soportada y cerrar
-  la línea sin publicar.
-- **Scope:** Java 17/21, Boot/Data 3.5 boundaries, Hibernate/pgJDBC limits, PostgreSQL 15–18,
-  executable examples, API diff, docs, benchmark overhead and final ADR/risk review.
-- **Non-goals:** Central upload/tag/release, Boot/Data 4, security baseline, adaptive SQL cache,
+- **Objective:** medir el overhead operation-scoped y cerrar la línea técnica sin publicar.
+- **Scope:** default frente a warm A/B/C, cardinalidad de schemas, insert/lookup, adapter frente a
+  pgJDBC low-level y revisión final ADR/risk.
+- **Non-goals:** Central upload/tag/release, Boot/Data 4, security baseline, adaptive target cache,
   universal performance claims or automatic migrations.
-- **Modules/files:** compatibility workflows, both examples or a focused new example, user guide,
-  benchmarks, evidence, release-readiness note and roadmaps.
-- **API impact:** freeze the additive API accepted in MS1; no benchmark-driven expansion.
-- **Architecture constraints:** equivalent tests for A/B; public claims only with jobs/evidence;
-  no cache by target even if benchmark shows SQL construction cost.
-- **Tasks:** extend boundary/pairwise lanes; clean consumer; example with application-owned target
-  resolution; two baseline runs; 1M profile; docs/link/API audits; close ADR-031/032.
-- **Tests:** full future matrix from MS0, compatibility versions, example smoke, API baseline,
-  dependency/JAR audits and repeatable benchmark correctness.
-- **Documentation:** getting started, JPA/JDBC examples, transactions, migrations boundary,
-  security, errors, performance and limitations.
-- **Acceptance criteria:** mandatory jobs green; examples use only public API; A/B isolation and
-  compatibility proven; all risks closed/deferred explicitly; publication remains frozen.
-- **Risks:** combinatorial CI cost, misleading benchmark, examples that derive schema directly from
-  untrusted tenant input.
-- **Dependencies:** MS7 and ADR-021/022.
-- **Deferred:** publication activation, security/supply-chain baseline, Boot 4 generation and any
-  new tenancy model.
+- **Modules/files:** benchmark module no publicable, reports, evidence and final roadmap state.
+- **API impact:** freeze de la API MS1–MS5; ninguna expansión motivada sólo por benchmark.
+- **Architecture constraints:** no cache por target aunque construir SQL tenga coste medible;
+  correctness checks fuera del timing y transacciones comparables.
+- **Tasks:** warmup/measurement reproducible, dos baselines, perfil grande, cardinality stress,
+  publish raw evidence and close/defer risks.
+- **Tests:** benchmark correctness, repeatability, no target leakage/cache growth and full build.
+- **Documentation:** metodología, resultados con límites y cierre técnico.
+- **Acceptance criteria:** evidencia reproducible, claims acotados, cero regresión y ADRs cerrados o
+  diferidos explícitamente.
+- **Risks:** ruido, coste CI y convertir point estimates en recomendaciones universales.
+- **Dependencies:** MS7 y ADR-022/031/032.
+- **Deferred:** publication activation, security/supply-chain baseline, Boot 4 and new tenancy model.
 
 ## Dependencias
 
@@ -273,9 +273,9 @@ MS0 investigation
         -> MS4 Hibernate/JPA
           -> MS5 Spring Data JDBC
             -> MS6 Boot/coexistence
-              -> MS7 robustness/security boundary
-                -> MS8 compatibility/docs/benchmarks/closure
+              -> MS7 compatibility/examples/documentation
+                -> MS8 benchmarks/final closure
 ```
 
-La única siguiente fase autorizable después de MS5 es
-**MS6 — Spring Boot Composition and Store Coexistence**.
+La única siguiente fase autorizable después de MS6 es
+**MS7 — Multi-Schema Compatibility, Examples & Documentation**.

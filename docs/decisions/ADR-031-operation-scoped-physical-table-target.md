@@ -112,3 +112,9 @@ Spring Data JDBC publica el mismo argumento explícito que JPA y lo propaga al e
 input vacío aplica una vez el resolver core sin conexión; para input no vacío pgJDBC sigue siendo
 fuente de verdad. Metadata/ID variants se reutilizan por identidad para A/B y el fragmento singleton
 no conserva `TableName`. ADR-031 permanece `ACCEPTED`.
+
+## Evidencia posterior MS6
+
+Boot no introduce una capa de resolución: los consumidores continúan pasando `TableName` a los
+repositories JPA/JDBC. Default+A/B/C y concurrencia reutilizan los mismos proxies y metadata; las
+autoconfiguraciones no conservan target ni crean un tipo nuevo. ADR-031 permanece `ACCEPTED`.

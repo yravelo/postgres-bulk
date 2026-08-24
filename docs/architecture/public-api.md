@@ -424,3 +424,10 @@ compila sólo contra `postgres-bulk-spring-boot-starter-data-jdbc` y las APIs p�
 `PostgresBulkJdbcAutoConfiguration`, core metadata/options/results y Spring Data JDBC. Sus clases
 de dominio y servicio pertenecen al artifact de ejemplo, no a la API de postgres-bulk. El baseline
 binario de `0.1.0-SNAPSHOT` permanece sin cambios.
+
+## Auditoría multi-schema Boot MS6
+
+MS6 añade cero tipos, métodos, constructors, properties o firmas públicas. Ambos starters y
+autoconfiguraciones reutilizan exactamente las APIs target-aware MS4/MS5; la baseline binaria no
+cambia. La selección de `DataSource`/transaction manager y la traducción tenant→`TableName`
+permanecen código de aplicación, no SPI de la librería.

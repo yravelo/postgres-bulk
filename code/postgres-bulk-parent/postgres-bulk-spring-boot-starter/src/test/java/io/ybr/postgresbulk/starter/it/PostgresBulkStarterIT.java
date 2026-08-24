@@ -15,6 +15,7 @@ import io.ybr.postgresbulk.core.BulkWriteResult;
 import io.ybr.postgresbulk.core.metadata.BulkKeyMetadata;
 import io.ybr.postgresbulk.core.metadata.ColumnMetadata;
 import io.ybr.postgresbulk.core.metadata.EntityMetadata;
+import io.ybr.postgresbulk.core.metadata.TableName;
 import io.ybr.postgresbulk.pgjdbc.copy.PostgresBulkJdbcOperations;
 import io.ybr.postgresbulk.springdata.repository.JpaEntityMetadataResolver;
 import jakarta.persistence.EntityManagerFactory;
@@ -25,6 +26,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,9 +36,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.actuate.observability.AutoConfigureObservability;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -57,6 +63,7 @@ class PostgresBulkStarterIT {
   @Autowired private EntityManagerFactory entityManagerFactory;
   @Autowired private ObservationRegistry observationRegistry;
   @Autowired private MeterRegistry meterRegistry;
+  @Autowired private JdbcOperations jdbc;
 
   @DynamicPropertySource
   static void databaseProperties(DynamicPropertyRegistry registry) {
@@ -64,7 +71,7 @@ class PostgresBulkStarterIT {
     registry.add("spring.datasource.username", POSTGRES::getUsername);
     registry.add("spring.datasource.password", POSTGRES::getPassword);
     registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
-    registry.add("spring.datasource.hikari.maximum-pool-size", () -> "1");
+    registry.add("spring.datasource.hikari.maximum-pool-size", () -> "2");
     registry.add("spring.datasource.hikari.minimum-idle", () -> "1");
     registry.add("spring.datasource.hikari.connection-timeout", () -> "5000");
   }
@@ -72,6 +79,138 @@ class PostgresBulkStarterIT {
   @BeforeEach
   void cleanTable() {
     products.deleteAllInBatch();
+    for (String schema : List.of("ms6_jpa_a", "ms6_jpa_b", "ms6_jpa_c", "MS6 JPA Quoted")) {
+      jdbc.execute("CREATE SCHEMA IF NOT EXISTS \"" + schema + "\"");
+      jdbc.execute(
+          "CREATE TABLE IF NOT EXISTS \""
+              + schema
+              + "\".phase10_product (LIKE public.phase10_product INCLUDING ALL)");
+      jdbc.execute("TRUNCATE \"" + schema + "\".phase10_product");
+    }
+  }
+
+  @Test
+  void bootJpaComposesDefaultAndThreeRuntimeSchemasWithoutMetadataMutation() {
+    EntityMetadata<Product> before = metadataResolver.resolve(entityManagerFactory, Product.class);
+    Product defaultProduct = new Product(400L, "DEFAULT", "default");
+    Product inA = new Product(401L, "A", "schema a");
+    Product inB = new Product(402L, "B", "schema b");
+    Product inC = new Product(403L, "C", "schema c");
+
+    products.bulkInsert(List.of(defaultProduct));
+    products.bulkInsert(target("ms6_jpa_a"), List.of(inA));
+    products.bulkInsert(target("ms6_jpa_b"), List.of(inB));
+    products.bulkInsert(target("ms6_jpa_c"), List.of(inC));
+
+    assertThat(products.findAllByBulkKey(List.of("A", "B"), skuMetadata(), target("ms6_jpa_a")))
+        .extracting(product -> product.sku)
+        .containsExactly("A");
+    assertThat(products.findAllByBulkKey(List.of("A", "B"), skuMetadata(), target("ms6_jpa_b")))
+        .extracting(product -> product.sku)
+        .containsExactly("B");
+    assertThat(jdbc.queryForObject("SELECT count(*) FROM ms6_jpa_c.phase10_product", Long.class))
+        .isEqualTo(1L);
+    assertThat(products.count()).isEqualTo(1L);
+    assertThat(metadataResolver.resolve(entityManagerFactory, Product.class)).isSameAs(before);
+  }
+
+  @Test
+  void bootJpaPreservesTargetTransactionsQuotingAndErrors() {
+    TransactionTemplate transaction = new TransactionTemplate(transactionManager);
+    transaction.executeWithoutResult(
+        status -> {
+          products.bulkInsert(target("ms6_jpa_a"), List.of(new Product(410L, "COMMIT-A", "a")));
+          products.bulkInsert(target("ms6_jpa_b"), List.of(new Product(411L, "COMMIT-B", "b")));
+        });
+    transaction.executeWithoutResult(
+        status -> {
+          products.bulkInsert(target("ms6_jpa_a"), List.of(new Product(412L, "ROLLBACK-A", "a")));
+          products.bulkInsert(target("ms6_jpa_b"), List.of(new Product(413L, "ROLLBACK-B", "b")));
+          status.setRollbackOnly();
+        });
+    TransactionTemplate requiresNew = new TransactionTemplate(transactionManager);
+    requiresNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    transaction.executeWithoutResult(
+        status -> {
+          products.bulkInsert(
+              target("ms6_jpa_a"), List.of(new Product(417L, "OUTER-ROLLBACK", "outer")));
+          requiresNew.executeWithoutResult(
+              inner ->
+                  products.bulkInsert(
+                      target("ms6_jpa_b"), List.of(new Product(418L, "INNER-COMMIT", "inner"))));
+          status.setRollbackOnly();
+        });
+
+    TableName quoted = target("MS6 JPA Quoted");
+    products.bulkInsert(quoted, List.of(new Product(414L, "QUOTED", "quoted")));
+    assertThat(products.findAllByBulkKey(List.of("QUOTED"), skuMetadata(), quoted)).hasSize(1);
+    assertThat(jdbc.queryForObject("SELECT count(*) FROM ms6_jpa_a.phase10_product", Long.class))
+        .isEqualTo(1L);
+    assertThat(jdbc.queryForObject("SELECT count(*) FROM ms6_jpa_b.phase10_product", Long.class))
+        .isEqualTo(2L);
+
+    assertThatThrownBy(
+            () ->
+                products.bulkInsert(
+                    TableName.of("ms6_missing", "phase10_product"),
+                    List.of(new Product(415L, "MISSING", "missing"))))
+        .isInstanceOf(BulkException.class)
+        .satisfies(
+            failure ->
+                assertThat(findCause(failure, SQLException.class).getSQLState())
+                    .isEqualTo("3F000"));
+    assertThatThrownBy(
+            () ->
+                products.bulkInsert(
+                    TableName.of("ms6_jpa_a", "wrong_table"),
+                    List.of(new Product(416L, "CONFLICT", "conflict"))))
+        .isInstanceOf(InvalidDataAccessApiUsageException.class)
+        .hasCauseInstanceOf(IllegalArgumentException.class);
+
+    TransactionTemplate readOnly = new TransactionTemplate(transactionManager);
+    readOnly.setReadOnly(true);
+    assertThatThrownBy(
+            () ->
+                readOnly.executeWithoutResult(
+                    status ->
+                        products.bulkInsert(
+                            target("ms6_jpa_a"),
+                            List.of(new Product(419L, "READ-ONLY-TARGET", "read only")))))
+        .isInstanceOf(InvalidDataAccessApiUsageException.class);
+    assertThat(meterRegistry.find("postgres.bulk.operation").meters())
+        .allSatisfy(
+            meter ->
+                assertThat(meter.getId().getTags())
+                    .extracting(io.micrometer.core.instrument.Tag::getKey)
+                    .doesNotContain("schema", "target", "tenant"));
+  }
+
+  @Test
+  void bootJpaRunsConcurrentTargetsThroughOneRepositoryProxy() throws Exception {
+    ExecutorService executor = Executors.newFixedThreadPool(2);
+    try {
+      Future<?> a =
+          executor.submit(
+              () ->
+                  products.bulkInsert(
+                      target("ms6_jpa_a"),
+                      List.of(new Product(420L, "CONCURRENT-A", "concurrent"))));
+      Future<?> b =
+          executor.submit(
+              () ->
+                  products.bulkInsert(
+                      target("ms6_jpa_b"),
+                      List.of(new Product(421L, "CONCURRENT-B", "concurrent"))));
+      a.get();
+      b.get();
+    } finally {
+      executor.shutdownNow();
+    }
+
+    assertThat(jdbc.queryForObject("SELECT count(*) FROM ms6_jpa_a.phase10_product", Long.class))
+        .isEqualTo(1L);
+    assertThat(jdbc.queryForObject("SELECT count(*) FROM ms6_jpa_b.phase10_product", Long.class))
+        .isEqualTo(1L);
   }
 
   @Test
@@ -198,8 +337,9 @@ class PostgresBulkStarterIT {
     ConnectionState before = connectionState();
     BulkKeyMetadata<String> sku = skuMetadata();
 
-    products.bulkInsert(List.of(new Product(10L, "POOL-1", "insert success")));
-    assertThat(products.findAllByBulkKey(List.of("POOL-1"), sku)).hasSize(1);
+    products.bulkInsert(target("ms6_jpa_a"), List.of(new Product(10L, "POOL-1", "insert success")));
+    assertThat(products.findAllByBulkKey(List.of("POOL-1"), sku, target("ms6_jpa_a"))).hasSize(1);
+    products.bulkInsert(target("ms6_jpa_b"), List.of(new Product(14L, "POOL-2", "target b")));
 
     assertThatThrownBy(
             () -> products.findAllByBulkKey(Arrays.asList("POOL-1", null, "POOL-2"), sku))
@@ -286,6 +426,10 @@ class PostgresBulkStarterIT {
   private BulkKeyMetadata<String> skuMetadata() {
     return BulkKeyMetadata.of(
         String.class, List.of(ColumnMetadata.of("sku", String.class, value -> value)));
+  }
+
+  private static TableName target(String schema) {
+    return TableName.of(schema, "phase10_product");
   }
 
   private long operationCount(String operation, String outcome) {

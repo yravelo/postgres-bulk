@@ -96,3 +96,11 @@ varias factories, back-off ante bean propio y cero aperturas de conexión. Una a
 `@SpringBootApplication` real, dependiente sólo del starter dentro del reactor, valida contra
 PostgreSQL 15.18 el descubrimiento del fragmento, insert con batching, lookup tipado, rollback
 exterior, rechazo read-only y meters reales de insert/lookup/failure sin configuración manual.
+
+## Evidencia multi-schema MS6
+
+La autoconfiguración productiva no cambia. El starter JPA ejecuta default y targets A/B/C con el
+mismo proxy, commit/rollback, `REQUIRES_NEW`, read-only, schema quoted, errores PostgreSQL,
+concurrencia y metadata por identidad. `TableName` nunca entra en Boot: no aparece property, bean,
+cache ni tag nuevo. La composición completa se documenta en
+[`multi-schema-spring-boot-composition.md`](multi-schema-spring-boot-composition.md).

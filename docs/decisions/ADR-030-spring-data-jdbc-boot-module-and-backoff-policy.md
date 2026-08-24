@@ -66,3 +66,10 @@ obligatorio, Testcontainers productivo y benchmarks.
 El benchmark declara el adapter JDBC como dependencia directa de un módulo no publicable; no
 modifica el starter ni su grafo runtime. JMH, Testcontainers y fixtures no alcanzan ningún artifact
 productivo. No cambió el back-off y el ADR permanece `ACCEPTED`.
+
+## Evidencia multi-schema MS6
+
+Context runners con ambos starters confirman resolvers independientes, back-off JDBC ante dos data
+sources no primary y activación con un primary. Un resolver del usuario sigue disponible para
+wiring explícito multi-store. El starter JDBC ejecuta A/B/C y los consumidores externos A/B sin
+Java productivo, contaminación JPA ni property global; ADR-030 permanece `ACCEPTED`.

@@ -2,7 +2,7 @@
 
 ## Estado y alcance
 
-**MS1: DONE (2026-08-20); consumo pgJDBC/JPA/JDBC: DONE en MS2–MS5 (2026-08-24).** MS1 hizo
+**MS1: DONE (2026-08-20); consumo pgJDBC/JPA/JDBC/Boot: DONE en MS2–MS6 (2026-08-24).** MS1 hizo
 representable y validó un destino físico runtime en core. MS2 lo consume en bulk insert low-level y
 MS3 en bulk lookup low-level pgJDBC; MS4 los propaga desde Hibernate/Spring Data JPA y MS5 desde
 Spring Data JDBC. Auto-configuración Boot y resolución de tenants siguen diferidas al roadmap.
@@ -149,5 +149,5 @@ target.
 ## Continuación autorizable
 
 MS2/MS3 construyen COPY/lookup SQL local por invocación no vacía; MS4 y MS5 propagan el argumento
-desde JPA y JDBC sin estado. La siguiente extensión autorizable es MS6 para composición Boot, sin
-introducir selección global de target.
+desde JPA y JDBC sin estado. MS6 demuestra que Boot compone ambos caminos sin ver el target ni
+introducir selección global. La continuación autorizable es MS7 para compatibilidad y adopción.

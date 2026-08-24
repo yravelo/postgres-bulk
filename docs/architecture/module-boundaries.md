@@ -126,6 +126,13 @@ repository factory descubra fixtures del otro store.
 consumidores ni artefactos publicables. Tiene `maven.deploy.skip=true`; `verify` sólo compila y
 empaqueta el arnés. JMH se ejecuta manualmente por script o `workflow_dispatch`.
 
+## Evidencia multi-schema MS6
+
+MS6 conserva el grafo sin cambios productivos. Los dos starters siguen dependency-only y las
+pruebas de coexistencia cargan ambas autoconfiguraciones sin introducir una dependencia JPA en el
+grafo productivo JDBC. `TableName` cruza sólo las APIs de operación ya publicadas en MS4/MS5; Boot
+no adquiere una responsabilidad target-aware nueva.
+
 ## Reglas verificables
 
 Maven codifica el DAG y Enforcer prohíbe dependencias framework/infraestructura en core.

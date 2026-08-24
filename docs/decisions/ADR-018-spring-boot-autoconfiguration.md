@@ -75,3 +75,10 @@ La variante JDBC exige candidatos únicos o un `@Primary` para datasource, opera
 mapping context y conversions; hace back-off ante resolver del usuario o ambigüedad. No habilita
 repositories, no crea transaction manager y no abre conexiones. ADR-030 fija el module split y esa
 política. Los artifacts y el comportamiento productivo JPA permanecen iguales.
+
+## Evidencia multi-schema MS6
+
+Los dos composition roots cargan juntos y conservan sus resolver types independientes. Smokes Boot
+JPA/JDBC ejecutan default+A/B/C, transacciones y concurrencia sin que la auto-configuración reciba
+`TableName`. Ambigüedad/primary y wiring del usuario mantienen la política existente. No se añade
+property, bean, selector o I/O target-aware; la decisión permanece `ACCEPTED`.

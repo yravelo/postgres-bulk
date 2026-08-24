@@ -110,6 +110,13 @@ ambos. `REQUIRES_NEW` y NESTED condicionado siguen perteneciendo al manager. Rea
 `25P02` no tienen bypass target-aware. Hikari reutiliza A→B sin restaurar schema/search path y el
 lookup no deja temporales después de éxito, fallo o rollback a savepoint.
 
+## Composición Boot MS6
+
+El starter Boot repite default+A/B/C, commit/rollback, `REQUIRES_NEW`, read-only, quoting,
+conflictos, SQLState y concurrencia sin crear manager ni alterar esta matriz. Con varios managers o
+data sources, la aplicación mantiene selección explícita; Boot hace back-off ante candidatos JDBC
+ambiguos. La coexistencia con JPA no añade atomicidad cross-manager.
+
 ## Retry
 
 No hay retry automático para fallos de productor, conversión, SQL, conexión o commit incierto.

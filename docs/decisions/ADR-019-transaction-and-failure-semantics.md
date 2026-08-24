@@ -108,3 +108,10 @@ A/B commit/rollback en una transacción y `REQUIRES_NEW` B confirmado aunque out
 proxy conserva traducción de conflictos de argumento con causa original, mientras fallos de schema
 o tabla mantienen `BulkException`, `SQLException` y `3F000`/`42P01`. Read-only y delegate directo
 siguen rechazados; JPA NESTED permanece unsupported y no aparecen savepoints o recovery nuevos.
+
+## Resolución MS6
+
+Boot repite los boundaries target-aware JPA/JDBC con los managers creados o seleccionados por la
+aplicación. No crea coordinación cross-store: managers locales sobre igual o distinta base no
+prometen atomicidad. La diferencia NESTED, read-only/no-tx, SQLState, pool ownership y ausencia de
+retry permanecen intactas; ADR-019 sigue `ACCEPTED`.

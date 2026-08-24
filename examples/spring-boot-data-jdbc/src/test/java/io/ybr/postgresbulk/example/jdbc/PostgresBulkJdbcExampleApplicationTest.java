@@ -4,6 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.ybr.postgresbulk.core.BulkWriteResult;
+import io.ybr.postgresbulk.core.metadata.BulkKeyMetadata;
+import io.ybr.postgresbulk.core.metadata.ColumnMetadata;
+import io.ybr.postgresbulk.core.metadata.TableName;
 import io.ybr.postgresbulk.example.jdbc.ProductImportService.IntentionalRollbackException;
 import io.ybr.postgresbulk.springdata.jdbc.SpringDataJdbcEntityMetadataResolver;
 import java.math.BigDecimal;
@@ -44,6 +47,33 @@ class PostgresBulkJdbcExampleApplicationTest {
   @BeforeEach
   void clearProducts() {
     jdbc.execute("TRUNCATE jdbc_product");
+    for (String schema : List.of("example_jdbc_a", "example_jdbc_b")) {
+      jdbc.execute("CREATE SCHEMA IF NOT EXISTS " + schema);
+      jdbc.execute(
+          "CREATE TABLE IF NOT EXISTS "
+              + schema
+              + ".jdbc_product (LIKE public.jdbc_product INCLUDING ALL)");
+      jdbc.execute("TRUNCATE " + schema + ".jdbc_product");
+    }
+  }
+
+  @Test
+  void externalJdbcStarterConsumerUsesRuntimeTargets() {
+    TableName a = TableName.of("example_jdbc_a", "jdbc_product");
+    TableName b = TableName.of("example_jdbc_b", "jdbc_product");
+    Product onlyA = product("TARGET-A", "target", "only a");
+    Product onlyB = product("TARGET-B", "target", "only b");
+    BulkKeyMetadata<String> sku =
+        BulkKeyMetadata.of(
+            String.class, List.of(ColumnMetadata.of("sku", String.class, value -> value)));
+
+    products.bulkInsert(a, List.of(onlyA));
+    products.bulkInsert(b, List.of(onlyB));
+
+    assertThat(products.findAllByBulkKey(List.of("TARGET-A", "TARGET-B"), sku, a))
+        .containsExactly(onlyA);
+    assertThat(products.findAllByBulkKey(List.of("TARGET-A", "TARGET-B"), sku, b))
+        .containsExactly(onlyB);
   }
 
   @Test

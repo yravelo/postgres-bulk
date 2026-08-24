@@ -107,6 +107,24 @@ class PostgresBulkJdbcAutoConfigurationTest {
   }
 
   @Test
+  void userResolverKeepsExplicitMultiDataSourceWiringAvailable() {
+    SpringDataJdbcEntityMetadataResolver custom =
+        new SpringDataJdbcEntityMetadataResolver(
+            interfaceStub(JdbcConverter.class), new JdbcCustomConversions());
+
+    withInfrastructureExcept(DataSource.class)
+        .withBean("firstDataSource", DataSource.class, FailingDataSource::new)
+        .withBean("secondDataSource", DataSource.class, FailingDataSource::new)
+        .withBean("explicitStoreResolver", SpringDataJdbcEntityMetadataResolver.class, () -> custom)
+        .run(
+            context -> {
+              assertThat(context).hasSingleBean(SpringDataJdbcEntityMetadataResolver.class);
+              assertThat(context.getBean(SpringDataJdbcEntityMetadataResolver.class))
+                  .isSameAs(custom);
+            });
+  }
+
+  @Test
   void acceptsPrimaryDataSourceAmongMultipleCandidates() {
     withInfrastructureExcept(DataSource.class)
         .withBean(

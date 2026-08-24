@@ -44,6 +44,63 @@ class BothStartersCoexistenceTest {
             });
   }
 
+  @Test
+  void ambiguousDataSourcesBackOffJdbcWithoutDisablingJpaComposition() throws Exception {
+    Class<?> jpaAutoConfiguration =
+        Class.forName("io.ybr.postgresbulk.autoconfigure.PostgresBulkAutoConfiguration");
+    Class<?> entityManagerFactory = Class.forName("jakarta.persistence.EntityManagerFactory");
+    Class<?> jpaResolver =
+        Class.forName("io.ybr.postgresbulk.springdata.repository.JpaEntityMetadataResolver");
+
+    baseRunner(jpaAutoConfiguration, entityManagerFactory)
+        .withBean("firstDataSource", DataSource.class, () -> interfaceStub(DataSource.class))
+        .withBean("secondDataSource", DataSource.class, () -> interfaceStub(DataSource.class))
+        .run(
+            context -> {
+              assertThat(context).hasNotFailed();
+              assertThat(context).doesNotHaveBean(SpringDataJdbcEntityMetadataResolver.class);
+              assertThat(context.getBeansOfType(rawType(jpaResolver))).hasSize(1);
+            });
+  }
+
+  @Test
+  void primaryDataSourceAllowsBothCompositionRootsToRemainIndependent() throws Exception {
+    Class<?> jpaAutoConfiguration =
+        Class.forName("io.ybr.postgresbulk.autoconfigure.PostgresBulkAutoConfiguration");
+    Class<?> entityManagerFactory = Class.forName("jakarta.persistence.EntityManagerFactory");
+    Class<?> jpaResolver =
+        Class.forName("io.ybr.postgresbulk.springdata.repository.JpaEntityMetadataResolver");
+
+    baseRunner(jpaAutoConfiguration, entityManagerFactory)
+        .withBean(
+            "primaryDataSource",
+            DataSource.class,
+            () -> interfaceStub(DataSource.class),
+            definition -> definition.setPrimary(true))
+        .withBean("secondaryDataSource", DataSource.class, () -> interfaceStub(DataSource.class))
+        .run(
+            context -> {
+              assertThat(context).hasNotFailed();
+              assertThat(context).hasSingleBean(SpringDataJdbcEntityMetadataResolver.class);
+              assertThat(context.getBeansOfType(rawType(jpaResolver))).hasSize(1);
+            });
+  }
+
+  private static ApplicationContextRunner baseRunner(
+      Class<?> jpaAutoConfiguration, Class<?> entityManagerFactory) {
+    return new ApplicationContextRunner()
+        .withConfiguration(
+            AutoConfigurations.of(PostgresBulkJdbcAutoConfiguration.class, jpaAutoConfiguration))
+        .withBean(JdbcOperations.class, () -> interfaceStub(JdbcOperations.class))
+        .withBean(JdbcConverter.class, () -> interfaceStub(JdbcConverter.class))
+        .withBean(JdbcCustomConversions.class, JdbcCustomConversions::new)
+        .withBean(RelationalMappingContext.class, RelationalMappingContext::new)
+        .withBean(
+            "entityManagerFactory",
+            rawType(entityManagerFactory),
+            () -> interfaceStub(entityManagerFactory));
+  }
+
   @SuppressWarnings("unchecked")
   private static <T> Class<T> rawType(Class<?> type) {
     return (Class<T>) type;

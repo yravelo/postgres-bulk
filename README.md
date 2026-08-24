@@ -387,6 +387,7 @@ Spring Data adapter
 - [Low-level multi-schema bulk lookup](docs/architecture/multi-schema-bulk-lookup.md)
 - [Hibernate/Spring Data JPA multi-schema](docs/architecture/multi-schema-hibernate-jpa.md)
 - [Spring Data JDBC multi-schema](docs/architecture/multi-schema-spring-data-jdbc.md)
+- [Spring Boot multi-schema composition](docs/architecture/multi-schema-spring-boot-composition.md)
 - [Contributing](CONTRIBUTING.md)
 
 ## License

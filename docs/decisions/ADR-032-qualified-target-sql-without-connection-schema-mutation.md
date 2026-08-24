@@ -108,3 +108,10 @@ El fragmento JDBC entrega el target a COPY/CTAS/JOIN sobre la conexión de
 `JdbcOperations.execute(ConnectionCallback)`. A/B comparte proxy, transacción y backend; quoting,
 pool reuse, conflictos, SQLStates y cleanup pasan sin `setSchema`, `search_path`, target tags ni
 cache SQL por target. Boot permanece sin resolución de target y ADR-032 sigue `ACCEPTED`.
+
+## Evidencia posterior MS6
+
+Los smokes Boot JPA/JDBC ejecutan A/B/C, quoted schema, mismo transaction scope y concurrencia sin
+mutar `getSchema`/`search_path`. Same/separate data source sólo cambia qué conexión entrega la
+aplicación; el target sigue limitado a la database ya conectada. No aparecen tags target-aware ni
+restore de estado y ADR-032 permanece `ACCEPTED`.

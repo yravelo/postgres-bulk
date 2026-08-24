@@ -2,11 +2,12 @@
 
 ## Estado y alcance
 
-**MS0: DONE (2026-08-20); hipótesis INSERT/LOOKUP/JPA/JDBC validada por MS2–MS5 (2026-08-24).** MS0 cerró
+**MS0: DONE (2026-08-20); hipótesis INSERT/LOOKUP/JPA/JDBC/Boot validada por MS2–MS6 (2026-08-24).** MS0 cerró
 investigación, arquitectura y planificación sin código productivo. MS1 aceptó después el contrato
 neutral en ADR-031, MS2 implementó COPY target-aware low-level y MS3 aplicó el mismo target a CTAS
-y JOIN. MS4 lo propagó por Hibernate/Spring Data JPA y MS5 por Spring Data JDBC, sin cambiar
-metadata ni caches. Properties Boot, publicación y security baseline continúan fuera de este alcance.
+y JOIN. MS4 lo propagó por Hibernate/Spring Data JPA, MS5 por Spring Data JDBC y MS6 confirmó su
+composición Boot, sin cambiar metadata ni caches. Properties multi-schema, publicación y security
+baseline continúan fuera de este alcance.
 
 La línea estudia un caso concreto: una misma estructura lógica —tipo, tabla base, columnas y
 conversiones— existe en varios schemas PostgreSQL y cada operación bulk debe dirigirse al destino
@@ -390,7 +391,7 @@ JOIN. Un input vacío inválido falla sin tocar JDBC. MS4 confirmó materializac
 el SELECT target-qualified. MS5 confirmó que `EntityRowMapper` Spring Data JDBC consume ese mismo
 SELECT, conserva un query y reutiliza metadata/ID variants para A/B.
 
-## Conclusión actualizada tras MS5
+## Conclusión actualizada tras MS6
 
 El diseño es viable sin hacer tenant-aware a la librería. `TableName` ya expresa el destino físico
 completo; el cambio necesario es desplazar su selección al scope de invocación y evitar que SQL
@@ -400,5 +401,7 @@ tenant keys. COPY confirma la hipótesis en PostgreSQL 15.18 sin cache target-ke
 conexión. CTAS/JOIN confirma la misma hipótesis en PostgreSQL 15.18, incluido A→B pooled,
 concurrencia, transacciones, fallos y cleanup sin cache target-keyed. JPA y Spring Data JDBC
 propagan el mismo contrato desde repositories singleton sin estado ni caches por target. La línea
-puede avanzar a **MS6 — Spring Boot Composition and Store Coexistence** sin introducir resolución
-global de schema/tenant.
+Boot compone ambos starters respetando candidate/back-off y límites de store, y los smokes externos
+confirman default+A/B/C sin property, bean o estado target-aware. La línea puede avanzar a
+**MS7 — Multi-Schema Compatibility, Examples & Documentation** sin introducir resolución global de
+schema/tenant.

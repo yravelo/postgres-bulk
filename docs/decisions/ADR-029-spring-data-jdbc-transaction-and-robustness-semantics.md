@@ -80,3 +80,10 @@ ni fallo productivo. No se añadió retry ni se alteró ownership. El ADR perman
 El mismo proxy ejecuta A/B concurrentes, una transacción puede confirmar o revertir ambos schemas y
 `REQUIRES_NEW`/NESTED conservan sus scopes. Pool A→B, `25P02`, temporales y read-only mantienen la
 matriz existente sin schema state ni recuperación interna. El ADR permanece `ACCEPTED`.
+
+## Evidencia MS6
+
+El starter JDBC compone esa misma matriz para default+A/B/C, commit/rollback, `REQUIRES_NEW`,
+read-only, quoting, fallos y concurrencia. Con múltiples data sources/managers conserva back-off o
+selección explícita y no crea manager. La coexistencia Boot con JPA no amplía la promesa
+cross-manager; ADR-029 permanece `ACCEPTED`.

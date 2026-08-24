@@ -142,6 +142,13 @@ lookups concurrentes usan temporales separadas y terminan con cero temporales en
 `JdbcTransactionManager` permite observar NESTED mediante savepoint, pero esta characterization no
 lo convierte todavía en contrato soportado del adapter.
 
+## Evidencia de composición multi-schema MS6
+
+Los starters JPA/JDBC ejecutan targets A/B en commit/rollback y `REQUIRES_NEW`, rechazan read-only y
+conservan la diferencia NESTED ya aceptada. Boot no crea recovery, savepoints, retry ni coordinación
+cross-store; varios managers locales continúan requiriendo selección explícita y no implican
+atomicidad distribuida.
+
 ## Fuentes primarias
 
 - [PostgreSQL: códigos de error](https://www.postgresql.org/docs/current/errcodes-appendix.html)

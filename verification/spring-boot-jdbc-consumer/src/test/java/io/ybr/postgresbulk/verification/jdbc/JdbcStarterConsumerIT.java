@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.ybr.postgresbulk.core.metadata.BulkKeyMetadata;
 import io.ybr.postgresbulk.core.metadata.ColumnMetadata;
+import io.ybr.postgresbulk.core.metadata.TableName;
 import io.ybr.postgresbulk.springdata.jdbc.SpringDataJdbcEntityMetadataResolver;
 import io.ybr.postgresbulk.springdata.jdbc.repository.PostgresBulkJdbcRepository;
 import java.util.List;
@@ -52,6 +53,31 @@ class JdbcStarterConsumerIT {
         "CREATE TABLE IF NOT EXISTS consumer_products ("
             + "id bigint PRIMARY KEY, sku text NOT NULL UNIQUE)");
     jdbc.execute("TRUNCATE consumer_products");
+    for (String schema : List.of("consumer_a", "consumer_b")) {
+      jdbc.execute("CREATE SCHEMA IF NOT EXISTS " + schema);
+      jdbc.execute(
+          "CREATE TABLE IF NOT EXISTS "
+              + schema
+              + ".consumer_products (LIKE public.consumer_products INCLUDING ALL)");
+      jdbc.execute("TRUNCATE " + schema + ".consumer_products");
+    }
+  }
+
+  @Test
+  void installedJdbcStarterPropagatesExplicitTargets() {
+    TableName a = TableName.of("consumer_a", "consumer_products");
+    TableName b = TableName.of("consumer_b", "consumer_products");
+    BulkKeyMetadata<String> sku =
+        BulkKeyMetadata.of(
+            String.class, List.of(ColumnMetadata.of("sku", String.class, value -> value)));
+
+    products.bulkInsert(a, List.of(new ConsumerProduct(10L, "only-a")));
+    products.bulkInsert(b, List.of(new ConsumerProduct(11L, "only-b")));
+
+    assertThat(products.findAllByBulkKey(List.of("only-a", "only-b"), sku, a))
+        .containsExactly(new ConsumerProduct(10L, "only-a"));
+    assertThat(products.findAllByBulkKey(List.of("only-a", "only-b"), sku, b))
+        .containsExactly(new ConsumerProduct(11L, "only-b"));
   }
 
   @Test

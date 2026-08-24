@@ -112,4 +112,13 @@ ambiguity and primary selection. A real starter smoke test covers repository dis
 explicit batching, assigned/generated identifiers, simple/composite lookup, custom conversion,
 embedded values, rollback, read-only, `REQUIRES_NEW`, and conditioned `NESTED` against PostgreSQL.
 The isolated `verification/spring-boot-jdbc-consumer` fixture repeats startup, discovery, insert,
-lookup, rollback, and read-only checks against the installed snapshot from outside the reactor.
+lookup, rollback, read-only, and explicit A/B target checks against the installed snapshot from
+outside the reactor.
+
+## Multi-schema composition evidence MS6
+
+The production auto-configuration remains unchanged. Boot JDBC exercises default plus A/B/C,
+transactions, `REQUIRES_NEW`, conditional NESTED regressions, read-only, quoted identifiers,
+SQLState, concurrency, and one repository proxy. Context tests prove ambiguous data sources still
+back off, a primary candidate activates composition, and an application resolver remains the
+explicit multi-store escape hatch. No schema/tenant property or bean exists.
