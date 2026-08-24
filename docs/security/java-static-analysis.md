@@ -1,8 +1,9 @@
 # Java static analysis
 
-**Estado:** SEC3 baseline implementada el 2026-08-24. La activación remota se registra después de
-que Build y Compatibility terminen sobre el commit SEC3. Esta fase no habilita SBOM, firma,
-publicación ni scanners adicionales.
+**Estado:** SEC3 baseline implementada y validada el 2026-08-24. El commit de baseline
+`b0313efb557bd26c54a4954c5c398355b1c98b01` pasó Build `32758573085` y los 11 jobs de
+Compatibility `32758573080`. Esta fase no habilita SBOM, firma, publicación ni scanners
+adicionales.
 
 ## Toolchain y alcance
 

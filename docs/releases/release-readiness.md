@@ -119,6 +119,8 @@ constructor de infraestructura; los seis fueron revisados como false positive/no
 quoting, inmutabilidad y lifecycle reales. Seis exclusiones Bug/Class/Method con owner y revisión
 2027-02-24 dejan cero findings sin triage. Build y Release conservan el gate y validan activación
 FindSecBugs/reportes; Compatibility omite scans duplicados. No cambió source ni API productiva.
+El commit de baseline `b0313efb557bd26c54a4954c5c398355b1c98b01` pasó Build `32758573085`
+y los 11 jobs de Compatibility `32758573080`; Benchmarks y Release no se ejecutaron.
 
 ## Phase 16B local validation
 
