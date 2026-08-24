@@ -100,3 +100,11 @@ ADR-029 conserva ownership, primacía/suppressed, privacidad y ausencia de retry
 rollback-only/`25P02`, ambas direcciones de `REQUIRES_NEW`, NESTED con dos managers JDBC, pérdida de
 backend, recuperación Hikari, 100 repeticiones y ocho threads. Dos managers locales JPA/JDBC no se
 coordinan aunque compartan `DataSource`; no se promete atomicidad cross-stack.
+
+## Resolución MS4
+
+El target JPA es local por llamada y no cambia ownership ni propagación. PostgreSQL 15.18 confirma
+A/B commit/rollback en una transacción y `REQUIRES_NEW` B confirmado aunque outer A revierta. El
+proxy conserva traducción de conflictos de argumento con causa original, mientras fallos de schema
+o tabla mantienen `BulkException`, `SQLException` y `3F000`/`42P01`. Read-only y delegate directo
+siguen rechazados; JPA NESTED permanece unsupported y no aparecen savepoints o recovery nuevos.

@@ -29,7 +29,10 @@ JpaEntityMetadataResolver bulkMetadataResolver() {
 ```
 
 Después puede ejecutar `bulkInsert(items)`, `bulkInsert(items, options)` y
-`findAllByBulkKey(keys, keyMetadata)`. El fragmento se registra desde el JAR con
+`findAllByBulkKey(keys, keyMetadata)`. Para un destino físico explícito por operación usa
+`bulkInsert(target, items)`, `bulkInsert(items, options, target)` y
+`findAllByBulkKey(keys, keyMetadata, target)`. La forma target-first del overload corto evita
+ambigüedad source con el overload histórico de options. El fragmento se registra desde el JAR con
 `spring.factories`; no requiere una implementación en el package de la aplicación ni una factory
 custom.
 
@@ -56,13 +59,21 @@ un error SQL mantiene además PostgreSQL en `25P02` y la completion produce
 a `InvalidDataAccessApiUsageException` manteniendo el runtime original como causa; no existe
 traducción manual de `BulkException`.
 
+El target JPA es sólo un argumento local y se propaga por la misma conexión transaction-bound. No
+activa APIs multitenancy Hibernate, no cambia schema/search path y no participa en caches. Una
+misma transacción puede operar sobre varios schemas qualified; `NESTED` continúa unsupported.
+
 ## Persistence context
 
 COPY evita el lifecycle ORM: no ejecuta callbacks, no genera IDs en objetos, no hace dirty
 checking y no convierte los objetos insertados en managed. La integración nunca llama `flush()` ni
 `clear()`. El lookup usa native query con flush mode `COMMIT`, por lo que el caller debe hacer flush
 explícito si necesita que cambios JPA pendientes participen en la búsqueda. Los resultados del
-lookup sí se materializan como entidades mediante JPA/Hibernate.
+lookup sí se materializan como entidades mediante JPA/Hibernate. En el camino target-aware, el SQL
+native ya contiene el target qualified generado por pgJDBC: JPA no vuelve a resolver la tabla
+default para leer rows. El target afecta sólo la root table; asociaciones y secondary tables
+conservan las limitaciones del mapping. Véase
+[`multi-schema-hibernate-jpa.md`](multi-schema-hibernate-jpa.md).
 
 ## Observabilidad de la llamada pública
 

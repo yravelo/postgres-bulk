@@ -196,8 +196,9 @@ public final class BulkKeyMetadata<K> {
 - `PostgresBulkJdbcOperations<T>`: fachada pgJDBC preparada sobre `Connection` caller-owned;
   publica `bulkInsert` y `findAllByBulkKey`, más `LookupResultMapper<R>` anidado para consumir el
   JOIN dentro del scope temporal.
-- `PostgresBulkRepository<T, ID>`: fragmento opt-in con los dos overloads `bulkInsert` y lookup
-  `<K> List<T> findAllByBulkKey(Iterable<? extends K>, BulkKeyMetadata<K>)`.
+- `PostgresBulkRepository<T, ID>`: fragmento opt-in con los dos overloads legacy `bulkInsert` y
+  lookup `<K> List<T> findAllByBulkKey(Iterable<? extends K>, BulkKeyMetadata<K>)`; MS4 añade las
+  variantes target-aware descritas debajo.
 - `JpaEntityMetadataResolver`: puerto Spring/JPA que resuelve por `EntityManagerFactory`; su
   factory `caching` adapta resolvers core ligados a una persistence unit.
 - `DefaultPostgresBulkOperations<T, ID>`: implementación pública por requisito de carga externa
@@ -235,7 +236,40 @@ public <K, R> R findAllByBulkKey(
 
 El overload histórico de cinco argumentos permanece intacto. El nuevo target se resuelve una vez,
 es local a la llamada y alimenta CTAS/JOIN; no forma parte del resultado ni del callback.
-`BulkOperations` y las interfaces Spring no cambian: esa propagación queda fuera de MS3.
+`BulkOperations` no cambia. La propagación a Spring Data JPA se añade en MS4.
+
+## Overloads Spring Data JPA añadidos en MS4
+
+`PostgresBulkRepository<T, ID>` añade:
+
+```java
+public default BulkWriteResult bulkInsert(
+    TableName runtimeTarget,
+    Iterable<? extends T> items
+);
+
+public BulkWriteResult bulkInsert(
+    Iterable<? extends T> items,
+    BulkInsertOptions options,
+    TableName runtimeTarget
+);
+
+public <K> List<T> findAllByBulkKey(
+    Iterable<? extends K> keys,
+    BulkKeyMetadata<K> keyMetadata,
+    TableName runtimeTarget
+);
+```
+
+El overload corto usa orden target-first para conservar inequívoca la llamada histórica
+`bulkInsert(items, null)` y method references tipadas hacia el overload de options. Los overloads
+existentes permanecen intactos; la release todavía no está publicada y su implementación externa
+oficial incorpora simultáneamente los métodos abstractos nuevos.
+
+Los tres métodos exigen un target completo por invocación, root-only y sin resolución tenant. La
+implementación pública `DefaultPostgresBulkOperations` expone además los overloads abstractos de
+insert completo y lookup por necesidad del mecanismo Spring Data. `TableName` no se añade a
+`BulkOperations<T>`, caches, properties ni tipos nuevos.
 
 ## Infraestructura pública añadida en Phase 10
 

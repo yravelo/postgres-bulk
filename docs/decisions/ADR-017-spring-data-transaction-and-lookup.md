@@ -65,3 +65,13 @@ o lanzar desde el fragmento, antes de que Spring complete una transacción exter
 El descubrimiento del fragmento externo, insert, lookup y sus límites transaccionales pasan con
 Spring Data JPA 3.5.0 y 3.5.13 dentro de los BOM Boot 3.5.0/3.5.16. No se prueba Spring Data 4 en
 este artefacto; ADR-021 lo clasifica junto con Boot 4/Hibernate 7 como otra generación.
+
+## Resolución MS4
+
+`PostgresBulkRepository` añade argumentos `TableName` explícitos para insert y lookup. La forma
+corta es `bulkInsert(target, items)` para no volver ambigua la firma histórica de options; la forma
+completa conserva `bulkInsert(items, options, target)`. El adapter usa el mismo
+`JpaContext`/metadata cache y `Session#doReturningWork`, y entrega el target al engine pgJDBC sin
+resolver tenants ni mutar schema de conexión. El lookup ejecuta el SELECT native qualified recibido
+del callback, por lo que materializa rows del target antes del DROP. REQUIRED, REQUIRES_NEW,
+read-only, NESTED unsupported y persistence-context semantics no cambian.

@@ -108,7 +108,9 @@ Compiled from "DefaultPostgresBulkOperations.java"
 public class io.ybr.postgresbulk.springdata.repository.DefaultPostgresBulkOperations<T, ID> implements io.ybr.postgresbulk.springdata.repository.PostgresBulkRepository<T, ID>, org.springframework.data.repository.core.support.RepositoryMetadataAccess {
   public io.ybr.postgresbulk.springdata.repository.DefaultPostgresBulkOperations(org.springframework.data.jpa.repository.JpaContext, io.ybr.postgresbulk.springdata.repository.JpaEntityMetadataResolver);
   public io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.lang.Iterable<? extends T>, io.ybr.postgresbulk.core.BulkInsertOptions);
+  public io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.lang.Iterable<? extends T>, io.ybr.postgresbulk.core.BulkInsertOptions, io.ybr.postgresbulk.core.metadata.TableName);
   public <K> java.util.List<T> findAllByBulkKey(java.lang.Iterable<? extends K>, io.ybr.postgresbulk.core.metadata.BulkKeyMetadata<K>);
+  public <K> java.util.List<T> findAllByBulkKey(java.lang.Iterable<? extends K>, io.ybr.postgresbulk.core.metadata.BulkKeyMetadata<K>, io.ybr.postgresbulk.core.metadata.TableName);
 }
 Compiled from "JpaEntityMetadataResolver.java"
 public interface io.ybr.postgresbulk.springdata.repository.JpaEntityMetadataResolver {
@@ -119,7 +121,10 @@ Compiled from "PostgresBulkRepository.java"
 public interface io.ybr.postgresbulk.springdata.repository.PostgresBulkRepository<T, ID> extends io.ybr.postgresbulk.core.BulkOperations<T> {
   public default io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.lang.Iterable<? extends T>);
   public abstract io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.lang.Iterable<? extends T>, io.ybr.postgresbulk.core.BulkInsertOptions);
+  public default io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(io.ybr.postgresbulk.core.metadata.TableName, java.lang.Iterable<? extends T>);
+  public abstract io.ybr.postgresbulk.core.BulkWriteResult bulkInsert(java.lang.Iterable<? extends T>, io.ybr.postgresbulk.core.BulkInsertOptions, io.ybr.postgresbulk.core.metadata.TableName);
   public abstract <K> java.util.List<T> findAllByBulkKey(java.lang.Iterable<? extends K>, io.ybr.postgresbulk.core.metadata.BulkKeyMetadata<K>);
+  public abstract <K> java.util.List<T> findAllByBulkKey(java.lang.Iterable<? extends K>, io.ybr.postgresbulk.core.metadata.BulkKeyMetadata<K>, io.ybr.postgresbulk.core.metadata.TableName);
 }
 
 ## postgres-bulk-spring-boot-autoconfigure

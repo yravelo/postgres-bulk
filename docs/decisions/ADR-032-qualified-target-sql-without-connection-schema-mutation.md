@@ -93,3 +93,11 @@ conformance equivalente para CTAS/JOIN sin reabrir la decisión.
 La evidencia detallada está en
 [`multi-schema-bulk-lookup.md`](../architecture/multi-schema-bulk-lookup.md). ADR-032 permanece
 `ACCEPTED` y no nace un ADR nuevo porque MS3 aplica, sin cambiarla, la decisión ya aceptada.
+
+## Evidencia posterior MS4
+
+El repository JPA propaga el mismo target qualified a COPY y lookup. `Session#doReturningWork` y la
+native query comparten backend físico; A/B funciona en el mismo proxy, en una transacción y en dos
+threads. Un schema quoted se materializa correctamente y no se añade `setSchema`, `search_path`,
+hint Hibernate, target tag ni log propio. Spring Data JPA aplica así ADR-032 sin reabrirla; Boot y
+Spring Data JDBC permanecen sin propagación.

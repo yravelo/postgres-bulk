@@ -2,9 +2,9 @@
 
 ## Estado y alcance
 
-**MS1: DONE (2026-08-20); consumo pgJDBC INSERT/LOOKUP: DONE en MS2/MS3 (2026-08-24).** MS1 hizo
+**MS1: DONE (2026-08-20); consumo pgJDBC/JPA: DONE en MS2–MS4 (2026-08-24).** MS1 hizo
 representable y validó un destino físico runtime en core. MS2 lo consume en bulk insert low-level y
-MS3 en bulk lookup low-level pgJDBC. Integración Hibernate/JPA o Spring Data JDBC,
+MS3 en bulk lookup low-level pgJDBC; MS4 propaga ambos desde Hibernate/Spring Data JPA. Spring Data JDBC,
 auto-configuración Boot y resolución de tenants siguen diferidos al roadmap.
 
 ## Contrato elegido
@@ -53,11 +53,12 @@ operations.bulkInsert(connection, items, options, target);
 
 Se eligió únicamente el overload de cuatro argumentos. Añadir también
 `bulkInsert(Connection, Iterable, TableName)` volvería source-ambigua una llamada histórica con
-tercer argumento `null`, porque ya existe el overload con `BulkInsertOptions`. Las firmas de
-repositories Spring continúan como diseño futuro, no API publicada:
+tercer argumento `null`, porque ya existe el overload con `BulkInsertOptions`. MS4 publica en JPA
+una variante corta target-first para evitar la misma ambigüedad, además de la forma completa y
+lookup:
 
 ```java
-BulkWriteResult bulkInsert(Iterable<? extends T> items, TableName target);
+BulkWriteResult bulkInsert(TableName target, Iterable<? extends T> items);
 BulkWriteResult bulkInsert(
     Iterable<? extends T> items,
     BulkInsertOptions options,
@@ -147,6 +148,5 @@ target.
 
 ## Continuación autorizable
 
-MS2/MS3 propagan el argumento explícito sólo en pgJDBC y construyen COPY/lookup SQL local por
-invocación no vacía. La siguiente extensión autorizable es MS4, que propagará el mismo target a
-Hibernate/Spring Data JPA sin adelantar Spring Data JDBC ni Boot.
+MS2/MS3 construyen COPY/lookup SQL local por invocación no vacía y MS4 propaga el argumento desde
+JPA sin estado. La siguiente extensión autorizable es MS5 para Spring Data JDBC, sin adelantar Boot.

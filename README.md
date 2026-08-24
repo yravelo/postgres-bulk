@@ -216,6 +216,20 @@ BulkWriteResult result = products.bulkInsert(
 );
 ```
 
+For a schema-qualified physical target selected and authorized by the application:
+
+```java
+TableName tenantA = TableName.of("tenant_a", "product");
+
+products.bulkInsert(tenantA, input);
+products.bulkInsert(input, BulkInsertOptions.ofBatchSize(10_000), tenantA);
+List<Product> found = products.findAllByBulkKey(skus, SKU_KEY, tenantA);
+```
+
+The target is operation-scoped and applies only to the root table. The library does not resolve
+tenants, change `search_path`/connection schema, redirect associations, or cache by target. See the
+[Hibernate/JPA multi-schema contract](docs/architecture/multi-schema-hibernate-jpa.md).
+
 The default remains 1,000. A larger value improved throughput in the current local benchmark, but
 also creates a larger COPY failure unit and increases partial-persistence exposure with autocommit.
 Measure with your schema and workload instead of treating 10,000 as a universal recommendation.
@@ -327,9 +341,9 @@ recommended key-count threshold. See the [performance guide](docs/user-guide/per
   collection-table insert, or Hibernate soft-delete literal generation.
 - No built-in JSON/JSONB, array or arbitrary custom-type encoder.
 - No automatic retry, adaptive lookup strategy, index/`ANALYZE` tuning or guaranteed result order.
-- Runtime multi-schema bulk insert is available only through the low-level pgJDBC facade with an
-  explicit qualified `TableName`. Lookup and Spring repository propagation are not implemented;
-  their existing operations still use the table resolved by mapping metadata.
+- Runtime multi-schema insert and lookup accept an explicit qualified `TableName` through the
+  low-level pgJDBC facade and the Spring Data JPA fragment. Spring Data JDBC and Boot composition
+  do not yet propagate a target; their existing operations still use mapped metadata.
 - Spring Boot 4, Spring Data 4 and Hibernate 7 are unsupported in this artifact generation.
 
 ## How it fits
@@ -357,6 +371,7 @@ Spring Data adapter
 - [Multi-schema investigation and roadmap](docs/architecture/multi-schema-investigation.md)
 - [Low-level multi-schema bulk insert](docs/architecture/multi-schema-bulk-insert.md)
 - [Low-level multi-schema bulk lookup](docs/architecture/multi-schema-bulk-lookup.md)
+- [Hibernate/Spring Data JPA multi-schema](docs/architecture/multi-schema-hibernate-jpa.md)
 - [Contributing](CONTRIBUTING.md)
 
 ## License

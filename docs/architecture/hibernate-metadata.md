@@ -15,6 +15,10 @@ COPY, Spring, repositorios, claves lookup ni tablas temporales. La instancia per
 una persistence unit; su cache concurrente resuelve cada clase una vez y nunca cruza
 `EntityManagerFactory`.
 
+MS4 no cambia esa frontera: un `TableName` runtime nunca entra al resolver ni a sus cache keys. El
+fragmento JPA conserva esta metadata estructural y propaga el target explícito por separado al
+engine pgJDBC. No clona metadata por schema ni usa infraestructura multitenancy Hibernate.
+
 ## Metamodelo usado
 
 La entrada estándar se desenvuelve a `SessionFactoryImplementor`. Desde
@@ -120,3 +124,10 @@ converters/enums son realmente relacionales. Phase 13 validó 6.6.15.Final, 6.6.
 Phase 14 confirmó end-to-end que Hibernate puede preferir `java.sql.Date` para un atributo
 `LocalDate`. El encoder COPY acepta esa forma relacional y la serializa como fecha ISO; la API de
 entidad y el modelo neutral no cambian.
+
+## Resolución MS4
+
+Un mismo `EntityMetadata<T>` resuelto por Hibernate soporta targets A/B compatibles. PostgreSQL
+15.18 valida desde el repository JPA converters, enum, embedded y proyección FK `ManyToOne`, además
+de IDs asignados/generados y schema estático compatible/conflictivo. El target sólo redirige la
+tabla root: asociaciones y secondary/multi-table mappings no adquieren semántica dinámica.

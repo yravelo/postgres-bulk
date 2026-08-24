@@ -35,6 +35,7 @@ This index separates adoption guidance from implementation details.
 - [Operation-scoped physical target contract](architecture/operation-scoped-physical-target.md)
 - [pgJDBC multi-schema bulk insert](architecture/multi-schema-bulk-insert.md)
 - [pgJDBC multi-schema bulk lookup](architecture/multi-schema-bulk-lookup.md)
+- [Hibernate/Spring Data JPA multi-schema](architecture/multi-schema-hibernate-jpa.md)
 
 ## Compatibility
 

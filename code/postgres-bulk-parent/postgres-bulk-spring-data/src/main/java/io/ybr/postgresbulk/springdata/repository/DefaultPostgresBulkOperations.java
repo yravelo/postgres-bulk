@@ -6,6 +6,7 @@ import io.ybr.postgresbulk.core.BulkInsertOptions;
 import io.ybr.postgresbulk.core.BulkWriteResult;
 import io.ybr.postgresbulk.core.metadata.BulkKeyMetadata;
 import io.ybr.postgresbulk.core.metadata.EntityMetadata;
+import io.ybr.postgresbulk.core.metadata.TableName;
 import io.ybr.postgresbulk.pgjdbc.copy.PostgresBulkJdbcOperations;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.FlushModeType;
@@ -101,6 +102,31 @@ public class DefaultPostgresBulkOperations<T, ID>
 
   @Override
   @Transactional
+  public BulkWriteResult bulkInsert(
+      Iterable<? extends T> items, BulkInsertOptions options, TableName runtimeTarget) {
+    return observability.observeInsert(() -> doBulkInsert(items, options, runtimeTarget));
+  }
+
+  private BulkWriteResult doBulkInsert(
+      Iterable<? extends T> items, BulkInsertOptions options, TableName runtimeTarget) {
+    Objects.requireNonNull(items, "items must not be null");
+    Objects.requireNonNull(options, "options must not be null");
+    Objects.requireNonNull(runtimeTarget, "runtimeTarget must not be null");
+    PreparedIterable<T> preparedItems = PreparedIterable.from(items, "items");
+    Invocation<T> invocation = invocation();
+    if (preparedItems.isEmpty()) {
+      invocation.metadata().table().resolveRuntimeTarget(runtimeTarget);
+      return BulkWriteResult.empty();
+    }
+    requireWritableTransaction(invocation.entityManager());
+    return withConnection(
+        invocation.entityManager(),
+        connection ->
+            invocation.operations().bulkInsert(connection, preparedItems, options, runtimeTarget));
+  }
+
+  @Override
+  @Transactional
   public <K> List<T> findAllByBulkKey(Iterable<? extends K> keys, BulkKeyMetadata<K> keyMetadata) {
     return observability.observeLookup(() -> doFindAllByBulkKey(keys, keyMetadata));
   }
@@ -130,12 +156,46 @@ public class DefaultPostgresBulkOperations<T, ID>
                             invocation.entityManager(), invocation.domainType(), selectSql)));
   }
 
+  @Override
+  @Transactional
+  public <K> List<T> findAllByBulkKey(
+      Iterable<? extends K> keys, BulkKeyMetadata<K> keyMetadata, TableName runtimeTarget) {
+    return observability.observeLookup(() -> doFindAllByBulkKey(keys, keyMetadata, runtimeTarget));
+  }
+
+  private <K> List<T> doFindAllByBulkKey(
+      Iterable<? extends K> keys, BulkKeyMetadata<K> keyMetadata, TableName runtimeTarget) {
+    Objects.requireNonNull(keys, "keys must not be null");
+    Objects.requireNonNull(keyMetadata, "keyMetadata must not be null");
+    Objects.requireNonNull(runtimeTarget, "runtimeTarget must not be null");
+    PreparedIterable<K> preparedKeys = PreparedIterable.from(keys, "keys");
+    Invocation<T> invocation = invocation();
+    if (preparedKeys.isEmpty()) {
+      invocation.metadata().table().resolveRuntimeTarget(runtimeTarget);
+      return List.of();
+    }
+    requireWritableTransaction(invocation.entityManager());
+    return withConnection(
+        invocation.entityManager(),
+        connection ->
+            invocation
+                .operations()
+                .findAllByBulkKey(
+                    connection,
+                    preparedKeys,
+                    keyMetadata,
+                    List.of(),
+                    (sameConnection, selectSql, copiedKeys) ->
+                        materialize(invocation.entityManager(), invocation.domainType(), selectSql),
+                    runtimeTarget));
+  }
+
   private Invocation<T> invocation() {
     Class<T> domainType = domainType();
     EntityManager entityManager = jpaContext.getEntityManagerByManagedType(domainType);
     EntityMetadata<T> metadata =
         metadataResolver.resolve(entityManager.getEntityManagerFactory(), domainType);
-    return new Invocation<>(domainType, entityManager, operations(metadata));
+    return new Invocation<>(domainType, entityManager, metadata, operations(metadata));
   }
 
   @SuppressWarnings("unchecked")
@@ -178,7 +238,10 @@ public class DefaultPostgresBulkOperations<T, ID>
   }
 
   private record Invocation<T>(
-      Class<T> domainType, EntityManager entityManager, PostgresBulkJdbcOperations<T> operations) {}
+      Class<T> domainType,
+      EntityManager entityManager,
+      EntityMetadata<T> metadata,
+      PostgresBulkJdbcOperations<T> operations) {}
 
   private static final class PreparedIterable<E> implements Iterable<E> {
 

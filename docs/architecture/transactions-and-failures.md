@@ -97,6 +97,11 @@ CTAS/JOIN quedan en un objeto local; la temporal, el callback, el DROP y `25P02`
 mismas fronteras. PostgreSQL real confirma fallo sobre A, rollback caller-owned, cero temporales y
 lookup sano sobre B al reutilizar el mismo backend físico del pool.
 
+MS4 tampoco altera la matriz al propagar target desde JPA. El repository usa la misma conexión de
+`Session#doReturningWork`; A/B puede confirmar o revertir unido y `REQUIRES_NEW` conserva su scope.
+Conflictos siguen la traducción Spring con causa original, mientras `3F000`/`42P01` permanecen en la
+cadena SQL. Read-only, NESTED unsupported, ausencia de retry y ownership caller-owned no cambian.
+
 ## Rollback-only y traducción Spring
 
 Un fallo unchecked que cruza el método repository `REQUIRED` aplica las reglas de rollback

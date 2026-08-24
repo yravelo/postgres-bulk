@@ -71,3 +71,11 @@ PLANNED/UNSUPPORTED en este artefacto, sin reflection probes.
 El benchmark end-to-end reveló que el `JdbcType` de fecha puede preferir `java.sql.Date` para un
 atributo `LocalDate`. El encoder pgJDBC incorpora esa representación relacional con prueba de
 regresión; el resolver conserva su regla de exponer el tipo preferido de Hibernate.
+
+## Resolución MS4
+
+El soporte JPA multi-schema no modifica el resolver: el runtime `TableName` se propaga como
+argumento separado y nunca entra en su `ConcurrentHashMap`, key de persistence unit o metadata.
+Una única instancia estructural sirve para A/B. La evidencia repository reutiliza converter,
+enum, embedded y proyección `ManyToOne`; el target sólo afecta la root table y no habilita mappings
+multi-table ni APIs multitenancy Hibernate.

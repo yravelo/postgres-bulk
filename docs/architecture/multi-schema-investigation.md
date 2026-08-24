@@ -2,11 +2,11 @@
 
 ## Estado y alcance
 
-**MS0: DONE (2026-08-20); hipótesis INSERT/LOOKUP validada por MS2/MS3 (2026-08-24).** MS0 cerró
+**MS0: DONE (2026-08-20); hipótesis INSERT/LOOKUP/JPA validada por MS2–MS4 (2026-08-24).** MS0 cerró
 investigación, arquitectura y planificación sin código productivo. MS1 aceptó después el contrato
 neutral en ADR-031, MS2 implementó COPY target-aware low-level y MS3 aplicó el mismo target a CTAS
-y JOIN. Properties Boot, adapters Spring, publicación y security baseline continúan fuera de este
-alcance.
+y JOIN. MS4 lo propagó por Hibernate/Spring Data JPA sin cambiar metadata ni caches. Spring Data
+JDBC, properties Boot, publicación y security baseline continúan fuera de este alcance.
 
 La línea estudia un caso concreto: una misma estructura lógica —tipo, tabla base, columnas y
 conversiones— existe en varios schemas PostgreSQL y cada operación bulk debe dirigirse al destino

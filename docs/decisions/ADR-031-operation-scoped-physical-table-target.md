@@ -96,3 +96,12 @@ target, por lo que ADR-031 permanece `ACCEPTED`.
 La investigación que fundamenta la propuesta está en
 [`multi-schema-investigation.md`](../architecture/multi-schema-investigation.md). La secuencia de
 evidencia está en [`multi-schema-roadmap.md`](../plans/multi-schema-roadmap.md).
+
+## Evidencia posterior MS4
+
+Spring Data JPA publica el target como argumento explícito y reutiliza la misma metadata/operación
+preparada por identidad para A/B. Para input no vacío pgJDBC continúa resolviendo el target; para el
+no-op vacío el adapter usa una vez el mismo método core sin adquirir conexión. El overload corto
+target-first evita ambigüedad source con `BulkInsertOptions`. Un repository singleton funciona
+secuencial y concurrentemente sin field/cache `TableName`; mapping con schema fijo conserva el
+conflicto central. No nace facade target-bound, tipo alternativo ni decisión tenant.
