@@ -510,12 +510,20 @@
     </profile>
 
     <profile>
-      <id>central-publish</id>
+      <id>local-signing</id>
       <build>
         <plugins>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
+            <configuration>
+              <bestPractices>true</bestPractices>
+              <keyname>${gpg.keyname}</keyname>
+              <gpgArguments>
+                <arg>--digest-algo</arg>
+                <arg>SHA512</arg>
+              </gpgArguments>
+            </configuration>
             <executions>
               <execution>
                 <id>sign-release-artifacts</id>
@@ -526,6 +534,14 @@
               </execution>
             </executions>
           </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>central-publish</id>
+      <build>
+        <plugins>
           <plugin>
             <groupId>org.sonatype.central</groupId>
             <artifactId>central-publishing-maven-plugin</artifactId>

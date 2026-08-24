@@ -40,12 +40,6 @@ APPROVED_ACTIONS = {
         "v4",
     ),
 }
-RELEASE_SECRETS = {
-    "CENTRAL_USERNAME",
-    "CENTRAL_PASSWORD",
-    "GPG_PRIVATE_KEY",
-    "GPG_PASSPHRASE",
-}
 BENCHMARK_PROFILES = {
     "smoke",
     "baseline",
@@ -217,25 +211,24 @@ def common_semantic_errors(name: str, workflow: dict[str, Any]) -> list[str]:
         if isinstance(uses, str) and uses.startswith("actions/setup-java@"):
             if not isinstance(inputs, dict) or inputs.get("distribution") != "temurin":
                 errors.append(f"{job_name}: setup-java distribution must be temurin")
-            if job_name != "central-upload":
-                forbidden = {
-                    "server-id",
-                    "server-username-env-var",
-                    "server-password-env-var",
-                    "gpg-private-key",
-                    "gpg-passphrase-env-var",
-                }
-                if not isinstance(inputs, dict) or inputs.get("overwrite-settings") != "false":
-                    errors.append(f"{job_name}: setup-java must not create publishing settings")
-                if isinstance(inputs, dict) and forbidden & set(inputs):
-                    errors.append(f"{job_name}: setup-java contains publishing inputs")
-                if name in SELF_HOSTED_WORKFLOWS and (
-                    not isinstance(inputs, dict)
-                    or inputs.get("settings-path") != "${{ runner.temp }}"
-                ):
-                    errors.append(
-                        f"{job_name}: self-hosted setup-java settings must stay in runner.temp"
-                    )
+            forbidden = {
+                "server-id",
+                "server-username-env-var",
+                "server-password-env-var",
+                "gpg-private-key",
+                "gpg-passphrase-env-var",
+            }
+            if not isinstance(inputs, dict) or inputs.get("overwrite-settings") != "false":
+                errors.append(f"{job_name}: setup-java must not create publishing settings")
+            if isinstance(inputs, dict) and forbidden & set(inputs):
+                errors.append(f"{job_name}: setup-java contains publishing inputs")
+            if name in SELF_HOSTED_WORKFLOWS and (
+                not isinstance(inputs, dict)
+                or inputs.get("settings-path") != "${{ runner.temp }}"
+            ):
+                errors.append(
+                    f"{job_name}: self-hosted setup-java settings must stay in runner.temp"
+                )
 
         if isinstance(uses, str) and uses.startswith("actions/upload-artifact@"):
             if not isinstance(inputs, dict) or "retention-days" not in inputs:
@@ -326,15 +319,17 @@ def benchmark_errors(workflow: dict[str, Any]) -> list[str]:
 def release_errors(workflow: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     jobs = workflow["jobs"]
+    if set(jobs) != {"candidate"}:
+        errors.append("release workflow must remain candidate-only")
     candidate = jobs.get("candidate", {})
-    upload = jobs.get("central-upload", {})
     if secret_references(candidate):
         errors.append("release candidate must not reference secrets")
-    if secret_references(upload) != RELEASE_SECRETS:
-        errors.append("central-upload must be the exact consumer of the four release secrets")
-    for job_name, job in jobs.items():
-        if job_name != "central-upload" and secret_references(job):
-            errors.append(f"release secrets escaped into {job_name}")
+    if secret_references(workflow):
+        errors.append("release workflow must not reference repository secrets")
+
+    dispatch_inputs = workflow["on"]["workflow_dispatch"].get("inputs", {})
+    if set(dispatch_inputs) != {"version", "commit_sha", "confirmation"}:
+        errors.append("release dispatch must expose candidate-only inputs")
 
     candidate_if = candidate.get("if", "")
     for required in ("github.repository", "github.actor", "github.event.repository.default_branch"):
@@ -350,45 +345,10 @@ def release_errors(workflow: dict[str, Any]) -> list[str]:
         "git merge-base --is-ancestor",
         "./scripts/check-workflow-security.py",
         "./scripts/check-secrets.sh history",
+        "./scripts/test-release-signatures.py",
     ):
         if required not in candidate_runs:
             errors.append(f"release candidate validation lost: {required}")
-
-    upload_runs = "\n".join(
-        step.get("run", "") for step in upload.get("steps", []) if isinstance(step, dict)
-    )
-    for required in ("refs/tags/${RELEASE_TAG}^{commit}", "git describe --exact-match --tags HEAD"):
-        if required not in upload_runs:
-            errors.append(f"release tag validation lost: {required}")
-    cleanup = next(
-        (step for step in upload.get("steps", []) if step.get("name") == "Remove temporary publishing credentials"),
-        {},
-    )
-    if cleanup.get("if") != "${{ always() }}" or "GNUPGHOME" not in cleanup.get("run", ""):
-        errors.append("temporary Maven/GPG material must be cleaned with always()")
-
-    upload_setup = next(
-        (
-            step
-            for step in upload.get("steps", [])
-            if isinstance(step.get("uses"), str) and step["uses"].startswith("actions/setup-java@")
-        ),
-        {},
-    )
-    setup_inputs = upload_setup.get("with", {})
-    expected_inputs = {
-        "server-id": "central",
-        "server-username-env-var": "CENTRAL_USERNAME",
-        "server-password-env-var": "CENTRAL_PASSWORD",
-        "gpg-passphrase-env-var": "GPG_PASSPHRASE",
-    }
-    for key, value in expected_inputs.items():
-        if setup_inputs.get(key) != value:
-            errors.append(f"central-upload setup-java lost {key}")
-    if setup_inputs.get("settings-path") != "${{ runner.temp }}":
-        errors.append("central-upload settings must remain under runner.temp")
-    if setup_inputs.get("gpg-private-key") != "${{ secrets.GPG_PRIVATE_KEY }}":
-        errors.append("central-upload setup-java lost its isolated GPG input")
     return errors
 
 

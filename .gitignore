@@ -22,6 +22,7 @@ secrets/
 *.gpg
 *.pgp
 *.asc
+!docs/security/keys/*.asc
 *.rev
 *.token
 .gnupg/

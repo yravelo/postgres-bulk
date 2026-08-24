@@ -39,6 +39,13 @@ mkdir -p "${STAGING_DIRECTORY}" "${CONSUMER_REPOSITORY}" "${AUDIT_DIRECTORY}"
 "${SCRIPT_DIR}/inspect-release-staging.sh" "${VERSION}" "${STAGING_DIRECTORY}"
 REQUIRE_OSV_INVENTORY=true "${SCRIPT_DIR}/generate-sbom.sh" \
   "${VERSION}" "${AUDIT_DIRECTORY}/sbom"
+SOURCE_COMMIT=$(git -C "${REPOSITORY_ROOT}" rev-parse HEAD)
+python3 "${SCRIPT_DIR}/generate-release-inventory.py" \
+  --staging "${STAGING_DIRECTORY}" \
+  --version "${VERSION}" \
+  --source-commit "${SOURCE_COMMIT}" \
+  --output "${AUDIT_DIRECTORY}/release-inventory-unsigned.json" \
+  --aggregate-sbom "${AUDIT_DIRECTORY}/sbom/postgres-bulk-${VERSION}-aggregate.cdx.json"
 
 "${MAVEN}" --batch-mode --no-transfer-progress \
   -f "${EXAMPLE_POM}" \

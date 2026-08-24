@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "group_id": "io.github.yravelo",
+  "release_version": "0.1.0",
+  "planned_tag": "v0.1.0",
+  "parent_artifact": "postgres-bulk-parent",
+  "publishable_artifacts": [
+    "postgres-bulk-core",
+    "postgres-bulk-pgjdbc",
+    "postgres-bulk-hibernate",
+    "postgres-bulk-spring-data",
+    "postgres-bulk-spring-data-jdbc",
+    "postgres-bulk-spring-boot-autoconfigure",
+    "postgres-bulk-spring-boot-starter",
+    "postgres-bulk-spring-boot-autoconfigure-jdbc",
+    "postgres-bulk-spring-boot-starter-data-jdbc"
+  ],
+  "approved_signer_fingerprint": "11545CD242C9575DF408AC08F83D364143C798A3",
+  "public_key_file": "postgres-bulk-release-11545CD242C9575DF408AC08F83D364143C798A3.asc",
+  "minimum_signature_hash": "SHA256",
+  "expected_central_artifacts": 46,
+  "expected_central_signatures": 46,
+  "expected_supplemental_evidence": 3,
+  "expected_total_signatures": 49
+}

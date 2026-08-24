@@ -115,7 +115,16 @@ class WorkflowSecurityTests(unittest.TestCase):
         workflow = self.load("release.yml")
         self.assertEqual([], SECURITY.runner_boundary_errors("release.yml", workflow))
         self.assertEqual("ubuntu-latest", workflow["jobs"]["candidate"]["runs-on"])
-        self.assertEqual("ubuntu-latest", workflow["jobs"]["central-upload"]["runs-on"])
+
+    def test_release_upload_job_fails(self) -> None:
+        workflow = self.load("release.yml")
+        workflow["jobs"]["central-upload"] = {
+            "runs-on": "ubuntu-latest",
+            "timeout-minutes": "30",
+            "steps": [],
+        }
+        errors = SECURITY.release_errors(workflow)
+        self.assertTrue(any("candidate-only" in error for error in errors))
 
 
 if __name__ == "__main__":
