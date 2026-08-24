@@ -30,11 +30,14 @@ GitHub owner for Central verification; Java packages remain a separately chosen 
 | `postgres-bulk-pgjdbc` | JAR | pgJDBC COPY infrastructure | binary, sources, Javadocs, POM | yes |
 | `postgres-bulk-hibernate` | JAR | Hibernate metadata adapter | binary, sources, Javadocs, POM | yes |
 | `postgres-bulk-spring-data` | JAR | Repository fragment and transaction adapter | binary, sources, Javadocs, POM | yes |
+| `postgres-bulk-spring-data-jdbc` | JAR | Spring Data JDBC repository adapter | binary, sources, Javadocs, POM | yes |
 | `postgres-bulk-spring-boot-autoconfigure` | JAR | Boot composition and observability | binary, sources, Javadocs, POM | yes |
 | `postgres-bulk-spring-boot-starter` | JAR | Dependency-only adoption entry point | binary, sources, Javadocs, POM | yes |
+| `postgres-bulk-spring-boot-autoconfigure-jdbc` | JAR | JDBC-only Boot composition | binary, sources, Javadocs, POM | yes |
+| `postgres-bulk-spring-boot-starter-data-jdbc` | JAR | JDBC-only dependency entry point | binary, sources, Javadocs, POM | yes |
 
-The `postgres-bulk-parent` POM is supporting publication metadata. Benchmarks and the standalone
-example are non-published consumers and must not appear in staging.
+The `postgres-bulk-parent` POM is supporting publication metadata. Benchmarks and both standalone
+examples are non-published consumers and must not appear in staging.
 
 ## Coordinates and versioning
 
@@ -71,6 +74,7 @@ session data or token is stored. The real Portal user token has not been generat
 | GitHub Private Vulnerability Reporting | DEFERRED (non-blocking) — API returned 404 for this private repository; unchanged |
 | OSV dependency gate | PASS — 2.5.1 checksum-pinned; 132/132 exact package versions, zero BLOCK |
 | Java SAST gate | PASS — SpotBugs 4.10.4 + FindSecBugs 1.14.0; 7 modules, 6/6 initial findings triaged, 0 untriaged |
+| CycloneDX/license gate | PASS — 2.9.3, spec 1.6 JSON; 9 per-artifact + aggregate, 55 external production components, 0 unknown/0 BLOCK |
 | Accepted dependency risks | PASS — five exact WARN records expire 2026-10-24 |
 | Dependabot update policy | PASS — five weekly Maven/Actions lanes, majors manual, no auto-merge; Compose manual |
 | Dependabot alerts/security updates | ENABLED — private visibility unchanged; security updates enabled and unpaused |
@@ -97,11 +101,19 @@ Actions, upload concurrency and `autoPublish=false`.
 
 ## License, supply chain and reproducibility
 
-The root `LICENSE`, inherited POM metadata and documentation use Apache-2.0. The production license
-audit must remain free of unknown metadata. Each Java module attaches binary, sources and strict
-Javadocs; the code-free starter uses explanatory archives. Staging emits SHA-256, and two clean
-release builds compare the parent POM plus four files for each of the six modules: 25 primary
-artifacts total. SBOM and provenance remain deferred non-blocking decisions.
+The root `LICENSE`, inherited POM metadata and documentation use Apache-2.0. The canonical
+CycloneDX/license audit covers 55 external production components, eight represented SPDX license
+IDs, six exact multiple-license reviews, two exact weak-copyleft exceptions and zero unknown or
+blocked findings. Each Java module attaches binary, sources and strict Javadocs; code-free starters
+use explanatory archives. Staging emits separate SHA-256 evidence for the parent POM plus four
+files for each of the nine modules (37 primary artifacts) and nine attached SBOM JSON files. The
+aggregate SBOM remains separate release security evidence. Provenance remains deferred to SEC5.
+
+SEC4 pins CycloneDX Maven plugin 2.9.3 and emits spec 1.6 JSON. Per-artifact identities, purls,
+versions, hashes, licenses and dependency graphs are checked against Maven and the
+consumer-reachable SEC2 OSV inventory; test, benchmark, example and build-tool contamination fails.
+Two clean generations compare semantically. Generated evidence remains under `target/` and is not
+committed. See [SBOM and dependency/license integrity](../security/sbom-and-license-integrity.md).
 
 SEC2 adds a fail-closed dependency gate to Build and the release candidate before any future
 upload. The applicable pgJDBC HIGH finding on 42.7.11 was remediated by selecting supported

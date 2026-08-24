@@ -86,7 +86,7 @@ Reglas transversales:
 | Dependencies | SEC2 dependency baseline |
 | Deferred | CodeQL future public; Semgrep only for demonstrated missing rule |
 
-## SEC4 — SBOM and Dependency/License Integrity
+## SEC4 — SBOM and Dependency/License Integrity — DONE (2026-08-24)
 
 | Campo | Definición |
 | --- | --- |
@@ -99,7 +99,7 @@ Reglas transversales:
 | Tests | schema validation, reproducibility/normalization, isolated JPA and JDBC consumers, attachment/classifier inspection |
 | False positives | license exception includes exact coordinate/text/legal rationale/owner/expiry; no global license allow |
 | Documentation | SBOM lifecycle, format/schema, publication/retention and consumer verification |
-| Acceptance | no generated file in Git; candidate artifact contains complete validated evidence at €0 |
+| Acceptance | 9 per-artifact + aggregate CycloneDX 1.6 JSON; 55 external production components; 0 unknown/0 BLOCK; no generated file in Git |
 | Risks | aggregate includes non-published modules, serial/timestamp nondeterminism, POM metadata errors |
 | Dependencies | SEC2 inventory and SEC3 stable build |
 | Deferred | signing/provenance to SEC5 |
@@ -190,5 +190,5 @@ SEC0 investigation
                 -> SEC8 technical closure
 ```
 
-SEC4 — SBOM and Dependency/License Integrity es la única fase siguiente recomendada. Completar
-SEC3 no autoriza iniciar SEC4, crear credentials ni descongelar `0.1.0`.
+SEC5 — Release Signing, Inventory and Provenance Hardening es la única fase siguiente recomendada.
+Completar SEC4 no autoriza iniciar SEC5, crear credentials/keys/tags ni descongelar `0.1.0`.

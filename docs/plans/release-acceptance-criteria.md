@@ -49,12 +49,15 @@ Estado auditado para el candidato `0.1.0` tras Phase 16E. Cada criterio usa excl
 
 ## Artifacts y staging
 
-- **PASS** — Los seis módulos Java producen binary, sources, Javadocs y POM `0.1.0`.
+- **PASS** — Los nueve módulos publicables producen binary, sources, Javadocs y POM `0.1.0`.
 - **PASS** — Parent POM se despliega como soporte; benchmark y example no se despliegan.
 - **PASS** — Manifest expone `Implementation-Version`; no se añade JPMS artificial.
 - **PASS** — El perfil `release` ejecuta tests y bloquea dependencies/parent SNAPSHOT.
 - **PASS** — El build normal no requiere firma, token ni secret.
-- **PASS** — Staging Maven local contiene únicamente el parent y los seis artifacts publicables.
+- **PASS** — Staging Maven local contiene únicamente el parent y los nueve artifacts publicables:
+  core, pgJDBC, Hibernate, Spring Data JPA/JDBC y sus cuatro artifacts Boot.
+- **PASS** — El inventario separa 37 artifacts Maven primarios de nueve SBOM JSON adjuntos y un
+  aggregate de evidencia.
 - **PASS** — Consumer independiente usa parent Boot propio, `0.1.0` y repositorio Maven local aislado.
 - **PASS** — Consumer cubre startup, fragment, insert, lookup, rollback, read-only y observabilidad.
 - **PASS** — Dependency tree no contiene SNAPSHOT, benchmark/example, Testcontainers productivo ni Actuator.
@@ -79,7 +82,11 @@ Estado auditado para el candidato `0.1.0` tras Phase 16E. Cada criterio usa excl
 - **PASS** — SHA-256 de artifacts staged se genera e inspecciona.
 - **PASS** — OpenPGP sigue siendo obligatorio; la firma está aislada en `central-publish` y el
   procedimiento seguro de generación/distribución está documentado.
-- **DEFERRED (non-blocking)** — SBOM se evaluará tras definir formato/lifecycle estable.
+- **PASS** — CycloneDX Maven plugin 2.9.3 genera spec 1.6 JSON para los nueve artifacts y aggregate;
+  Maven/OSV/purl/edge/version/scope se reconcilian y dos generaciones limpias se comparan
+  semánticamente.
+- **PASS** — La baseline de 55 dependencias externas productivas contiene ocho IDs de licencia,
+  cero unknown, seis reviews múltiples, dos excepciones exactas y cero BLOCK.
 - **DEFERRED (non-blocking)** — Provenance/attestations se evaluará después de la primera release.
 - **PASS** — Auditoría de patrones sensibles no encuentra tokens, passwords ni private keys hardcoded.
 - **PASS** — `CHANGELOG.md`, release notes y política SemVer `0.x` existen.

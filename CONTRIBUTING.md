@@ -51,6 +51,21 @@ untriaged production finding or expired accepted risk. Generated evidence stays 
 `config/security/accepted-dependency-risks.json` with exact advisory/dependency/version, owner and
 expiry. Do not add broad ignores or override one member of the Boot BOM only to silence a finding.
 
+CycloneDX 1.6 JSON is generated for each of the nine publishable JARs plus the public aggregate.
+The canonical auditor reconciles it with independently resolved Maven trees, the SEC2
+consumer-reachable OSV inventory and the exact production license policy:
+
+```bash
+./scripts/generate-sbom.sh 0.1.0
+./scripts/audit-production-licenses.sh 0.1.0
+python3 scripts/test-sbom-auditor.py
+```
+
+Outputs are single-use evidence under `target/` and must not be committed. An unknown production
+license, expired or drifting review, SNAPSHOT, broken purl/edge, build/test/non-publishable
+component, private path or JDBC-to-JPA leak fails closed. See the
+[SBOM and license integrity policy](docs/security/sbom-and-license-integrity.md).
+
 SpotBugs 4.10.4 with FindSecBugs 1.14.0 runs automatically during `verify` on the seven productive
 code modules. After a clean reactor build, `check-static-analysis.py` confirms detector activation,
 zero analyzer errors and zero untriaged findings. Do not bypass it in Build or Release. Fix a real

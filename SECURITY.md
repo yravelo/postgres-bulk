@@ -45,3 +45,14 @@ the build. Findings are reviewed by rule, source/sink, reachability and existing
 defect is fixed and tested before considering an exact, expiring exclusion. The
 [Java static-analysis policy](docs/security/java-static-analysis.md) records the current triage and
 local reproduction command. CodeQL, Semgrep and Sonar are not enabled baselines.
+
+## SBOM and production licenses
+
+Build and every future release candidate generate CycloneDX 1.6 JSON for all nine publishable
+artifacts plus an aggregate. The fail-closed gate reconciles Maven and OSV production inventories,
+rejects test/build/non-publishable components, SNAPSHOTs and invalid identity or private metadata,
+and requires every compile/runtime dependency to have classified license metadata. Unknown or
+incompatible strong-copyleft licenses block; exact weak/multiple-license reviews have owners and
+expiry. The current baseline has 55 external production components, zero unknown licenses and zero
+unresolved blocks. See the
+[SBOM and dependency/license integrity policy](docs/security/sbom-and-license-integrity.md).
