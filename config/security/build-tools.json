@@ -6,6 +6,7 @@
     {"name": "com.github.spotbugs:spotbugs", "version": "4.10.4", "property": "spotbugs.version", "activation": "SpotBugs analysis engine"},
     {"name": "com.h3xstream.findsecbugs:findsecbugs-plugin", "version": "1.14.0", "property": "findsecbugs.version", "activation": "SpotBugs security detectors"},
     {"name": "com.google.googlejavaformat:google-java-format", "version": "1.28.0", "property": "google-java-format.version", "activation": "Spotless formatter engine"},
+    {"name": "org.cyclonedx:cyclonedx-maven-plugin", "version": "2.9.3", "property": "cyclonedx-maven-plugin.version", "activation": "SEC4 release SBOM generation"},
     {"name": "org.apache.maven.plugins:maven-clean-plugin", "version": "3.5.0", "property": "maven-clean-plugin.version", "activation": "normal lifecycle"},
     {"name": "org.apache.maven.plugins:maven-compiler-plugin", "version": "3.15.0", "property": "maven-compiler-plugin.version", "activation": "normal lifecycle"},
     {"name": "org.apache.maven.plugins:maven-deploy-plugin", "version": "3.1.4", "property": "maven-deploy-plugin.version", "activation": "release only"},
@@ -21,7 +22,6 @@
     {"name": "org.apache.maven.plugins:maven-surefire-plugin", "version": "3.5.4", "property": "maven-surefire-plugin.version", "activation": "normal build"},
     {"name": "org.apache.maven.plugins:maven-dependency-plugin", "version": "3.8.1", "property": null, "activation": "SEC2 inventory gate"},
     {"name": "org.codehaus.mojo:flatten-maven-plugin", "version": "1.7.3", "property": "flatten-maven-plugin.version", "activation": "normal build"},
-    {"name": "org.codehaus.mojo:license-maven-plugin", "version": "2.7.1", "property": "license-maven-plugin.version", "activation": "license audit"},
     {"name": "org.sonatype.central:central-publishing-maven-plugin", "version": "0.11.0", "property": "central-publishing-maven-plugin.version", "activation": "central-publish profile only"},
     {"name": "org.springframework.boot:spring-boot-maven-plugin", "version": "3.5.16", "property": "spring-boot.version", "activation": "examples"}
   ]

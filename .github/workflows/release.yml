@@ -115,7 +115,7 @@ jobs:
       - name: Local staging and isolated consumer
         run: ./scripts/release-dry-run.sh "${RELEASE_VERSION}"
 
-      - name: Production dependency license audit
+      - name: Revalidate canonical SBOM and production license evidence
         run: ./scripts/audit-production-licenses.sh "${RELEASE_VERSION}"
 
       - name: Public API baseline

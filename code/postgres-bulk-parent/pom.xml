@@ -85,10 +85,11 @@
     <maven-shade-plugin.version>3.6.1</maven-shade-plugin.version>
     <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
     <flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
-    <license-maven-plugin.version>2.7.1</license-maven-plugin.version>
     <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
     <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
     <central-publishing-maven-plugin.version>0.11.0</central-publishing-maven-plugin.version>
+    <cyclonedx-maven-plugin.version>2.9.3</cyclonedx-maven-plugin.version>
+    <cyclonedx.skip>true</cyclonedx.skip>
     <spotbugs-maven-plugin.version>4.10.4.0</spotbugs-maven-plugin.version>
     <spotbugs.version>4.10.4</spotbugs.version>
     <findsecbugs.version>1.14.0</findsecbugs.version>
@@ -257,6 +258,25 @@
           <version>${maven-enforcer-plugin.version}</version>
         </plugin>
         <plugin>
+          <groupId>org.cyclonedx</groupId>
+          <artifactId>cyclonedx-maven-plugin</artifactId>
+          <version>${cyclonedx-maven-plugin.version}</version>
+          <configuration>
+            <projectType>library</projectType>
+            <schemaVersion>1.6</schemaVersion>
+            <includeBomSerialNumber>false</includeBomSerialNumber>
+            <includeCompileScope>true</includeCompileScope>
+            <includeProvidedScope>false</includeProvidedScope>
+            <includeRuntimeScope>true</includeRuntimeScope>
+            <includeSystemScope>false</includeSystemScope>
+            <includeTestScope>false</includeTestScope>
+            <includeLicenseText>false</includeLicenseText>
+            <outputFormat>json</outputFormat>
+            <outputName>${project.artifactId}-${project.version}.cdx</outputName>
+            <skip>${cyclonedx.skip}</skip>
+          </configuration>
+        </plugin>
+        <plugin>
           <groupId>com.github.spotbugs</groupId>
           <artifactId>spotbugs-maven-plugin</artifactId>
           <version>${spotbugs-maven-plugin.version}</version>
@@ -292,11 +312,6 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>flatten-maven-plugin</artifactId>
           <version>${flatten-maven-plugin.version}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>license-maven-plugin</artifactId>
-          <version>${license-maven-plugin.version}</version>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -431,6 +446,19 @@
       <id>release</id>
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.cyclonedx</groupId>
+            <artifactId>cyclonedx-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-release-sbom</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>makeBom</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-enforcer-plugin</artifactId>

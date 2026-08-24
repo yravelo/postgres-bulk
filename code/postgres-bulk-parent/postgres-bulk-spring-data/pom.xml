@@ -12,6 +12,10 @@
   <name>PostgreSQL Bulk Spring Data Adapter</name>
   <description>Spring Data JPA repository fragments and transaction integration for bulk operations</description>
 
+  <properties>
+    <cyclonedx.skip>false</cyclonedx.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>

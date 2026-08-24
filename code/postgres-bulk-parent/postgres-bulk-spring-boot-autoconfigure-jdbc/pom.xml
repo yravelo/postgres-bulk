@@ -12,6 +12,10 @@
   <name>PostgreSQL Bulk Spring Boot JDBC Auto-configuration</name>
   <description>Spring Boot auto-configuration for PostgreSQL Bulk with Spring Data JDBC</description>
 
+  <properties>
+    <cyclonedx.skip>false</cyclonedx.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>

@@ -12,6 +12,10 @@
   <name>PostgreSQL Bulk Spring Boot Auto-configuration</name>
   <description>Spring Boot auto-configuration and observability integration for PostgreSQL Bulk</description>
 
+  <properties>
+    <cyclonedx.skip>false</cyclonedx.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.springframework.boot</groupId>

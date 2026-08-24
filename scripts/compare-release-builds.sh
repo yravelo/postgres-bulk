@@ -7,14 +7,22 @@ MAVEN_PROJECT=${REPOSITORY_ROOT}/code/postgres-bulk-parent
 MAVEN=${MAVEN_PROJECT}/mvnw
 VERSION=${1:-0.1.0}
 OUTPUT_ROOT=${REPOSITORY_ROOT}/target/reproducibility
-MODULES=(
-  postgres-bulk-core
-  postgres-bulk-pgjdbc
-  postgres-bulk-hibernate
-  postgres-bulk-spring-data
-  postgres-bulk-spring-boot-autoconfigure
-  postgres-bulk-spring-boot-starter
+POLICY=${REPOSITORY_ROOT}/config/security/sbom-policy.json
+mapfile -t MODULES < <(
+  python3 - "${POLICY}" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as stream:
+    policy = json.load(stream)
+for artifact in policy["publishable_artifacts"]:
+    print(artifact)
+PY
 )
+if [[ "${#MODULES[@]}" -ne 9 ]]; then
+  echo "Reproducibility inventory must contain exactly nine publishable artifacts." >&2
+  exit 1
+fi
 
 if [[ -e "${OUTPUT_ROOT}" ]]; then
   echo "Refusing to reuse generated directory: ${OUTPUT_ROOT}" >&2
@@ -52,4 +60,17 @@ build_and_capture "${OUTPUT_ROOT}/build-1"
 build_and_capture "${OUTPUT_ROOT}/build-2"
 
 diff -u "${OUTPUT_ROOT}/build-1/SHA256SUMS" "${OUTPUT_ROOT}/build-2/SHA256SUMS"
-echo "Release artifact reproducibility: PASS"
+
+"${SCRIPT_DIR}/generate-sbom.sh" "${VERSION}" "${OUTPUT_ROOT}/sbom-1"
+"${SCRIPT_DIR}/generate-sbom.sh" "${VERSION}" "${OUTPUT_ROOT}/sbom-2"
+SBOM_COMPARE_ARGS=(
+  --directory "${OUTPUT_ROOT}/sbom-1"
+  --compare "${OUTPUT_ROOT}/sbom-2"
+  --version "${VERSION}"
+)
+OSV_INVENTORY=${REPOSITORY_ROOT}/target/security/dependency-inventory.json
+if [[ -f "${OSV_INVENTORY}" ]]; then
+  SBOM_COMPARE_ARGS+=(--osv-inventory "${OSV_INVENTORY}")
+fi
+python3 "${SCRIPT_DIR}/check-sbom.py" "${SBOM_COMPARE_ARGS[@]}"
+echo "Release artifact and semantic SBOM reproducibility: PASS"

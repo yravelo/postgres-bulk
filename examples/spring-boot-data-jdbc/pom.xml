@@ -109,4 +109,27 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>staged</id>
+      <activation>
+        <property>
+          <name>postgres-bulk.staging-url</name>
+        </property>
+      </activation>
+      <repositories>
+        <repository>
+          <id>postgres-bulk-local-staging</id>
+          <url>${postgres-bulk.staging-url}</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
 </project>

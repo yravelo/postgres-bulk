@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "cyclonedx": {
+    "plugin_version": "2.9.3",
+    "spec_version": "1.6",
+    "format": "json",
+    "root_group": "io.github.yravelo",
+    "project_type": "library"
+  },
+  "publishable_artifacts": [
+    "postgres-bulk-core",
+    "postgres-bulk-pgjdbc",
+    "postgres-bulk-hibernate",
+    "postgres-bulk-spring-data",
+    "postgres-bulk-spring-data-jdbc",
+    "postgres-bulk-spring-boot-autoconfigure",
+    "postgres-bulk-spring-boot-starter",
+    "postgres-bulk-spring-boot-autoconfigure-jdbc",
+    "postgres-bulk-spring-boot-starter-data-jdbc"
+  ],
+  "non_publishable_artifacts": [
+    "postgres-bulk-benchmarks",
+    "spring-boot-basic",
+    "spring-boot-data-jdbc"
+  ],
+  "reviewed_cyclonedx_only_components": {
+    "postgres-bulk-spring-data": [
+      "org.springframework:spring-jdbc:6.2.19"
+    ],
+    "postgres-bulk-spring-boot-starter-data-jdbc": [
+      "ch.qos.logback:logback-classic:1.5.34",
+      "ch.qos.logback:logback-core:1.5.34",
+      "jakarta.annotation:jakarta.annotation-api:2.1.1",
+      "org.apache.logging.log4j:log4j-api:2.24.3",
+      "org.apache.logging.log4j:log4j-to-slf4j:2.24.3",
+      "org.slf4j:jul-to-slf4j:2.0.18",
+      "org.springframework.boot:spring-boot-starter:3.5.16",
+      "org.springframework.boot:spring-boot-starter-logging:3.5.16",
+      "org.yaml:snakeyaml:2.4"
+    ]
+  },
+  "forbidden_jdbc_starter_components": [
+    "io.github.yravelo:postgres-bulk-hibernate",
+    "io.github.yravelo:postgres-bulk-spring-data",
+    "io.github.yravelo:postgres-bulk-spring-boot-autoconfigure",
+    "jakarta.persistence:jakarta.persistence-api",
+    "org.hibernate.orm:hibernate-core",
+    "org.springframework.data:spring-data-jpa",
+    "org.springframework.boot:spring-boot-starter-data-jpa",
+    "org.springframework.boot:spring-boot-starter-actuator",
+    "org.testcontainers:testcontainers"
+  ]
+}

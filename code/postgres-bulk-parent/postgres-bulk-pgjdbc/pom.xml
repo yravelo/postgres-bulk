@@ -12,6 +12,10 @@
   <name>PostgreSQL Bulk pgJDBC Adapter</name>
   <description>PostgreSQL JDBC COPY encoding and execution infrastructure</description>
 
+  <properties>
+    <cyclonedx.skip>false</cyclonedx.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>

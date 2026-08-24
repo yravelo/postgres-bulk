@@ -12,6 +12,10 @@
   <name>PostgreSQL Bulk Spring Data JDBC Adapter</name>
   <description>Spring Data JDBC metadata adapter for PostgreSQL bulk operations</description>
 
+  <properties>
+    <cyclonedx.skip>false</cyclonedx.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>

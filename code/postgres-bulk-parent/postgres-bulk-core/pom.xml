@@ -12,6 +12,10 @@
   <name>PostgreSQL Bulk Core</name>
   <description>Framework-independent public contracts and metadata for PostgreSQL bulk operations</description>
 
+  <properties>
+    <cyclonedx.skip>false</cyclonedx.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.junit.jupiter</groupId>

@@ -23,6 +23,7 @@ updates:
           - "com.diffplug.spotless:*"
           - "com.github.spotbugs:*"
           - "com.h3xstream.findsecbugs:*"
+          - "org.cyclonedx:*"
         update-types:
           - minor
           - patch

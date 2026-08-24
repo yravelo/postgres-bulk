@@ -6,14 +6,14 @@ REPOSITORY_ROOT=$(cd -- "${SCRIPT_DIR}/.." && pwd)
 MAVEN_PROJECT=${REPOSITORY_ROOT}/code/postgres-bulk-parent
 MAVEN=${MAVEN_PROJECT}/mvnw
 EXAMPLE_POM=${REPOSITORY_ROOT}/examples/spring-boot-basic/pom.xml
+JDBC_EXAMPLE_POM=${REPOSITORY_ROOT}/examples/spring-boot-data-jdbc/pom.xml
 VERSION=${1:-0.1.0}
 STAGING_DIRECTORY=${REPOSITORY_ROOT}/target/release-staging
 CONSUMER_REPOSITORY=${REPOSITORY_ROOT}/target/release-consumer-m2
 AUDIT_DIRECTORY=${REPOSITORY_ROOT}/target/release-audit
 
-if [[ ! "${VERSION}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]] \
-    || [[ "${VERSION}" == *SNAPSHOT* ]]; then
-  echo "A non-SNAPSHOT SemVer release version is required, got: ${VERSION}" >&2
+if [[ ! "${VERSION}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+  echo "A stable SemVer release version is required, got: ${VERSION}" >&2
   exit 1
 fi
 
@@ -37,6 +37,8 @@ mkdir -p "${STAGING_DIRECTORY}" "${CONSUMER_REPOSITORY}" "${AUDIT_DIRECTORY}"
 )
 
 "${SCRIPT_DIR}/inspect-release-staging.sh" "${VERSION}" "${STAGING_DIRECTORY}"
+REQUIRE_OSV_INVENTORY=true "${SCRIPT_DIR}/generate-sbom.sh" \
+  "${VERSION}" "${AUDIT_DIRECTORY}/sbom"
 
 "${MAVEN}" --batch-mode --no-transfer-progress \
   -f "${EXAMPLE_POM}" \
@@ -62,4 +64,20 @@ if rg -n 'spring-boot-starter-actuator' "${DEPENDENCY_TREE}"; then
   exit 1
 fi
 
-echo "Local release staging and isolated external consumer: PASS"
+"${MAVEN}" --batch-mode --no-transfer-progress \
+  -f "${JDBC_EXAMPLE_POM}" \
+  -Pstaged \
+  -Drevision="${VERSION}" \
+  -Dpostgres-bulk.staging-url="file://${STAGING_DIRECTORY}" \
+  -Dmaven.repo.local="${CONSUMER_REPOSITORY}" \
+  -DoutputFile="${AUDIT_DIRECTORY}/staged-jdbc-consumer-dependency-tree.txt" \
+  clean verify dependency:tree
+
+JDBC_DEPENDENCY_TREE=${AUDIT_DIRECTORY}/staged-jdbc-consumer-dependency-tree.txt
+if rg -n 'SNAPSHOT|postgres-bulk-benchmarks|spring-data-jpa|hibernate-core|jakarta.persistence|spring-boot-starter-actuator' \
+    "${JDBC_DEPENDENCY_TREE}"; then
+  echo "Forbidden JPA, benchmark, Actuator, or SNAPSHOT dependency found in JDBC consumer." >&2
+  exit 1
+fi
+
+echo "Local release staging, SBOM evidence, and isolated JPA/JDBC consumers: PASS"

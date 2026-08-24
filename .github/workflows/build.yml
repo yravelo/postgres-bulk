@@ -72,6 +72,12 @@ jobs:
         working-directory: .
         run: ./scripts/check-static-analysis.py
 
+      - name: Generate and audit release SBOM and licenses
+        working-directory: .
+        env:
+          REQUIRE_OSV_INVENTORY: "true"
+        run: ./scripts/generate-sbom.sh 0.1.0
+
       - name: Install development snapshot
         run: ./mvnw --batch-mode --no-transfer-progress -DskipTests install
 

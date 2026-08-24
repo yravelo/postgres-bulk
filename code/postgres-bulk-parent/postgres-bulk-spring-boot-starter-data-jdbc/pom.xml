@@ -13,6 +13,7 @@
   <description>Dependency-only starter for PostgreSQL Bulk with Spring Data JDBC</description>
 
   <properties>
+    <cyclonedx.skip>false</cyclonedx.skip>
     <spotbugs.skip>true</spotbugs.skip>
   </properties>
 

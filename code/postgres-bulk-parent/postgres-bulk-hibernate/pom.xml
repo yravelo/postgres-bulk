@@ -12,6 +12,10 @@
   <name>PostgreSQL Bulk Hibernate Adapter</name>
   <description>Hibernate runtime mapping adapter for PostgreSQL bulk operations</description>
 
+  <properties>
+    <cyclonedx.skip>false</cyclonedx.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${project.groupId}</groupId>

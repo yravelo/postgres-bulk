@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "permissive_license_ids": [
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "CC0-1.0",
+    "MIT"
+  ],
+  "review_license_ids": [
+    "EPL-2.0",
+    "GPL-2.0-with-classpath-exception",
+    "LGPL-2.1-only"
+  ],
+  "blocked_strong_copyleft_ids": [
+    "AGPL-1.0-only",
+    "AGPL-1.0-or-later",
+    "AGPL-3.0-only",
+    "AGPL-3.0-or-later",
+    "GPL-1.0-only",
+    "GPL-1.0-or-later",
+    "GPL-2.0-only",
+    "GPL-2.0-or-later",
+    "GPL-3.0-only",
+    "GPL-3.0-or-later",
+    "SSPL-1.0"
+  ],
+  "reviewed_multiple_licenses": [
+    {
+      "dependency": "jakarta.persistence:jakarta.persistence-api:3.1.0",
+      "licenses": ["BSD-3-Clause", "EPL-2.0"],
+      "scope": "compile/runtime",
+      "reason": "Upstream publishes alternative EPL-2.0 or BSD-3-Clause licensing; BSD-3-Clause is compatible with this Apache-2.0 distribution model.",
+      "owner": "yravelo",
+      "reviewed_on": "2026-08-24",
+      "expires": "2027-02-24"
+    },
+    {
+      "dependency": "jakarta.transaction:jakarta.transaction-api:2.0.1",
+      "licenses": ["EPL-2.0", "GPL-2.0-with-classpath-exception"],
+      "scope": "compile/runtime",
+      "reason": "Upstream publishes alternative EPL-2.0 or GPL-2.0-with-classpath-exception licensing; the classpath exception permits ordinary library linking.",
+      "owner": "yravelo",
+      "reviewed_on": "2026-08-24",
+      "expires": "2027-02-24"
+    },
+    {
+      "dependency": "jakarta.annotation:jakarta.annotation-api:2.1.1",
+      "licenses": ["EPL-2.0", "GPL-2.0-with-classpath-exception"],
+      "scope": "compile/runtime",
+      "reason": "Upstream publishes alternative EPL-2.0 or GPL-2.0-with-classpath-exception licensing; the classpath exception permits ordinary library linking.",
+      "owner": "yravelo",
+      "reviewed_on": "2026-08-24",
+      "expires": "2027-02-24"
+    },
+    {
+      "dependency": "org.hdrhistogram:HdrHistogram:2.2.2",
+      "licenses": ["BSD-2-Clause", "CC0-1.0"],
+      "scope": "compile/runtime",
+      "reason": "Both upstream alternatives are permissive/public-domain-equivalent for binary redistribution.",
+      "owner": "yravelo",
+      "reviewed_on": "2026-08-24",
+      "expires": "2027-02-24"
+    },
+    {
+      "dependency": "ch.qos.logback:logback-classic:1.5.34",
+      "licenses": ["EPL-2.0", "LGPL-2.1-only"],
+      "scope": "compile/runtime",
+      "reason": "Upstream offers EPL-2.0 or LGPL-2.1; the dependency is dynamically linked and consumed transitively through Spring Boot logging.",
+      "owner": "yravelo",
+      "reviewed_on": "2026-08-24",
+      "expires": "2027-02-24"
+    },
+    {
+      "dependency": "ch.qos.logback:logback-core:1.5.34",
+      "licenses": ["EPL-2.0", "LGPL-2.1-only"],
+      "scope": "compile/runtime",
+      "reason": "Upstream offers EPL-2.0 or LGPL-2.1; the dependency is dynamically linked and consumed transitively through Spring Boot logging.",
+      "owner": "yravelo",
+      "reviewed_on": "2026-08-24",
+      "expires": "2027-02-24"
+    }
+  ],
+  "exceptions": [
+    {
+      "dependency": "org.hibernate.orm:hibernate-core:6.6.53.Final",
+      "licenses": ["LGPL-2.1-only"],
+      "scope": "compile/runtime",
+      "reason": "Hibernate ORM is consumed as an unmodified dynamically linked library through the optional JPA integration; source and license obligations remain with the upstream component.",
+      "owner": "yravelo",
+      "reviewed_on": "2026-08-24",
+      "expires": "2027-02-24"
+    },
+    {
+      "dependency": "org.aspectj:aspectjweaver:1.9.25.1",
+      "licenses": ["EPL-2.0"],
+      "scope": "compile/runtime",
+      "reason": "AspectJ Weaver is an unmodified transitive runtime dependency of Spring Data JPA and is distributed under EPL-2.0 with source obligations retained upstream.",
+      "owner": "yravelo",
+      "reviewed_on": "2026-08-24",
+      "expires": "2027-02-24"
+    }
+  ]
+}
