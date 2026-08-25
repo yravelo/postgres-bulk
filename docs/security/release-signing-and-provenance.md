@@ -87,7 +87,7 @@ Run the real local ceremony only on the owner-controlled signing workstation:
 ```bash
 ./scripts/test-release-signatures.py
 ./scripts/signed-release-dry-run.sh 0.1.0 \
-  <LOCAL_SIGNING_PATH>
+  /path/to/dedicated/release-gnupg
 ```
 
 The script fails unless the worktree is clean, fetch succeeds, `HEAD == origin/main`, stable version

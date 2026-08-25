@@ -105,6 +105,15 @@ Estado auditado para el candidato `0.1.0` tras SEC5. Cada criterio usa exclusiva
 - **PASS** — SEC7 cierra sobre `0533866b04b4d89ea9199473dd5abf2cceb852c0`: Build
   `32828408419`, Compatibility `32828408347` 11/11 y Security manual `32828466698` pasan sin retry
   ni gate debilitado.
+- **PASS** — SEC8 reconcilia las 15 amenazas SEC0 sin entradas sin clasificar y mantiene una matriz
+  control→amenaza→prueba positiva/negativa→CI→release→limitación.
+- **PASS** — Fixtures finales rechazan secretos sintéticos, bypass de workflow/runner, scope OSV
+  incorrecto, fallo de scanner/keyserver, findings/error SAST, drift SBOM/licencia, tampering/firma,
+  source commit/tag/version incorrectos y preflight Git dirty/divergente.
+- **PASS** — El registro canónico clasifica prerequisites y riesgos residuales con owner, review y
+  `blocks what`; no hay blocker interno de la baseline técnica.
+- **PASS** — `Security technical baseline: COMPLETE` y SEC8 `DONE` no alteran SEC6: el canal privado
+  continúa como `EXTERNAL PREREQUISITE`, `PENDING` y blocker de REL1.
 - **PASS** — `CHANGELOG.md`, release notes y política SemVer `0.x` existen.
 - **BLOCKED** — No existe todavía un canal privado externo aprobado y probado; `SECURITY.md` lo
   declara `PENDING OWNER ACTION` y prohíbe inventar el email Git o usar Issues.
@@ -157,6 +166,7 @@ Estado auditado para el candidato `0.1.0` tras SEC5. Cada criterio usa exclusiva
 SEC5 está cerrado con identidad OpenPGP y signed dry-run verificable. SEC6 implementa policy,
 runbook, governance, CODEOWNERS/checklist y handoff PVR, pero queda `PARTIALLY DONE` porque falta un
 canal privado externo aprobado y probado. SEC7 queda `DONE` con validación continua, drift,
-expiries, salud del runner y preflights separados; su cierre remoto no autoriza REL1. La release pública aún
-no está autorizada: además falta verificar el backup offline, generar el Portal token, crear el tag
-exacto y autorizar upload/publicación. No se requieren Repository Secrets y SEC8 no se inicia.
+expiries, salud del runner y preflights separados; su cierre remoto no autoriza REL1. SEC8 completa
+la baseline técnica, pero la release pública aún no está autorizada: además falta verificar el
+backup offline, generar el Portal token, crear el tag exacto y autorizar upload/publicación. No se
+requieren Repository Secrets y REL0 no se inicia.

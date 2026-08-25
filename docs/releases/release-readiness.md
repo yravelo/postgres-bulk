@@ -160,7 +160,24 @@ license BLOCK, valid OpenPGP public identity and no new Testcontainers residue.
 The technical release preflight passes for clean synchronized `main` while the REL1 preflight
 fails closed because the reporting channel is still `PENDING`. This closes SEC7 without changing
 SEC6 from `PARTIALLY DONE` and without authorizing a release, tag, signing, upload or publication.
-The next exact phase is `SEC8 — Security Baseline Technical Closure`; it has not started.
+SEC8 subsequently completed the integrated technical baseline audit without changing the SEC6
+reporting-channel state.
+
+## SEC8 security baseline technical closure
+
+The Security & Supply Chain technical roadmap is `COMPLETE`. SEC8 reconciles all 15 SEC0 threats,
+adds a machine-readable prerequisite/residual-risk registry, verifies preventive/detective/response
+coverage and expands negative fixtures for secret detection, workflow/runner bypass, OSV scope and
+outage, SAST reports, SBOM/licenses, signed inventory source/tag binding and Git preflight state.
+Two clean artifact builds and two semantic SBOM generations remain the release reproducibility
+gate. The technical release preflight passes on clean synchronized `main`; the REL1 preflight
+continues to fail as expected while the private reporting channel is `PENDING`.
+
+This technical closure does not make `0.1.0` publicly ready. SEC6 remains `PARTIALLY DONE`; offline
+OpenPGP recovery verification, the reporting channel and a separately authorized Central token,
+tag, upload and publication remain external activation work. See
+[security baseline technical closure](../security/security-baseline-closure.md). The next possible
+phase is REL0 private readiness, which SEC8 does not start.
 
 ## Phase 16B local validation
 

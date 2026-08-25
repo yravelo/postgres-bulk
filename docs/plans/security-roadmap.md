@@ -166,7 +166,7 @@ pero no bloquea SEC7, SEC8 ni la evaluación técnica REL0.
 | Dependencies | SEC1–SEC5 controls plus implemented SEC6 policy; SEC6 channel closure is non-blocking here and blocking only at REL1 |
 | Deferred | paid/private-only GitHub features and future Java/Boot generation |
 
-## SEC8 — Security Baseline Technical Closure
+## SEC8 — Security Baseline Technical Closure — DONE (2026-08-25)
 
 | Campo | Definición |
 | --- | --- |
@@ -179,7 +179,7 @@ pero no bloquea SEC7, SEC8 ni la evaluación técnica REL0.
 | Tests | clean full reactor, docs/API, SCA/SAST/secrets/SBOM/license, double release build, isolated consumers and remote CI |
 | False positives | audit every suppression for evidence/expiry; delete stale entries, never roll forward blindly |
 | Documentation | final matrix, residual risks, operational cadence, exact validation and cost |
-| Acceptance | threat-to-control traceability complete; baseline low-noise/maintainable; worktree clean and remote synchronized |
+| Acceptance | DONE: 15/15 SEC0 threats classified; preventive/detective/response matrix complete; adversarial fixtures, reproducibility, signing/source binding, preflights, full local validation and final Build/Compatibility/Security pass |
 | Risks | checkbox closure/security theater, evidence becoming stale, publication mistaken as authorized |
 | Dependencies | SEC7 green closure |
 | Deferred | public-repo Scorecard/CodeQL/attestations, Boot 4, paid features and new threat-driven work |
@@ -205,6 +205,14 @@ No se creó tag, no se ejecutó Release y no hubo upload/publicación. SEC6 est�
 canal privado externo, que bloquea REL1. SEC7 puede cerrar técnicamente con ese estado pendiente;
 tras su evidencia verde puede recomendarse **SEC8 — Security Baseline Technical Closure** sin
 iniciarlo automáticamente.
+
+SEC8 cierra la auditoría técnica integrada en
+[`security-baseline-closure.md`](../security/security-baseline-closure.md): inventario control→amenaza,
+15/15 amenazas reconciliadas, matriz preventiva/detectiva/respuesta, fixtures adversariales,
+registro de riesgos/prerequisites, reproducibilidad y handoffs REL0/REL1. La semántica final es
+`Security technical baseline: COMPLETE`; SEC6 permanece `PARTIALLY DONE`, el canal privado sigue
+`PENDING` y bloquea REL1. La siguiente fase recomendada es **REL0 — Final Release Readiness**, sin
+iniciarla automáticamente.
 
 ## Mantenimiento PRE-SEC6 — DONE (2026-08-25)
 

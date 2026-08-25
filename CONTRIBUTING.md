@@ -56,6 +56,9 @@ health checks, and `release` additionally runs only ephemeral signing fixtures p
 release preflight. The REL1 preflight remains a separate fail-closed command while the private
 reporting channel is pending. See
 [continuous security validation](docs/security/continuous-security-validation.md).
+The integrated SEC8 threat, residual-risk and publication-boundary audit is
+`./scripts/check-security-baseline.py`; its source of truth and handoff are documented in
+[security baseline closure](docs/security/security-baseline-closure.md).
 
 The dependency wrapper builds JSON Maven trees for the full reactor, validates the explicit build
 tool inventory and scans every unique external name/version with checksum-pinned OSV-Scanner
@@ -217,7 +220,7 @@ fingerprint before use:
 gpg --show-keys --with-fingerprint \
   docs/security/keys/postgres-bulk-release-11545CD242C9575DF408AC08F83D364143C798A3.asc
 ./scripts/signed-release-dry-run.sh 0.1.0 \
-  <LOCAL_SIGNING_PATH>
+  /path/to/dedicated/release-gnupg
 ```
 
 Verify the imported fingerprint matches before continuing. `keyserver.ubuntu.com`,

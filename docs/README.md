@@ -57,6 +57,7 @@ This index separates adoption guidance from implementation details.
 - [Vulnerability response and repository governance](security/vulnerability-response-and-governance.md)
 - [Incident response runbook](security/incident-response-runbook.md)
 - [Continuous security validation and operational resilience](security/continuous-security-validation.md)
+- [Security baseline technical closure](security/security-baseline-closure.md)
 - [Security roadmap](plans/security-roadmap.md)
 
 ## Decisions and evidence
