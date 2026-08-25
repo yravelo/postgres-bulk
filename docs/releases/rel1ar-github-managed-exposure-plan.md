@@ -8,6 +8,15 @@ Decision: **R5 DONE — REMEDIATION PLAN READY; OPEN-SOURCE ACTIVATION NO-GO**
 Exact former runner, host, email and owner-path values are deliberately absent. This report
 separates official documentation, observed API behavior, inference and unknown platform behavior.
 
+## R6 authorized-contact addendum
+
+R6 reverified the exact R5 baseline under `AUTHORIZE_GITHUB_SUPPORT_CONTACT`: repository
+`PRIVATE`, six synthetic PR refs, 58 affected runs and 270 affected jobs. The official GitHub
+Support portal requires interactive owner authentication that is unavailable in the execution
+environment, so no request was submitted and no case ID exists. An exact sanitized single-ticket
+message is ready for owner submission; B4 and B5 remain `PENDING` and no destructive action was
+taken. See [R6 GitHub Support contact](rel1ar-github-support-remediation.md).
+
 ## 1. R5 result
 
 `DONE`. The two remaining GitHub-managed blockers were reconstructed and a minimal, conditional

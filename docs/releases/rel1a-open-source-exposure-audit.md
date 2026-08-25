@@ -5,6 +5,16 @@ Audited source: `43fc6f5fdcb5a4c216c9e5a8898c7eb77be22cb4`
 Repository: `yravelo/postgres-bulk` (`PRIVATE`)  
 Decision: **OPEN-SOURCE ACTIVATION NO-GO — REMOTE IDENTITY BLOCKERS PENDING**
 
+## REL1-A-R R6 authorized-contact addendum
+
+R6 operated only within the authorized GitHub Support contact scope, reverified six synthetic PR refs,
+58 affected runs and 270 affected jobs, and prepared the exact sanitized single-ticket request.
+The official portal requires interactive owner authentication unavailable in the execution
+environment; therefore the request is `NOT_SUBMITTED`, no case ID exists and owner manual action
+is required. Both blockers remain `PENDING`; no run/ref/history/visibility mutation occurred and
+REL1-B has not started. See
+[R6 GitHub Support contact](rel1ar-github-support-remediation.md).
+
 ## REL1-A-R R5 remediation-plan addendum
 
 R5 reconstructed the two remaining GitHub-managed blockers without destructive action. Historical
