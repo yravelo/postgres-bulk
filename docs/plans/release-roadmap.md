@@ -6,7 +6,7 @@ starts it automatically.
 
 ## REL0 — Final Release Readiness
 
-**Status:** `IN PROGRESS` — technical audit PASS; awaiting final remote closure evidence.
+**Status:** `DONE` on 2026-08-25.
 
 Purpose: reconcile the complete private repository, candidate artifacts, security baseline,
 documentation, external prerequisites and residual risks into one release decision.
@@ -20,6 +20,8 @@ Exit criteria:
 - no visibility change, tag, Release, Central upload or publication occurs.
 
 Evidence: [REL0 final release-readiness audit](../releases/rel0-final-release-readiness.md).
+Remote closure: Build `32850719665` PASS, Compatibility `32850719735` 11/11 PASS and Security
+`32850787710` PASS for commit `5f63b60e58a3fe23221eb47beef2f38f02cc26de`.
 
 ## REL1 — Open Source Repository Activation
 
@@ -66,4 +68,3 @@ attempting to replace immutable components.
 
 The technical REL0 decision is **TECHNICALLY READY — REL1 BLOCKED BY EXTERNAL PREREQUISITE**.
 EP-01 is the REL1 blocker. EP-02 and EP-03 belong to REL2. No downstream phase is active.
-

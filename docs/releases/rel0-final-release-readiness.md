@@ -198,16 +198,20 @@ defense, not authorization.
 - [x] Central structure and namespace evidence reconciled without credentials.
 - [x] External prerequisites and residual risks remain fail-closed.
 - [x] Clean-room Maven-wrapper verification passes.
-- [ ] Final documentation closure commit has remote Build PASS, Compatibility 11/11 PASS and
+- [x] Final documentation closure commit has remote Build PASS, Compatibility 11/11 PASS and
   manually dispatched Security PASS.
 
-The final checkbox is completed by the remote evidence recorded for the REL0 closure commit. Until
-then this document is the candidate decision, not authorization to cross an activation boundary.
+Closure commit `5f63b60e58a3fe23221eb47beef2f38f02cc26de` passed Build
+[`32850719665`](https://github.com/yravelo/postgres-bulk/actions/runs/32850719665), Compatibility
+[`32850719735`](https://github.com/yravelo/postgres-bulk/actions/runs/32850719735) in all 11 lanes,
+and manually dispatched Security
+[`32850787710`](https://github.com/yravelo/postgres-bulk/actions/runs/32850787710). This completes
+REL0 but does not authorize crossing an activation boundary.
 
 ## Mandatory boundary state
 
 ```text
-REL0 status: PARTIALLY DONE
+REL0 status: DONE
 technical release readiness: PASS
 Security technical baseline: COMPLETE
 SEC6 status: PARTIALLY DONE
@@ -225,8 +229,9 @@ publication activated: no
 REL1 started: no
 ```
 
-The PASS workflow values above describe the audited product source; final REL0 status becomes
-`DONE` only after the documentation closure commit independently passes the same remote gates.
+The PASS workflow values above describe both the audited product source and its documentation-only
+REL0 closure. Later documentation-only evidence recording remains subject to the normal remote
+Build and Compatibility gates plus a manually dispatched Security run.
 
 ## Next phase recommendation
 
@@ -234,4 +239,3 @@ After REL0 remote closure, the only recommended next phase is **REL1 — Open So
 Activation**. It is not started. EP-01 must be configured and tested, the REL1 preflight must pass,
 and a fresh full-history privacy/public-readiness audit must succeed before repository visibility
 can change. EP-02 and EP-03 remain later REL2 prerequisites.
-
