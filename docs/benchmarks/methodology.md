@@ -131,7 +131,7 @@ La baseline y `large` conservan forks reales.
 - PostgreSQL 15.18 Alpine, digest
   `sha256:3d0f7584ed7d04e27fa050d6683a74746608faf21f202be78460d679cc56461f`.
 - Boot 3.5.16, Hibernate 6.6.53.Final, pgJDBC 42.7.11, JMH 1.37.
-- Base Git: `14612b6a52bac6987090e1d158750619b46d6aee`; Phase 13 y Phase 14 estaban
+- Base Git: `a52c161ce2dcf61c89787968107b80e29456c782`; Phase 13 y Phase 14 estaban
   presentes en el working tree durante la medición.
 
 El equipo no se aisló, no se fijó frecuencia de CPU y tenía carga interactiva. Los resultados

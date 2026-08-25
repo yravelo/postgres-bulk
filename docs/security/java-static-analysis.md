@@ -1,7 +1,7 @@
 # Java static analysis
 
 **Estado:** SEC3 baseline implementada y validada el 2026-08-24. El commit de baseline
-`b0313efb557bd26c54a4954c5c398355b1c98b01` pasó Build `32758573085` y los 11 jobs de
+`1c78fede93439221291bee80a8fd0758973d6feb` pasó Build `32758573085` y los 11 jobs de
 Compatibility `32758573080`. Esta fase no habilita SBOM, firma, publicación ni scanners
 adicionales.
 

@@ -121,7 +121,7 @@ committed. See [SBOM and dependency/license integrity](../security/sbom-and-lice
 
 SEC4 local validation, release staging and reproducibility are PASS. A repository-scoped trusted
 self-hosted runner removed the GitHub-hosted billing dependency without changing plan, visibility
-or coverage. For `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`, Build `32774191694` passed all security,
+or coverage. For `6d6556b92a123b9720d39bcafef73a9bdf369119`, Build `32774191694` passed all security,
 reactor, SBOM/license, consumer and documentation steps on the dedicated runner; Compatibility
 `32774191674` passed all 11 lanes. The earlier pre-step billing rejections remain historical
 evidence, not an open SEC4 blocker. Benchmarks and Release were not executed. SEC4 and SEC5 are
@@ -134,7 +134,7 @@ upload. The applicable pgJDBC HIGH finding on 42.7.11 was remediated by selectin
 scope, reachability, owner and expiry in the accepted-risk register. Dependency inventory and raw
 OSV output remain generated under `target/security/`, not committed artifacts. OWASP
 Dependency-Check remains optional because exact OSV coverage is complete; Snyk is not connected.
-Implementation commit `46e7c1606a51574b0aeb4f86e37b93550a58604f` passed Build
+Implementation commit `a0453d6130e2d879fc9e8d522f7a5680268458b4` passed Build
 `32752820439` and all 11 jobs in Compatibility `32752820231`. Benchmarks and Release remained
 unexecuted.
 
@@ -144,12 +144,12 @@ constructor de infraestructura; los seis fueron revisados como false positive/no
 quoting, inmutabilidad y lifecycle reales. Seis exclusiones Bug/Class/Method con owner y revisión
 2027-02-24 dejan cero findings sin triage. Build y Release conservan el gate y validan activación
 FindSecBugs/reportes; Compatibility omite scans duplicados. No cambió source ni API productiva.
-El commit de baseline `b0313efb557bd26c54a4954c5c398355b1c98b01` pasó Build `32758573085`
+El commit de baseline `1c78fede93439221291bee80a8fd0758973d6feb` pasó Build `32758573085`
 y los 11 jobs de Compatibility `32758573080`; Benchmarks y Release no se ejecutaron.
 
 ## SEC7 continuous validation closure
 
-SEC7 is `DONE` for implementation SHA `0533866b04b4d89ea9199473dd5abf2cceb852c0`.
+SEC7 is `DONE` for implementation SHA `c9de055d78234c295a0ff9cbaf63c5fde4a7480e`.
 Build `32828408419` passed the complete Java 17 product/security/adoption pipeline, Compatibility
 `32828408347` passed 11/11, and manually dispatched Security `32828466698` passed the canonical
 full-history/fresh validation on the trusted runner. Local full validation also passed with OSV
@@ -207,7 +207,7 @@ metadata reference `io.ybr.postgresbulk`, with no active use of the former names
 ## Phase 16C remote validation
 
 Remote validation is **PASS** for implementation SHA
-`7b7c0f6394c8220f1149ef2fb21c718e535522bb`. Build run `32264391877` succeeded on the Java 17,
+`43d53db3bd996670ccf52f51d7ec614e2e9d9e8c`. Build run `32264391877` succeeded on the Java 17,
 Spring Boot 3.5.16 and PostgreSQL 15.18 baseline. Compatibility run `32264393355` succeeded in all
 10 jobs: Java 21/25, Spring Boot 3.5.0, PostgreSQL 16.14/17.10, the newest supported boundary with
 PostgreSQL 18.4, Hibernate 6.6.15/6.6.55 and pgJDBC 42.7.5/42.7.13.
@@ -268,7 +268,7 @@ The environment object ID `20189458466` remains remotely present only as an iner
 history placeholder. Removing `environment: maven-central` from the job avoids representing it as
 a security gate while the plan supplies neither usable environment secrets nor protection rules.
 
-Remote validation for hardening SHA `457681c7be28222fa2cd5b715f613da8523abc5a` is **PASS**: Build
+Remote validation for hardening SHA `4a671d498de7ee12fd0d39416a9ce79648562a80` is **PASS**: Build
 run `32274812469` succeeded and Compatibility run `32274812453` succeeded in all 10 matrix jobs.
 The PostgreSQL 16.14 job failed on its first attempt and passed unchanged when only failed jobs were
 retried; no workflow/code adjustment or matrix reduction was made. Release candidate and

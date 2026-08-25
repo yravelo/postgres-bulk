@@ -147,7 +147,7 @@ why Build pays the roughly one-minute cost once and Compatibility does not dupli
 
 Remote closure is PASS. On 2026-08-24, repository-scoped self-hosted Build `32774191694` generated
 and audited the canonical nine per-artifact SBOMs plus aggregate as part of its complete successful
-run for `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`. Compatibility `32774191674` passed 11/11 on the
+run for `6d6556b92a123b9720d39bcafef73a9bdf369119`. Compatibility `32774191674` passed 11/11 on the
 same SHA. Dedicated runner labels and the owner+same-repository PR guard remove automatic execution
 of untrusted fork code; no repository secret, signing key, provenance, upload or publication was
 introduced. SEC4 is therefore `DONE`; SEC5 remains `NOT STARTED`.

@@ -21,7 +21,7 @@ Exit criteria:
 
 Evidence: [REL0 final release-readiness audit](../releases/rel0-final-release-readiness.md).
 Remote closure: Build `32850719665` PASS, Compatibility `32850719735` 11/11 PASS and Security
-`32850787710` PASS for commit `5f63b60e58a3fe23221eb47beef2f38f02cc26de`.
+`32850787710` PASS for commit `bc288f27a01aa427bb5fd78f38997698b2c4e6d6`.
 
 ## REL1 — Open Source Repository Activation
 

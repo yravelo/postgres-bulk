@@ -162,7 +162,7 @@ mailbox verificado como fallback.
 | Tests | local fast/full commands, expiry fixtures, Docker/Testcontainers cleanup, remote Build/Compatibility/Security jobs and explicit REL1 blocked fixture |
 | False positives | exact accepted risks/exclusions/license reviews retain owner and expiry; stale/expired entries fail |
 | Documentation | [`continuous-security-validation.md`](../security/continuous-security-validation.md), timing budget, ownership, outage classification and preflight boundaries |
-| Acceptance | DONE: local full PASS; implementation SHA `0533866b04b4d89ea9199473dd5abf2cceb852c0` passed Build `32828408419`, Compatibility `32828408347` 11/11 and manual Security `32828466698` |
+| Acceptance | DONE: local full PASS; implementation SHA `c9de055d78234c295a0ff9cbaf63c5fde4a7480e` passed Build `32828408419`, Compatibility `32828408347` 11/11 and manual Security `32828466698` |
 | Risks | rate limits, flaky databases, cache poisoning assumptions, CI fatigue |
 | Dependencies | SEC1–SEC5 controls plus implemented SEC6 policy; EP-01 closed later without reopening SEC7 |
 | Deferred | paid/private-only GitHub features and future Java/Boot generation |

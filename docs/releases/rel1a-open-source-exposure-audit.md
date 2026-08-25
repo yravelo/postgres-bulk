@@ -1,9 +1,21 @@
 # REL1-A full Git history, privacy and open-source exposure audit
 
 Audit date: 2026-08-25  
-Audited source: `82ee79a9bb8ef096a5508cd6eb1b944fb45a0ba2`  
+Audited source: `43fc6f5fdcb5a4c216c9e5a8898c7eb77be22cb4`
 Repository: `yravelo/postgres-bulk` (`PRIVATE`)  
-Decision: **OPEN-SOURCE ACTIVATION NO-GO — OWNER DECISION REQUIRED**
+Decision: **OPEN-SOURCE ACTIVATION NO-GO — REMOTE IDENTITY BLOCKERS PENDING**
+
+## REL1-A-R R2B remediation addendum
+
+The original audit below is retained as historical evidence, with project commit references mapped
+to their rewritten equivalents. Its email and signing-path classifications are superseded by
+`docs/releases/rel1ar-public-history-remediation.md`: the owner selected `REWRITE`, controlled
+`main` now uses `29708813+yravelo@users.noreply.github.com`, historical document occurrences use
+`<PERSONAL_EMAIL_REDACTED>`, and the personal signing/home path is neutralized.
+
+Open-source activation remains `NO-GO`. GitHub-managed synthetic PR refs still require separate
+GitHub Support handling, while Actions-log deletion and runner identity remediation remain
+explicitly unauthorized and `PENDING`. REL1-B has not started.
 
 ## Scope and decision
 
@@ -28,13 +40,13 @@ identity are also required. No credential or private key was found.
 
 ### 2. Audited SHA
 
-`82ee79a9bb8ef096a5508cd6eb1b944fb45a0ba2` on `main`, including the safe HEAD cleanup.
+`43fc6f5fdcb5a4c216c9e5a8898c7eb77be22cb4` on `main`, including the safe HEAD cleanup.
 
 ### 3. Git topology/ref inventory
 
 - Default/current branch: `main`; remote: `origin` (`yravelo/postgres-bulk`).
 - GitHub branches: only `main`; no tags, releases, submodules or LFS configuration.
-- Root commit: `8d446d63f23a8af84f6a79a23d398128b0112f56`; merge commits: zero.
+- Root commit: `e2161df6813eb38810e012a5460b986c2d8c4afc`; merge commits: zero.
 - GitHub advertises `refs/pull/1/head` through `refs/pull/6/head`; all six closed Dependabot PR
   heads were included. The audit intentionally used the broader local/fetched `--all` boundary.
 - `git fsck --full --no-reflogs` found two dangling local commits/blobs. They are unreachable and
@@ -50,14 +62,14 @@ largest change is `241ad0` with 185 paths, explained by the project identity/pac
 
 | Role | Identity | Count | First/last | Classification |
 | --- | --- | ---: | --- | --- |
-| Author | `Yusnier Blanco Ravelo <<PERSONAL_EMAIL_REDACTED>>` | 97 | 2026-08-18 / 2026-08-25 | OWNER DECISION REQUIRED |
+| Author | `Yusnier Blanco Ravelo <PERSONAL_EMAIL_REDACTED>` | 97 | 2026-08-18 / 2026-08-25 | SUPERSEDED BY R2B REWRITE |
 | Author | `dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>` | 15 | 2026-08-25 / 2026-08-25 | APPROVED FOR PUBLIC |
-| Committer | `Yusnier Blanco Ravelo <<PERSONAL_EMAIL_REDACTED>>` | 100 | 2026-08-18 / 2026-08-25 | OWNER DECISION REQUIRED |
+| Committer | `Yusnier Blanco Ravelo <PERSONAL_EMAIL_REDACTED>` | 100 | 2026-08-18 / 2026-08-25 | SUPERSEDED BY R2B REWRITE |
 | Committer | `GitHub <noreply@github.com>` | 12 | 2026-08-25 / 2026-08-25 | APPROVED FOR PUBLIC |
 
 ### 6. Owner email exposure assessment
 
-`<PERSONAL_EMAIL_REDACTED>` is present in immutable author/committer metadata throughout the reachable
+`<PERSONAL_EMAIL_REDACTED>` was present in immutable author/committer metadata throughout the reachable
 history. It is personal data, not a project secret. Classification: `OWNER DECISION REQUIRED`,
 severity `HIGH PRIVACY/SECURITY` because publication makes it permanently cloneable.
 
@@ -453,24 +465,24 @@ verified project channel and private-evidence boundary. It changed no code, hist
 
 ### 69. Cleanup still required
 
-- Authorized Git history rewrite for the personal signing path.
-- Owner decision on personal email, incorporated into the same rewrite if selected.
-- Authorized deletion of 44 affected Actions run logs; neutral runner/host identity; fresh log scan.
+- GitHub Support handling of old objects retained by synthetic PR refs and cached views.
+- Separately authorized deletion of affected Actions run logs; neutral runner/host identity; fresh
+  log scan.
 - Add a Code of Conduct before opening, with owner-selected enforcement contact.
 
 ### 70. Owner decisions required
 
-1. `KEEP HISTORY AS-IS` or remove `<PERSONAL_EMAIL_REDACTED>` during the required rewrite.
-2. Authorize and schedule the history rewrite/force-push procedure.
-3. Authorize affected Actions-log deletion and choose neutral host/runner identities.
-4. Select the Code of Conduct and enforcement contact.
+1. Authorize the prepared GitHub Support request for synthetic PR/cached history handling.
+2. Authorize affected Actions-log deletion and choose neutral host/runner identities.
+3. Select the Code of Conduct and enforcement contact.
 
 ### 71. Exposure finding matrix
 
 | Finding | Classification | Severity | Activation effect |
 | --- | --- | --- | --- |
-| Personal email in commit metadata | OWNER DECISION REQUIRED | HIGH PRIVACY/SECURITY | NO-GO pending choice |
-| Exact owner home/signing path in history | HISTORY REWRITE REQUIRED | HIGH PRIVACY/SECURITY | BLOCKER |
+| Personal email in controlled `main` metadata/content | REMOVED BY R2B | HIGH PRIVACY/SECURITY | PASS for controlled history |
+| Exact owner home/signing path in controlled `main` | REMOVED BY R2B | HIGH PRIVACY/SECURITY | PASS for controlled history |
+| Old objects in synthetic PR refs/caches | PENDING SUPPORT ACTION | HIGH PRIVACY/SECURITY | BLOCKER |
 | Personal hostname/runner name in Actions logs | BLOCKER | HIGH PRIVACY/SECURITY | BLOCKER |
 | Missing Code of Conduct | CLEANUP BEFORE PUBLIC | LOW HYGIENE | REL1-B entry cleanup |
 | No secrets/private keys/credentials | SAFE TO PUBLISH | INFO | PASS |
@@ -506,19 +518,19 @@ report also passed `check-security.sh fast` after redacting exact exposure value
 
 ### 76. Remote Build
 
-`PASS` for `b83e5c0037eca9e28e0325abc62a39471e8a3b20`, run
+`PASS` for `30113f20a9a567173f6ad14bc19fc77041dfe1e5`, run
 [`32871784539`](https://github.com/yravelo/postgres-bulk/actions/runs/32871784539). An earlier report
 run `32871560008` correctly failed because the draft repeated the exact private path; the value was
 redacted and the gate passed on the corrected state.
 
 ### 77. Remote Compatibility
 
-`PASS`, all 11/11 jobs for `b83e5c0037eca9e28e0325abc62a39471e8a3b20`, run
+`PASS`, all 11/11 jobs for `30113f20a9a567173f6ad14bc19fc77041dfe1e5`, run
 [`32871784542`](https://github.com/yravelo/postgres-bulk/actions/runs/32871784542).
 
 ### 78. Remote Security
 
-`PASS` for `b83e5c0037eca9e28e0325abc62a39471e8a3b20`, manually dispatched run
+`PASS` for `30113f20a9a567173f6ad14bc19fc77041dfe1e5`, manually dispatched run
 [`32873968105`](https://github.com/yravelo/postgres-bulk/actions/runs/32873968105). No Benchmarks or
 Release workflow was dispatched.
 

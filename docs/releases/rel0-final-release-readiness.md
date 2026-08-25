@@ -1,7 +1,7 @@
 # REL0 final release-readiness audit
 
 Audit date: 2026-08-25  
-Audited product source: `cca6aa02c1d69f4a369296033dbf5eb66198769f`  
+Audited product source: `4e4ec8dde98331d29cc663c0527f193f923f25cf`
 Candidate version: `0.1.0`  
 Decision: **READY FOR REL1** after EP-01 closure on 2026-08-25
 
@@ -201,7 +201,7 @@ is a final defense, not authorization.
 - [x] Final documentation closure commit has remote Build PASS, Compatibility 11/11 PASS and
   manually dispatched Security PASS.
 
-Closure commit `5f63b60e58a3fe23221eb47beef2f38f02cc26de` passed Build
+Closure commit `bc288f27a01aa427bb5fd78f38997698b2c4e6d6` passed Build
 [`32850719665`](https://github.com/yravelo/postgres-bulk/actions/runs/32850719665), Compatibility
 [`32850719735`](https://github.com/yravelo/postgres-bulk/actions/runs/32850719735) in all 11 lanes,
 and manually dispatched Security

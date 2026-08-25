@@ -8,6 +8,14 @@ Repository: `yravelo/postgres-bulk` (`PRIVATE`)
 
 Decision: **DRY-RUN PASS — DESTRUCTIVE OWNER AUTHORIZATION REQUIRED**
 
+## R2B supersession notice
+
+This R1 report is retained as dry-run evidence. R2B subsequently authorized an additional exact
+historical document-content rule from the personal email to `<PERSONAL_EMAIL_REDACTED>`. Therefore
+the projected `a5e73f956966...` SHA below is superseded and must not be used as canonical history.
+The executed strategy and current status are recorded in
+`docs/releases/rel1ar-public-history-remediation.md`.
+
 This report records a disposable, combined history-rewrite rehearsal. It does not authorize or
 perform a remote rewrite. The report commit is necessarily outside its self-audited source SHA; a
 real authorized rewrite must start from the then-current local `main` and will therefore produce a

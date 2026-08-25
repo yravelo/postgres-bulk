@@ -7,12 +7,12 @@ individually and resolved without auto-merge, publication or activation of SEC6.
 
 | PR | Ecosystem / scope | Change | Classification | Decision | Resulting commit |
 | --- | --- | --- | --- | --- | --- |
-| [#1](https://github.com/yravelo/postgres-bulk/pull/1) | Maven, isolated JDBC consumer | Maven Failsafe `3.5.4` → `3.5.6` | patch, test tooling | squash-merged after full local and remote validation | `dd440a22324cc41242e26e92021aa4a0b5806cb5` |
-| [#2](https://github.com/yravelo/postgres-bulk/pull/2) | Maven, parent reactor | JUnit BOM `5.12.2` → `5.14.4` | minor, test tooling | squash-merged after full local and remote validation | `fa0a19f4c6ef8fe80cf1b1ed1f67b478ad482c22` |
+| [#1](https://github.com/yravelo/postgres-bulk/pull/1) | Maven, isolated JDBC consumer | Maven Failsafe `3.5.4` → `3.5.6` | patch, test tooling | squash-merged after full local and remote validation | `cabdc5528d45563a8b39c35f96c50890a336782e` |
+| [#2](https://github.com/yravelo/postgres-bulk/pull/2) | Maven, parent reactor | JUnit BOM `5.12.2` → `5.14.4` | minor, test tooling | squash-merged after full local and remote validation | `07072aeca700535a0315de3114c2e64d776f817d` |
 | [#3](https://github.com/yravelo/postgres-bulk/pull/3) | Maven, JDBC example | Spotless `3.9.0` → `3.10.0` | minor, build tooling | closed as superseded by the repository-wide #5 update | — |
 | [#4](https://github.com/yravelo/postgres-bulk/pull/4) | Maven, JPA example | Spotless `3.9.0` → `3.10.0` | minor, build tooling | closed as superseded by the repository-wide #5 update | — |
-| [#5](https://github.com/yravelo/postgres-bulk/pull/5) | Maven, reactor and examples | six Maven build plugins | patch/minor, build tooling | squash-merged with reviewed formatter compatibility follow-up | `fcecbb85f6e53e25339fd040859cc8ece78a2d85` |
-| [#6](https://github.com/yravelo/postgres-bulk/pull/6) | Maven, parent dependency management | Jakarta Activation API `2.1.1` → `2.1.4` | patch, runtime bugfix | squash-merged after resolved-tree and full validation | `d3a9254393ac031c1db96db9352393c2accc22aa` |
+| [#5](https://github.com/yravelo/postgres-bulk/pull/5) | Maven, reactor and examples | six Maven build plugins | patch/minor, build tooling | squash-merged with reviewed formatter compatibility follow-up | `d7ce6be85aad73318b2a717dde06ec7c512865fc` |
+| [#6](https://github.com/yravelo/postgres-bulk/pull/6) | Maven, parent dependency management | Jakarta Activation API `2.1.1` → `2.1.4` | patch, runtime bugfix | squash-merged after resolved-tree and full validation | `4878f5b3eb415b868308658d0fe97d0aa22a780f` |
 
 All requested versions were inside the project's supported ranges. None of the pull requests was a
 GitHub Actions update or fixed one of the five recorded OSV accepted risks. GitHub reported zero
@@ -56,8 +56,8 @@ The group updated Resources `3.4.0` → `3.5.0`, Surefire/Failsafe `3.5.4` → `
 keeps `1.28.0` as the baseline and activates `1.30.0` only in the JDK `[25,26)` Maven profile.
 Dependabot now lets the parent group own Spotless and ignores the duplicate example update lanes.
 
-The companion commits are `ac858a50781e63d6c56571705420428f0f7e2f79` and
-`a418b466185fcc716171a3111603fedd57392ca6`. After the compatibility fix, local gates passed and
+The companion commits are `34d4635f16c96f350cc1f4b34400ed13cb7ef933` and
+`c439296e3330af70a96fb729a289d03b426d6991`. After the compatibility fix, local gates passed and
 remote Build [`32807512454`](https://github.com/yravelo/postgres-bulk/actions/runs/32807512454)
 and Compatibility
 [`32807512546`](https://github.com/yravelo/postgres-bulk/actions/runs/32807512546) passed 11/11.

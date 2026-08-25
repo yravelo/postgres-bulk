@@ -45,7 +45,7 @@ performance sample.
 - OpenJDK 25.0.3 Ubuntu, project bytecode Java 17;
 - PostgreSQL 15.18 Alpine; Boot 3.5.16; Hibernate 6.6.53.Final;
 - Spring Data JDBC/Relational 3.5.13; pgJDBC 42.7.11;
-- Git base `51c06a6b8f330cc132600669a03105be63c7543b` plus the MS8 worktree.
+- Git base `9b893f2324c4f7470e12f6d2216890113ed4bde9` plus the MS8 worktree.
 
 The host was interactive, without CPU pinning, fixed frequency or reserved resources. Phase 14 and
 J8 used Temurin 21, so their absolute values are not combined with this OpenJDK 25 run.

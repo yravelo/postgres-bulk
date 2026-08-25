@@ -102,7 +102,7 @@ Estado auditado para el candidato `0.1.0` tras el cierre de EP-01. Cada criterio
   `contents: read`, cero secrets, full history, timeout y concurrencia explícitos.
 - **PASS** — Los preflights técnico y REL1 pasan con el canal privado configurado; una regresión de
   su estado vuelve a bloquear REL1.
-- **PASS** — SEC7 cierra sobre `0533866b04b4d89ea9199473dd5abf2cceb852c0`: Build
+- **PASS** — SEC7 cierra sobre `c9de055d78234c295a0ff9cbaf63c5fde4a7480e`: Build
   `32828408419`, Compatibility `32828408347` 11/11 y Security manual `32828466698` pasan sin retry
   ni gate debilitado.
 - **PASS** — SEC8 reconcilia las 15 amenazas SEC0 sin entradas sin clasificar y mantiene una matriz
@@ -143,11 +143,11 @@ Estado auditado para el candidato `0.1.0` tras el cierre de EP-01. Cada criterio
 - **PASS** — `origin` usa SSH, `main` está publicado y las URLs de project/SCM coinciden con el
   repository privado real.
 - **PASS** — Build remoto `32264391877` y los 10 jobs de Compatibility `32264393355` terminaron
-  correctamente para `7b7c0f6394c8220f1149ef2fb21c718e535522bb`.
-- **PASS** — El hardening SHA `457681c7be28222fa2cd5b715f613da8523abc5a` pasa Build
+  correctamente para `43d53db3bd996670ccf52f51d7ec614e2e9d9e8c`.
+- **PASS** — El hardening SHA `4a671d498de7ee12fd0d39416a9ce79648562a80` pasa Build
   `32274812469` y los 10 jobs de Compatibility `32274812453` (PostgreSQL 16.14 pasó al reintentar
   únicamente el job fallido, sin cambios ni reducción de matriz).
-- **PASS** — SEC4 queda cerrado para `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`: Build
+- **PASS** — SEC4 queda cerrado para `6d6556b92a123b9720d39bcafef73a9bdf369119`: Build
   self-hosted `32774191694` pasó todos los gates y Compatibility `32774191674` pasó 11/11. El runner
   es repository-scoped, non-root y usa labels dedicadas; PRs fork/no confiables no se ejecutan
   automáticamente. No se ejecutaron Benchmarks ni Release.

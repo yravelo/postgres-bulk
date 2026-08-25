@@ -141,7 +141,7 @@ store a registration/removal token in this repository, documentation or shell pr
 
 ## SEC4R validation evidence
 
-For commit `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`, Build run `32774191694` passed every security,
+For commit `6d6556b92a123b9720d39bcafef73a9bdf369119`, Build run `32774191694` passed every security,
 reactor, SBOM/license, consumer and documentation step on `postgres-bulk-owner-ubuntu`.
 Compatibility run `32774191674` passed all 11 lanes on the same runner and SHA. A post-run audit
 found zero Testcontainers-labelled containers, networks or volumes and confirmed the runner stayed

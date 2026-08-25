@@ -711,7 +711,7 @@ tag y no se inicia ninguna fase posterior.
 - [x] `yravelo/postgres-bulk` existe con visibilidad PRIVATE, default branch `main`, Issues
       habilitado y `origin` SSH.
 - [x] Build `32264391877` termina SUCCESS para SHA
-      `7b7c0f6394c8220f1149ef2fb21c718e535522bb`.
+      `43d53db3bd996670ccf52f51d7ec614e2e9d9e8c`.
 - [x] Compatibility `32264393355` termina SUCCESS en los 10 jobs obligatorios sin reducir matriz.
 - [x] Build, Compatibility, Benchmarks y Release candidate están visibles y usan permisos
       `contents: read`; los dos workflows manuales no se ejecutaron.
@@ -761,7 +761,7 @@ tag y no se inicia ninguna fase posterior.
       presentarlo como una protection boundary inexistente.
 - [x] GPG import/cleanup, Maven settings temporal, Central credentials y prohibiciones de logging
       quedan documentados; key/keyring/settings no forman parte de artifacts ni bundle.
-- [x] Hardening SHA `457681c7be28222fa2cd5b715f613da8523abc5a`: Build `32274812469`
+- [x] Hardening SHA `4a671d498de7ee12fd0d39416a9ce79648562a80`: Build `32274812469`
       PASS y Compatibility `32274812453` 10/10 PASS tras reintentar sólo PostgreSQL 16.14, sin
       cambios de código ni reducción de matriz.
 - [x] No se generaron ni configuraron credenciales, clave o secret values; no hubo tag, workflow
