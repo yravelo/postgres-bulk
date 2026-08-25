@@ -147,6 +147,26 @@ def validate_review_record(record: dict[str, Any], label: str) -> None:
         raise ValueError(f"{label}: licenses must be a unique non-empty list")
 
 
+def license_review_set_errors(
+    actual_multiple: set[str],
+    actual_exceptions: set[str],
+    reviewed_multiple: set[str],
+    exceptions: set[str],
+) -> list[str]:
+    errors: list[str] = []
+    if actual_multiple != reviewed_multiple:
+        errors.append(
+            "multiple-license review set drifted: "
+            f"actual={sorted(actual_multiple)} policy={sorted(reviewed_multiple)}"
+        )
+    if actual_exceptions != exceptions:
+        errors.append(
+            "single review-license exception set drifted: "
+            f"actual={sorted(actual_exceptions)} policy={sorted(exceptions)}"
+        )
+    return errors
+
+
 def strings(value: Any) -> list[str]:
     found: list[str] = []
     if isinstance(value, str):
@@ -546,25 +566,24 @@ def audit_directory(
         gav: ids for gav, ids in aggregate_licenses.items() if not gav.startswith(f"{policy.root_group}:")
     }
     actual_multiple = {gav: ids for gav, ids in external_licenses.items() if len(ids) > 1}
-    if set(actual_multiple) != set(policy.reviewed_multiple):
-        all_errors.append(
-            "multiple-license review set drifted: "
-            f"actual={sorted(actual_multiple)} policy={sorted(policy.reviewed_multiple)}"
-        )
-    for gav, ids in actual_multiple.items():
-        expected_ids = tuple(sorted(str(value) for value in policy.reviewed_multiple[gav]["licenses"]))
-        if ids != expected_ids:
-            all_errors.append(f"multiple-license choice drifted for {gav}: {ids}")
     actual_exceptions = {
         gav: ids
         for gav, ids in external_licenses.items()
         if len(ids) == 1 and ids[0] in policy.review
     }
-    if set(actual_exceptions) != set(policy.exceptions):
-        all_errors.append(
-            "single review-license exception set drifted: "
-            f"actual={sorted(actual_exceptions)} policy={sorted(policy.exceptions)}"
+    all_errors.extend(
+        license_review_set_errors(
+            set(actual_multiple),
+            set(actual_exceptions),
+            set(policy.reviewed_multiple),
+            set(policy.exceptions),
         )
+    )
+    for gav, ids in actual_multiple.items():
+        record = policy.reviewed_multiple.get(gav)
+        expected_ids = () if record is None else tuple(sorted(str(value) for value in record["licenses"]))
+        if record is not None and ids != expected_ids:
+            all_errors.append(f"multiple-license choice drifted for {gav}: {ids}")
 
     osv_reconciled = False
     if osv_inventory is not None:

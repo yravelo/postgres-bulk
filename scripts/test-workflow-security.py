@@ -37,6 +37,16 @@ class WorkflowSecurityTests(unittest.TestCase):
         errors = SECURITY.action_errors("      uses: actions/checkout@v6\n")
         self.assertTrue(any("full SHA" in error for error in errors))
 
+    def test_unclassified_action_fails(self) -> None:
+        sha = "a" * 40
+        errors = SECURITY.action_errors(f"      uses: example/unknown@{sha} # v1\n")
+        self.assertTrue(any("not allow-listed" in error for error in errors))
+
+    def test_new_workflow_requires_classification(self) -> None:
+        actual = set(SECURITY.WORKFLOWS) | {"unclassified.yml"}
+        errors = SECURITY.workflow_inventory_errors(actual)
+        self.assertTrue(any("inventory changed" in error for error in errors))
+
     def test_pull_request_target_fails(self) -> None:
         workflow = {"on": {"pull_request_target": ""}}
         errors = SECURITY.trigger_errors("build.yml", workflow)

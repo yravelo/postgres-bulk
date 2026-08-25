@@ -60,6 +60,8 @@ case "${MODE}" in
     ;;
   release)
     full_gates
+    run_gate release-signing-inventory-fixtures SECURITY \
+      "${SCRIPT_DIR}/test-release-signatures.py"
     run_gate technical-release-preflight RELEASE_CONTROL \
       "${SCRIPT_DIR}/check-release-security-preflight.sh" technical
     ;;

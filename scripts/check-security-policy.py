@@ -25,6 +25,15 @@ def load_json(path: Path) -> dict[str, Any]:
     return loaded
 
 
+def inventory_drift(expected: set[str], actual: set[str], label: str) -> str | None:
+    if expected == actual:
+        return None
+    return (
+        f"{label} drift: missing={sorted(expected - actual)}, "
+        f"unexpected={sorted(actual - expected)}"
+    )
+
+
 def parse_iso(value: Any, field: str) -> date:
     if not isinstance(value, str):
         raise ValueError(f"{field} must be an ISO date")
@@ -73,10 +82,9 @@ def audit_inventory(policy: dict[str, Any]) -> list[str]:
         for path in (ROOT / ".github/workflows").glob(pattern)
     }
     expected_workflows = set(policy["workflows"])
-    if workflows != expected_workflows:
-        raise ValueError(
-            f"workflow drift: expected={sorted(expected_workflows)}, actual={sorted(workflows)}"
-        )
+    workflow_drift = inventory_drift(expected_workflows, workflows, "workflow")
+    if workflow_drift:
+        raise ValueError(workflow_drift)
 
     parent = ET.parse(ROOT / "code/postgres-bulk-parent/pom.xml").getroot()
     actual_modules = [
@@ -91,11 +99,9 @@ def audit_inventory(policy: dict[str, Any]) -> list[str]:
         for path in base.rglob("pom.xml")
     )
     expected_poms = sorted(policy["modules"]["all_poms"])
-    if actual_poms != expected_poms:
-        raise ValueError(
-            f"POM inventory drift: missing={sorted(set(expected_poms) - set(actual_poms))}, "
-            f"unexpected={sorted(set(actual_poms) - set(expected_poms))}"
-        )
+    pom_drift = inventory_drift(set(expected_poms), set(actual_poms), "POM inventory")
+    if pom_drift:
+        raise ValueError(pom_drift)
 
     sbom = load_json(ROOT / "config/security/sbom-policy.json")
     signing = load_json(ROOT / "config/security/release-signing-policy.json")

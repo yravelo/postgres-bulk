@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import tempfile
 import unittest
 from datetime import date
 from pathlib import Path
@@ -15,6 +16,13 @@ if SPEC is None or SPEC.loader is None:
     raise RuntimeError("Unable to load security-policy checker")
 POLICY = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(POLICY)
+
+SAST_PATH = Path(__file__).with_name("check-static-analysis.py")
+SAST_SPEC = importlib.util.spec_from_file_location("static_analysis", SAST_PATH)
+if SAST_SPEC is None or SAST_SPEC.loader is None:
+    raise RuntimeError("Unable to load static-analysis checker")
+SAST = importlib.util.module_from_spec(SAST_SPEC)
+SAST_SPEC.loader.exec_module(SAST)
 
 
 class SecurityPolicyTests(unittest.TestCase):
@@ -85,6 +93,21 @@ class SecurityPolicyTests(unittest.TestCase):
         POLICY.audit_preflight(policy, "technical")
         with self.assertRaisesRegex(ValueError, "REL1 preflight blocked"):
             POLICY.audit_preflight(policy, "rel1")
+
+    def test_stale_sast_class_or_method_fails(self) -> None:
+        with tempfile.TemporaryDirectory(prefix="postgres-bulk-sast-fixture-") as temp:
+            parent = Path(temp)
+            source = parent / "module/src/main/java/org/example/Reviewed.java"
+            source.parent.mkdir(parents=True)
+            source.write_text("package org.example; class Reviewed { void current() {} }", encoding="utf-8")
+            self.assertTrue(SAST.exclusion_target_exists(parent, "org.example.Reviewed", "current"))
+            self.assertFalse(SAST.exclusion_target_exists(parent, "org.example.Reviewed", "removed"))
+            self.assertFalse(SAST.exclusion_target_exists(parent, "org.example.Removed", "current"))
+
+    def test_new_module_requires_classification(self) -> None:
+        drift = POLICY.inventory_drift({"parent", "module-a"}, {"parent", "module-a", "module-new"}, "POM")
+        self.assertIsNotNone(drift)
+        self.assertIn("module-new", drift or "")
 
 
 if __name__ == "__main__":

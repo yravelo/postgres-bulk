@@ -43,6 +43,20 @@ change, revoke or rotate real credentials first, then investigate cleanup. Do no
 add a broad allow-list or paste the value into an issue, log or chat. If an exception is genuinely
 required, it must be rule/path-specific and document evidence, owner and expiry.
 
+Use the SEC7 entrypoint for composed maintainer validation:
+
+```bash
+./scripts/check-security.sh fast
+./scripts/check-security.sh full
+./scripts/check-security.sh release
+```
+
+`fast` is the normal change preflight, `full` adds fresh network/history, reactor, SBOM and runner
+health checks, and `release` additionally runs only ephemeral signing fixtures plus the technical
+release preflight. The REL1 preflight remains a separate fail-closed command while the private
+reporting channel is pending. See
+[continuous security validation](docs/security/continuous-security-validation.md).
+
 The dependency wrapper builds JSON Maven trees for the full reactor, validates the explicit build
 tool inventory and scans every unique external name/version with checksum-pinned OSV-Scanner
 2.5.1. It requires network access and fails closed on a tool error, incomplete package set,

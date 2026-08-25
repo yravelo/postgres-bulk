@@ -387,6 +387,10 @@ def audit_workflow(name: str, workflow: dict[str, Any], text: str) -> list[str]:
     return errors
 
 
+def workflow_inventory_errors(actual: set[str]) -> list[str]:
+    return [] if actual == set(WORKFLOWS) else [f"workflow inventory changed: {sorted(actual)}"]
+
+
 def main() -> int:
     root = Path(sys.argv[1] if len(sys.argv) > 1 else Path(__file__).resolve().parents[1]).resolve()
     workflow_directory = root / ".github" / "workflows"
@@ -396,8 +400,7 @@ def main() -> int:
         for path in workflow_directory.glob(pattern)
     }
     errors: list[str] = []
-    if actual != set(WORKFLOWS):
-        errors.append(f"workflow inventory changed: {sorted(actual)}")
+    errors.extend(workflow_inventory_errors(actual))
 
     for name in sorted(WORKFLOWS):
         path = workflow_directory / name

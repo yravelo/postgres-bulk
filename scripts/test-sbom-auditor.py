@@ -112,6 +112,15 @@ class SbomAuditorTests(unittest.TestCase):
         ]
         self.assertTrue(any("absolute/file path" in error for error in self.errors(document)))
 
+    def test_stale_license_exception_fails(self) -> None:
+        errors = CHECK.license_review_set_errors(
+            set(),
+            set(),
+            set(),
+            {"org.example:removed-library:1.0.0"},
+        )
+        self.assertTrue(any("exception set drifted" in error for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

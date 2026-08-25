@@ -89,6 +89,7 @@
     {"id": "sbom-license", "command": "./scripts/generate-sbom.sh 0.1.0", "modes": ["full", "release"], "ci": "Build and Security", "failure": "SECURITY_OR_EXTERNAL"},
     {"id": "documentation-api", "command": "./scripts/check-documentation.sh", "modes": ["full", "release"], "ci": "Build and Security", "failure": "CODE"},
     {"id": "runner-health", "command": "./scripts/check-runner-health.sh", "modes": ["full", "release"], "ci": "Security", "failure": "INFRASTRUCTURE"},
+    {"id": "release-signing-inventory-fixtures", "command": "./scripts/test-release-signatures.py", "modes": ["release"], "ci": "Release candidate and local release preparation", "failure": "SECURITY"},
     {"id": "release-preflight", "command": "./scripts/check-release-security-preflight.sh technical", "modes": ["release"], "ci": "manual release preparation", "failure": "RELEASE_CONTROL"}
   ],
   "runner": {

@@ -66,6 +66,17 @@ def fail(message: str) -> None:
     raise SystemExit(1)
 
 
+def exclusion_target_exists(parent: Path, class_name: str, method_name: str) -> bool:
+    top_level_class = class_name.split("$", 1)[0]
+    relative_source = Path(*top_level_class.split(".")).with_suffix(".java")
+    candidates = list(parent.glob(f"*/src/main/java/{relative_source}"))
+    if len(candidates) != 1:
+        return False
+    source = candidates[0].read_text(encoding="utf-8")
+    expected_method = top_level_class.rsplit(".", 1)[-1] if method_name == "<init>" else method_name
+    return re.search(rf"\b{re.escape(expected_method)}\s*\(", source) is not None
+
+
 def audit_exclusions() -> None:
     path = REPOSITORY_ROOT / "config" / "security" / "spotbugs-exclude.xml"
     text = path.read_text(encoding="utf-8")
@@ -99,14 +110,7 @@ def audit_exclusions() -> None:
         fail("the exclusion set changed without updating the reviewed static-analysis policy")
 
     for _, class_name, method_name in actual:
-        top_level_class = class_name.split("$", 1)[0]
-        relative_source = Path(*top_level_class.split(".")).with_suffix(".java")
-        candidates = list(PARENT.glob(f"*/src/main/java/{relative_source}"))
-        if len(candidates) != 1:
-            fail(f"stale exclusion class target: {class_name}")
-        source = candidates[0].read_text(encoding="utf-8")
-        expected_method = top_level_class.rsplit(".", 1)[-1] if method_name == "<init>" else method_name
-        if re.search(rf"\b{re.escape(expected_method)}\s*\(", source) is None:
+        if not exclusion_target_exists(PARENT, class_name, method_name):
             fail(f"stale exclusion method target: {class_name}.{method_name}")
 
 

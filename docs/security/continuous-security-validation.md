@@ -21,7 +21,7 @@ windows, runner minimums, OpenPGP public identity and the explicit reporting-cha
 | --- | --- | --- |
 | `fast` | Build preflight and local changes | policy/tool/module/workflow drift, expiry fixtures, workflow regression fixtures, Dependabot policy and current-tree Gitleaks |
 | `full` | weekly/manual Security workflow | fast plus runner preflight, full-history Gitleaks, OSV, clean reactor/Testcontainers, SAST report audit, SBOM/license reconciliation, docs/API, public-key preflight and post-run Docker residue check |
-| `release` | local technical release preparation | full plus clean/synchronized-main technical release preflight; it does not sign, tag, upload or publish |
+| `release` | local technical release preparation | full plus ephemeral release-signing/inventory regressions and clean/synchronized-main technical preflight; it does not sign with the real key, tag, upload or publish |
 
 Build uses `fast` once and retains its existing canonical dependency, reactor, SAST, SBOM, consumer
 and documentation steps. Compatibility does not duplicate expensive security analysis across its
@@ -84,9 +84,12 @@ fail-closed:
   obsolete license exceptions fail during full validation.
 
 `scripts/test-security-policy.py` contains focused passing/failing fixtures for expired accepted
-risks, SAST exclusions, license exceptions, warning-window behavior and the technical-versus-REL1
-reporting boundary. Existing OSV, SBOM and signing fixture suites keep their more detailed semantic
-coverage.
+risks, stale SAST class/method targets, license exceptions, new unclassified modules,
+warning-window behavior and the technical-versus-REL1 reporting boundary. OSV fixtures also reject
+a stale accepted risk after its finding disappears; SBOM fixtures reject a stale license exception;
+workflow fixtures reject a new unclassified workflow or Action. The release mode runs the nine
+ephemeral signature/inventory fixtures for valid, missing, wrong signer, tampered, checksum,
+unexpected, SNAPSHOT and benchmark cases.
 
 ## Runner and Docker resilience
 
@@ -184,4 +187,5 @@ in all 11 jobs, and manually dispatched
 [Security `32828466698`](https://github.com/yravelo/postgres-bulk/actions/runs/32828466698).
 Build exercised Java 17 and the full product/security/adoption pipeline; Security completed its
 full mode in approximately 3 minutes 22 seconds on the trusted runner. No failed gate was retried
-or weakened.
+or weakened. The SEC7 fixture set additionally passed 8 policy, 18 workflow, 5 vulnerability,
+8 SBOM/license and 9 ephemeral release-signature cases.
