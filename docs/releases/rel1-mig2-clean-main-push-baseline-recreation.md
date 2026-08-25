@@ -70,18 +70,20 @@ The ID and empty baseline were re-read directly from GitHub immediately before w
 
 The ambiguous `origin` was renamed to `origin-new`; an explicit `origin-old` was added for read-only
 archive access. A prune against the empty new repository removed the stale `origin-new/main`, and a
-read-only archive fetch created the correctly named `origin-old/main`.
+read-only archive fetch created the correctly named `origin-old/main`. After the first push was
+verified, the provisional pair was finalized as canonical `origin` and guarded `archive` so existing
+preflight tooling can verify the new canonical repository without weakening its checks.
 
 ## 7. Final remote mapping
 
 ```text
-origin-new fetch/push -> git@github.com:yravelo/postgres-bulk.git
-origin-old fetch      -> git@github.com:yravelo/postgres-bulk-private-archive.git
-origin-old push       -> DISABLED
+origin fetch/push -> git@github.com:yravelo/postgres-bulk.git
+archive fetch     -> git@github.com:yravelo/postgres-bulk-private-archive.git
+archive push      -> DISABLED
 ```
 
-`origin-new` was verified as repository ID `1346700826`; `origin-old` was verified as ID
-`1339652660`. Local `main` tracks only `origin-new/main`.
+The provisional `origin-new` was verified as repository ID `1346700826`; provisional `origin-old`
+was verified as ID `1339652660` before final naming. Local `main` tracks only `origin/main`.
 
 ## 8. Source ref migrated
 
@@ -93,8 +95,8 @@ No wildcard or implicit branch set was used.
 
 ## 9. Source commit count
 
-`113` before the MIG2 report commit. The final documentation commit adds one clean descendant, so
-the synchronized final count is `114` after the report push.
+`113` before the MIG2 documentation commits. The report and remote-finalization commits add two
+clean descendants, so the synchronized final count is `115` after closure.
 
 ## 10. Source HEAD
 
@@ -223,14 +225,14 @@ After the first push:
 4cd10ed3d318337173f8b40ceae45c313bee7e31
 ```
 
-After the documentation closure push, HEAD is the single MIG2 report commit recorded in section 56
-and the final handoff. Both local and `origin-new/main` match it.
+After documentation closure, HEAD is the remote-finalization commit recorded in section 56 and the
+final handoff. Both local and `origin/main` match it.
 
 ## 25. New repo commit count
 
 ```text
 first-push count: 113
-final synchronized count: 114
+final synchronized count: 115
 ```
 
 ## 26. Default branch
@@ -450,7 +452,8 @@ The final documentation push is verified with the same checks before MIG2 closur
 ## 48. Fresh-clone Gitleaks
 
 `PASS`. Gitleaks 8.30.1 history mode scanned all 113 first-push commits from the new repository and
-found no leak. A final clone/scan after the report push confirms the 114-commit closure state.
+found no leak. A final clone/scan after both documentation pushes confirms the 115-commit closure
+state.
 
 ## 49. Old archive state
 
@@ -485,14 +488,14 @@ repository-level runner registrations: 0
 
 ## 52. Final upstream tracking
 
-Local `main` tracks `origin-new/main` only. After each authorized documentation push, local HEAD and
-that tracking ref are synchronized. `origin-old/main` remains a separately named archive observation
-ref and is not the upstream.
+Local `main` tracks `origin/main` only. After each authorized documentation push, local HEAD and that
+tracking ref are synchronized. `archive/main` remains a separately named archive observation ref and
+is not the upstream.
 
 ## 53. Accidental archive-push prevention
 
 The archive fetch URL remains available for rollback inspection, while its local push URL is the
-literal non-repository value `DISABLED`. Any ordinary `git push origin-old` therefore fails locally.
+literal non-repository value `DISABLED`. Any ordinary `git push archive` therefore fails locally.
 Restoring archive write capability would require a visible, explicit configuration change.
 
 ## 54. Local validation
@@ -509,7 +512,7 @@ git diff --check
 fresh-clone documentation/history/ref/Gitleaks checks
 ```
 
-The technical preflight runs after the final push with `main == origin-new/main`; no temporary
+The technical preflight runs after the final push with `main == origin/main`; no temporary
 substitution for the canonical remote is required.
 
 ## 55. Documentation changes
@@ -520,21 +523,22 @@ their evidence replacement belongs to MIG3 when new hosted CI results exist.
 
 ## 56. Git commits
 
-MIG2 migrated the two pending local commits shown in section 3 and adds one documentation closure
-commit:
+MIG2 migrated the two pending local commits shown in section 3 and adds two documentation closure
+commits:
 
 ```text
 docs(release): record clean main migration [skip actions]
+docs(release): finalize canonical remote mapping [skip actions]
 ```
 
 All use the approved author/committer identity
 `Yusnier Blanco Ravelo <29708813+yravelo@users.noreply.github.com>`. The exact final SHA is recorded
-in the handoff and becomes synchronized `origin-new/main`.
+in the handoff and becomes synchronized `origin/main`.
 
 ## 57. Final Git state
 
-Expected after the closure push: clean local `main`, synchronized with `origin-new/main`; archive
-tracking remains at `origin-old/main`; no local or remote tag was created. The handoff records the
+Expected after the closure push: clean local `main`, synchronized with `origin/main`; archive
+tracking remains at `archive/main`; no local or remote tag was created. The handoff records the
 observed SHA/status and final remote map.
 
 ## 58. Final GitHub state
@@ -542,7 +546,7 @@ observed SHA/status and final remote map.
 ```text
 new repository: yravelo/postgres-bulk (ID 1346700826), PRIVATE
 new default branch: main
-new clean canonical commits: 114
+new clean canonical commits: 115
 new unexpected refs/PRs/artifacts/registered runners/secrets/variables: 0
 new MIG2-created workflow runs/jobs: 5/5, Dependabot dynamic only
 

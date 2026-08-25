@@ -6,10 +6,11 @@ Result: **DONE**
 
 ## MIG2 execution addendum
 
-MIG2 explicitly separated `origin-new` from guarded `origin-old`, pushed only canonical `main` to
-the new private repository, verified 113 clean pre-report commits from a fresh clone and recreated
-the approved basic metadata. The new repository inherited no old PR/ref/Actions state and still has
-zero registered runners, secrets and variables. The archive remains private and unchanged. See the
+MIG2 first separated `origin-new` from guarded `origin-old`, then finalized the verified canonical
+mapping as `origin` (new repository) and guarded `archive` (old repository). It pushed only canonical
+`main`, verified 113 clean pre-report commits from a fresh clone and recreated the approved basic
+metadata. The new repository inherited no old PR/ref/Actions state and still has zero registered
+runners, secrets and variables. The archive remains private and unchanged. See the
 [MIG2 clean main migration](rel1-mig2-clean-main-push-baseline-recreation.md).
 
 This report records the authorized GitHub container-identity migration. MIG1 renamed the existing
