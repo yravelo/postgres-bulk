@@ -70,6 +70,7 @@ This index separates adoption guidance from implementation details.
 - [0.1.0 release notes](releases/0.1.0.md)
 - [0.1.0 release readiness](releases/release-readiness.md)
 - [REL0 final release-readiness audit](releases/rel0-final-release-readiness.md)
+- [REL1-A open-source exposure audit](releases/rel1a-open-source-exposure-audit.md)
 - [0.1.0 public API baseline](releases/0.1.0-public-api.txt)
 
 ## Planning
