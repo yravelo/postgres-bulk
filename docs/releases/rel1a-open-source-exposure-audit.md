@@ -114,9 +114,11 @@ credentials are explicitly disposable localhost development values. Credential r
 
 ### 15. Absolute-path audit
 
-Old reachable versions expose `<LOCAL_SIGNING_PATH>` in signing
-instructions. Current HEAD no longer contains `<OWNER_HOME>`, but deletion from HEAD does not
-remove history. Classification: `HISTORY REWRITE REQUIRED`; severity `HIGH PRIVACY/SECURITY`.
+Old reachable versions expose an exact owner home path ending in
+`.local/share/postgres-bulk-release/gnupg` in signing instructions. Current HEAD no longer contains
+the owner-home prefix, but deletion from HEAD does not remove history. The exact value is
+intentionally redacted here. Classification: `HISTORY REWRITE REQUIRED`; severity
+`HIGH PRIVACY/SECURITY`.
 
 `/home/postgres-bulk-runner` is an intentional runner layout, `/tmp/postgres-bulk-jdks/...` is a
 reproducibility path and `/home/private` is synthetic test data. These do not contain credentials.
@@ -124,9 +126,9 @@ reproducibility path and `/home/private` is synthetic test data. These do not co
 ### 16. Host/system identity audit
 
 Reachable Git content contains no personal hostname, MAC, VPN endpoint, private network address or
-container identifier. Available GitHub Actions logs do expose hostname `yusnier-AORUS-5-KE`, runner
-name `postgres-bulk-owner-ubuntu`, runner group `Default` and the runner home. Classification:
-`BLOCKER`, severity `HIGH PRIVACY/SECURITY`.
+container identifier. Available GitHub Actions logs do expose a personal workstation hostname, an
+owner-specific runner name, runner group and runner home. Exact values are intentionally redacted
+here. Classification: `BLOCKER`, severity `HIGH PRIVACY/SECURITY`.
 
 ### 17. Email/personal-data audit
 
