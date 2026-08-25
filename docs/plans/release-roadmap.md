@@ -28,11 +28,12 @@ Remote closure: Build `32850719665` PASS, Compatibility `32850719735` 11/11 PASS
 **Status:** `NOT STARTED`.
 
 REL1-MIG0 completed its read-only feasibility analysis on 2026-08-26 and recommended a clean
-replacement. Authorized MIG1 is now `DONE`: the original repository is retained as private
-`yravelo/postgres-bulk-private-archive`, and a distinct empty private repository owns the final
-`yravelo/postgres-bulk` name. No Git ref has been pushed to it. See the
-[MIG1 report](../releases/rel1-mig1-repository-container-migration.md). MIG2 has not started and
-archive deletion is a much later, separately gated operation.
+replacement. MIG1 and MIG2 are now `DONE`: the original repository is retained as private
+`yravelo/postgres-bulk-private-archive`, and the distinct private final-name repository contains
+only canonical clean `main` plus its approved basic metadata. See the
+[MIG2 report](../releases/rel1-mig2-clean-main-push-baseline-recreation.md). MIG3 has not started;
+CI/security/public-trust recreation and old-link cleanup remain pending, and archive deletion is a
+much later, separately gated operation.
 
 Entry criteria:
 
@@ -73,7 +74,7 @@ attempting to replace immutable components.
 
 ## Current handoff
 
-REL0 remains `DONE`. EP-01 is `PASS`, so the readiness decision is **READY FOR REL1**. REL1-MIG0 and
-MIG1 are `DONE`; MIG2 and REL1-B are not started. The new final-name repository is private and empty,
-while the old private archive remains the rollback source. EP-02 and EP-03 remain `PENDING` REL2
-prerequisites. No downstream phase is active.
+REL0 remains `DONE`. EP-01 is `PASS`, so the readiness decision is **READY FOR REL1**. REL1-MIG0,
+MIG1 and MIG2 are `DONE`; MIG3 and REL1-B are not started. The new final-name repository is private
+and contains only verified canonical clean `main`; the old private archive remains the rollback
+source. EP-02 and EP-03 remain `PENDING` REL2 prerequisites. No downstream phase is active.

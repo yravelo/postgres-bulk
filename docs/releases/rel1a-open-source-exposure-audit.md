@@ -5,6 +5,15 @@ Audited source: `43fc6f5fdcb5a4c216c9e5a8898c7eb77be22cb4`
 Repository: `yravelo/postgres-bulk` (`PRIVATE`)  
 Decision: **OPEN-SOURCE ACTIVATION NO-GO — REMOTE IDENTITY BLOCKERS PENDING**
 
+## REL1-MIG2 clean-history addendum
+
+MIG2 pushed only canonical clean `main` to the new private repository and independently verified its
+history, refs, noreply identities and Gitleaks result from a fresh clone. No old PR, PR ref, Actions
+history, runner registration or credential was inherited. The private archive remains unchanged and
+contains the isolated GitHub-managed historical blockers. CI/public-trust recreation and old-link
+cleanup remain MIG3 work; the repository is still private and REL1-B has not started. See the
+[MIG2 clean main migration](rel1-mig2-clean-main-push-baseline-recreation.md).
+
 ## REL1-MIG1 repository-isolation addendum
 
 MIG1 retained the old GitHub repository and all GitHub-managed historical metadata privately as

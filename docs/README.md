@@ -73,6 +73,7 @@ This index separates adoption guidance from implementation details.
 - [REL1-A open-source exposure audit](releases/rel1a-open-source-exposure-audit.md)
 - [REL1-MIG0 clean repository migration feasibility](releases/rel1-mig0-clean-repository-migration-feasibility.md)
 - [REL1-MIG1 repository container migration](releases/rel1-mig1-repository-container-migration.md)
+- [REL1-MIG2 clean main push and baseline recreation](releases/rel1-mig2-clean-main-push-baseline-recreation.md)
 - [0.1.0 public API baseline](releases/0.1.0-public-api.txt)
 
 ## Planning

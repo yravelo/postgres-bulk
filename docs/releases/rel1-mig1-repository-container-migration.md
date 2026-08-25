@@ -4,6 +4,14 @@ Date: 2026-08-26
 
 Result: **DONE**
 
+## MIG2 execution addendum
+
+MIG2 explicitly separated `origin-new` from guarded `origin-old`, pushed only canonical `main` to
+the new private repository, verified 113 clean pre-report commits from a fresh clone and recreated
+the approved basic metadata. The new repository inherited no old PR/ref/Actions state and still has
+zero registered runners, secrets and variables. The archive remains private and unchanged. See the
+[MIG2 clean main migration](rel1-mig2-clean-main-push-baseline-recreation.md).
+
 This report records the authorized GitHub container-identity migration. MIG1 renamed the existing
 private repository and created a distinct, empty private repository at the final project URL. It did
 not migrate Git history, push a ref, configure CI, change visibility, delete data or start REL1-B.
