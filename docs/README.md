@@ -53,6 +53,7 @@ This index separates adoption guidance from implementation details.
 - [Java static analysis](security/java-static-analysis.md)
 - [SBOM and dependency/license integrity](security/sbom-and-license-integrity.md)
 - [Release signing, inventory and provenance](security/release-signing-and-provenance.md)
+- [Initial Dependabot PR review — 2026-08](security/dependabot-review-2026-08.md)
 - [Security roadmap](plans/security-roadmap.md)
 
 ## Decisions and evidence

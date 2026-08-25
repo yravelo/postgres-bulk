@@ -196,3 +196,12 @@ fail-closed. El workflow remoto es candidate-only y no contiene clave, passphras
 No se creó tag, no se ejecutó Release y no hubo upload/publicación. La única fase siguiente
 recomendada es **SEC6 — Vulnerability Response and Repository Governance**; iniciarla requiere una
 petición separada y no descongela `0.1.0`.
+
+## Mantenimiento PRE-SEC6 — DONE (2026-08-25)
+
+Las seis PR iniciales de Dependabot se revisaron de forma controlada y secuencial: cuatro se
+fusionaron después de validación local completa y Build + Compatibility 11/11 en `main`; dos
+actualizaciones duplicadas de Spotless se cerraron como superseded. El cierre conserva 0 alertas
+Dependabot, 0 bloqueos OSV y los 5 riesgos aceptados no relacionados, sin auto-merge, cambios de
+guards, tags, Release, publicación ni inicio de SEC6. La evidencia completa está en
+[`docs/security/dependabot-review-2026-08.md`](../security/dependabot-review-2026-08.md).
