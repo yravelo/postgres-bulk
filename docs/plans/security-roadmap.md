@@ -122,23 +122,30 @@ Reglas transversales:
 | Dependencies | SEC4 artifact/SBOM inventory |
 | Deferred | GitHub attestations/Scorecard until plan/public visibility supports them |
 
-## SEC6 — Vulnerability Response and Repository Governance
+## SEC6 — Vulnerability Response and Repository Governance — PARTIALLY DONE (2026-08-25)
 
 | Campo | Definición |
 | --- | --- |
 | Objective | create a real confidential reporting and coordinated response process |
 | Scope | supported versions, approved private channel, triage targets, GHSA/CVE/disclosure, maintainer access/MFA review, governance triggers |
 | Non-goals | invent/publicar un email, promise commercial SLA, change visibility/plan, enable PVR if unavailable |
-| Tools/cost | approved email alias/encryption or PVR when available; €0 target |
-| Affected | `SECURITY.md`, CONTRIBUTING, release checklist and response templates |
+| Tools/cost | documentation/CODEOWNERS now; approved email alias or PVR still pending; €0 target |
+| Affected | `SECURITY.md`, CONTRIBUTING, CODEOWNERS/issue guidance, release checklist, runbook and response templates |
 | Gates | supported release forbidden without tested private channel and owner; critical incidents stop release and rotate affected credentials |
 | Tests | end-to-end benign report drill, access/recovery test, advisory/patch tabletop without publication |
 | False positives | reporter evidence kept private; duplicate/invalid reports recorded without public disclosure |
 | Documentation | channel, scope, expectations, severity, credit/disclosure and EOL |
-| Acceptance | honest tested instructions, no secret/contact invented, owner can execute triage/patch/release process |
+| Acceptance | PARTIAL: policy/runbook/governance implemented; no contact invented; tested external private channel still missing and blocks release |
 | Risks | spam/privacy, lost mailbox/key, misleading response promise, single-maintainer availability |
 | Dependencies | SEC5 release model; owner approval for channel |
-| Deferred | CODEOWNERS/reviews/rulesets until collaborators or entitlement change |
+| Deferred | enforced CODEOWNER reviews/rulesets until collaborators or entitlement change; PVR until repository is public |
+
+SEC6 implementa supported versions, intake/triage/severity, GHSA/CVE/disclosure, respuesta para
+dependencies/build chain/secrets/OpenPGP/runner/workstation/repository/artifacts, governance común
+de excepciones, CODEOWNERS documental, checklist sensible, issue guidance y handoff REL1. La API
+read-only confirma que PVR/advisories devuelven 404 mientras el repo siga privado y que
+rulesets/protection requieren cambio de plan o visibilidad. Como no existe un alias privado aprobado
+y probado, el estado honesto es `PARTIALLY DONE — PENDING OWNER ACTION`; SEC7 no se inicia.
 
 ## SEC7 — Security CI and Compatibility Closure
 
@@ -193,9 +200,9 @@ SEC0 investigation
 SEC5 está cerrado con identidad OpenPGP local protegida, fingerprint público fijado, inventario
 source-bound de 46 archivos Central y tres evidencias, comparación unsigned/signed y regresiones
 fail-closed. El workflow remoto es candidate-only y no contiene clave, passphrase, token ni upload.
-No se creó tag, no se ejecutó Release y no hubo upload/publicación. La única fase siguiente
-recomendada es **SEC6 — Vulnerability Response and Repository Governance**; iniciarla requiere una
-petición separada y no descongela `0.1.0`.
+No se creó tag, no se ejecutó Release y no hubo upload/publicación. SEC6 está implementado salvo el
+canal privado externo: la siguiente acción es que el owner configure y pruebe ese canal. Sólo
+después de cerrar SEC6 puede recomendarse **SEC7 — Security CI and Compatibility Closure**.
 
 ## Mantenimiento PRE-SEC6 — DONE (2026-08-25)
 

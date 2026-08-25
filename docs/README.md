@@ -54,6 +54,8 @@ This index separates adoption guidance from implementation details.
 - [SBOM and dependency/license integrity](security/sbom-and-license-integrity.md)
 - [Release signing, inventory and provenance](security/release-signing-and-provenance.md)
 - [Initial Dependabot PR review — 2026-08](security/dependabot-review-2026-08.md)
+- [Vulnerability response and repository governance](security/vulnerability-response-and-governance.md)
+- [Incident response runbook](security/incident-response-runbook.md)
 - [Security roadmap](plans/security-roadmap.md)
 
 ## Decisions and evidence

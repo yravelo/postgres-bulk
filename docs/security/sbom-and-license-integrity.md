@@ -100,6 +100,10 @@ project distribution, so an empty `NOTICE` is not created. Reassess this wheneve
 license inventory changes. Apache-2.0 section 4(d) only carries forward applicable NOTICE content;
 it does not justify a ritual empty file.
 
+SEC6 records the shared owner/expiry/removal rules in
+[exception governance](vulnerability-response-and-governance.md#exception-governance). License or
+distribution-model drift requires a fresh review; exceptions are never silently extended.
+
 - [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 - [Apache guidance for LICENSE and NOTICE contents](https://infra.apache.org/licensing-howto.html)
 

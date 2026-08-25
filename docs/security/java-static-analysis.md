@@ -99,6 +99,10 @@ non-applicable -> same narrow, expiring exclusion
 No se añade `Serializable`, logging de datos, annotation suppression, accepted-risk vacío ni
 baseline masiva para silenciar el análisis.
 
+SEC6 conserva estas exclusiones en el índice común de
+[exception governance](vulnerability-response-and-governance.md#exception-governance). Una
+renovación requiere revisar de nuevo source/dataflow/analyzer y no puede limitarse a mover la fecha.
+
 ## Lifecycle, CI y reports
 
 La ejecución `verify-production-bytecode` está ligada una vez a `verify` en el parent e inherited

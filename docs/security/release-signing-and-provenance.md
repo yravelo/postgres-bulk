@@ -129,6 +129,10 @@ keyserver; update this policy with a new fingerprint; rotate any related Portal 
 runner and workstation; rebuild from a clean approved commit; and communicate the affected release
 range before resuming. Never delete evidence or rewrite shared history before revocation/triage.
 
+The executable containment, passphrase-only distinction, historical-artifact treatment and exit
+criteria are in the SEC6
+[incident response runbook](incident-response-runbook.md#openpgp-private-key-compromise).
+
 Rotate before expiry, on loss of exclusive control, workstation compromise, passphrase exposure,
 maintainer/identity change or algorithm-policy change. Overlap public keys only long enough to sign
 the transition statement. Historical fingerprints remain documented as revoked/retired and are

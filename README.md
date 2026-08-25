@@ -405,6 +405,8 @@ Spring Data adapter
 - [Compatibility and evidence](docs/architecture/compatibility.md)
 - [Spring Data JDBC benchmarks](docs/benchmarks/j8-spring-data-jdbc.md)
 - [Multi-schema investigation and roadmap](docs/architecture/multi-schema-investigation.md)
+- [Security policy](SECURITY.md)
+- [Vulnerability response and governance](docs/security/vulnerability-response-and-governance.md)
 - [Low-level multi-schema bulk insert](docs/architecture/multi-schema-bulk-insert.md)
 - [Low-level multi-schema bulk lookup](docs/architecture/multi-schema-bulk-lookup.md)
 - [Hibernate/Spring Data JPA multi-schema](docs/architecture/multi-schema-hibernate-jpa.md)

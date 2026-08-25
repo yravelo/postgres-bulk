@@ -1,0 +1,17 @@
+# Security-sensitive ownership. This documents responsibility; current plan/settings do not
+# enforce independent CODEOWNER approval.
+/.github/CODEOWNERS @yravelo
+/.github/workflows/ @yravelo
+/.github/dependabot.yml @yravelo
+/.github/ISSUE_TEMPLATE/ @yravelo
+/config/security/ @yravelo
+/scripts/check-* @yravelo
+/scripts/*release* @yravelo
+/scripts/*sbom* @yravelo
+/scripts/*license* @yravelo
+/scripts/*inventory* @yravelo
+/code/postgres-bulk-parent/pom.xml @yravelo
+/SECURITY.md @yravelo
+/docs/security/ @yravelo
+/docs/plans/release-acceptance-criteria.md @yravelo
+/docs/releases/release-readiness.md @yravelo

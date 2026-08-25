@@ -77,8 +77,9 @@ mass medium suppressions are forbidden. See the
 All GitHub Actions must use an approved full commit SHA with a human-readable version comment.
 Keep workflow permissions read-only, checkout credentials non-persistent and event/input expressions
 outside shell blocks. Secret masking is only defense-in-depth; it is not an authorization or
-isolation boundary. Release credentials belong exclusively to the `central-upload` job, and no
-candidate, build, test, cache or artifact may contain them.
+isolation boundary. Release, signing and Central credentials are intentionally absent from GitHub
+Actions and the self-hosted runner; local signing/upload requires separate owner authorization.
+No candidate, build, test, cache or artifact may contain secret material.
 
 Dependabot opens bounded weekly Maven and Actions update PRs. It never auto-merges. Review
 each PR, keep majors and Boot generation changes manual, preserve full Action SHAs plus version
@@ -134,6 +135,39 @@ Build and Compatibility currently run on trusted self-hosted infrastructure. Onl
 from this repository may execute there; external or otherwise untrusted PR code must not run on the
 self-hosted runner. Maintainers must preserve the exact PR guard and dedicated labels documented in
 the [self-hosted runner security model](docs/security/self-hosted-runner.md).
+
+## Responsible security reporting
+
+Do not report a suspected vulnerability in an Issue, Discussion, pull request, commit message or
+other public channel. Follow [`SECURITY.md`](SECURITY.md). The current private reporting channel is
+still pending owner configuration and verification; do not infer that the Git commit email is an
+approved security contact. A first supported release is blocked until the policy names a tested
+channel.
+
+Use sanitized fixtures and descriptions. Never put a live credential, private key, personal data,
+production database content or weaponized exploit in Git, CI artifacts or chat. Incident records
+and undisclosed triage belong in restricted owner-controlled storage, using the versioned templates
+only as empty forms.
+
+## Security-sensitive changes
+
+Changes to workflows, Dependabot, `config/security`, security/release scripts, parent release POM
+configuration, `SECURITY.md`, security documentation or release readiness require explicit owner
+review. `.github/CODEOWNERS` documents this responsibility but does not currently enforce an
+independent approval on the private single-maintainer plan.
+
+Before merging such a change:
+
+- identify the threat, trust boundary, owner, rollback and exit criteria;
+- preserve immutable Action pins, least privilege, safe shell inputs and the self-hosted PR guard;
+- verify scanner provenance/checksums and retain fail-closed behavior;
+- keep accepted risks, SAST exclusions and license exceptions exact, evidenced and expiring;
+- preserve source-bound inventory, reproducibility, approved fingerprint and signing isolation;
+- run the applicable security gates and record Build/Compatibility evidence;
+- do not mix tag, upload, publication, visibility or plan changes into the implementation.
+
+The complete checklist is in
+[vulnerability response and repository governance](docs/security/vulnerability-response-and-governance.md#security-sensitive-change-checklist).
 
 ## Release candidate dry-run
 

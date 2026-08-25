@@ -2,77 +2,108 @@
 
 ## Supported versions
 
-PostgreSQL Bulk has not published a supported release yet. The `0.1.0` candidate is not a supported
-public version until the release blockers in
-[the release readiness assessment](docs/releases/release-readiness.md) are resolved.
+PostgreSQL Bulk has not published a supported release. `main` and `0.1.0-SNAPSHOT` are development
+states and receive no public support commitment.
+
+After the first release, this single-maintainer project will support only the newest patch in the
+current `0.1.x` line. Publishing a replacement patch ends support for older `0.1.x` patches unless
+an advisory explicitly states a transition period. Multiple maintenance branches are not promised.
+
+| Version | Supported |
+| --- | --- |
+| `main` / snapshots | No — development only |
+| `0.1.x` | Not published; newest patch only after activation |
+| older patch lines | No, unless an advisory explicitly says otherwise |
 
 ## Reporting a vulnerability
 
-The development repository exists at `https://github.com/yravelo/postgres-bulk` and remains
-private. GitHub Private Vulnerability Reporting is not available for the repository under its
-current configuration, so there is still no confirmed private vulnerability reporting channel.
-Do not disclose a suspected vulnerability in a public issue.
+**Private reporting status: PENDING OWNER ACTION.** The repository is private, GitHub Private
+Vulnerability Reporting is unavailable in this configuration, and no dedicated security email or
+other external private channel has been approved and tested. Do not send vulnerability details to
+the Git commit email, open a GitHub Issue, start a public Discussion, or post them in another public
+forum. The first supported release is blocked until a real channel passes a delivery, reply and
+recovery test.
 
-If a credential or private key may have entered the working tree or Git history, assume exposure
-until disproved. Do not print, copy into an issue or rely on GitHub log masking. Stop the affected
-workflow, revoke or rotate the credential through its owner, preserve non-sensitive evidence and
-run the repository Gitleaks current/history scans. Never rewrite shared history automatically:
-revocation and incident triage come before repository cleanup.
+The temporary fallback is intentionally limited: a person who already has an independently
+established private relationship with the owner may request agreement on a secure transfer method
+without including vulnerability details in that first contact. This is not a general public intake
+channel and does not make the current reporting status configured.
 
-Resolving and testing an appropriate private reporting channel remains an external action. Once
-enabled, replace this paragraph with the repository's real Security Advisories reporting
-instructions. No email, response time or remediation SLA is implied by this provisional policy.
+When the repository becomes public, REL1 must reevaluate and preferably enable GitHub Private
+Vulnerability Reporting. A tested, owner-approved security mailbox may remain as fallback. This
+file will then name the exact active channel and remove this pending notice.
 
-## CI trust boundary
+## What a private report should include
 
-Build and Compatibility run on a persistent, repository-scoped self-hosted runner with Docker
-access. That capability is trusted infrastructure and is not available to arbitrary PR code:
-self-hosted jobs accept pushes and only owner-authored PRs whose head repository is this repository.
-Fork or other untrusted PR jobs are skipped. No publishing secret is present on the runner, checkout
-credentials are not persisted, and Release remains separate on GitHub-hosted infrastructure. See
-the [self-hosted runner security model](docs/security/self-hosted-runner.md).
+Once a channel is configured, include only the information needed to reproduce and assess the
+report:
 
-## Dependency vulnerabilities
+- affected released version or exact commit;
+- affected module and Maven coordinate;
+- expected security impact and affected confidentiality, integrity or availability;
+- minimal reproduction and required preconditions, with sensitive values removed;
+- whether exploitation is known or suspected;
+- a proposed mitigation or fix, if available;
+- safe contact method, disclosure preference and optional credit preference.
 
-Dependency advisories are checked by OSV in Build and again for a release candidate. Dependabot
-provides alerts and update pull requests without auto-merge. A report is triaged by production,
-test, benchmark, example or build scope; direct/transitive ownership; reachability; required
-configuration; exploitation; supported fix and compensating controls—not by CVSS alone.
+Do not send live credentials, private keys, personal data, production database contents or a
+weaponized public proof of concept. Agree a safer evidence-transfer method first when those would
+otherwise be necessary.
 
-An untriaged production finding, applicable HIGH/CRITICAL production or build-chain finding,
-incomplete scan, scanner failure or expired accepted risk blocks release. Narrow accepted risks are
-reviewable in version control at `config/security/accepted-dependency-risks.json` and require an exact
-advisory/dependency/version, owner, evidence, review date, expiry and removal condition. The
-[dependency vulnerability policy](docs/security/dependency-vulnerability-management.md) documents
-the reproducible command, current baseline and remediation rules.
+## Response and coordinated disclosure
 
-## Static analysis
+The owner is the current triage and response owner. Receipt will be acknowledged as soon as
+practical; no 24/7 service or fixed response/remediation deadline is promised. Reports move through
+private validation, impact classification, remediation and disclosure coordination. Duplicate or
+non-applicable reports are closed privately with a reason when possible.
 
-Build and every future release candidate run SpotBugs with FindSecBugs on production bytecode.
-Analyzer failure, missing classes, inactive security detectors or a new medium/high finding blocks
-the build. Findings are reviewed by rule, source/sink, reachability and existing contracts; a real
-defect is fixed and tested before considering an exact, expiring exclusion. The
-[Java static-analysis policy](docs/security/java-static-analysis.md) records the current triage and
-local reproduction command. CodeQL, Semgrep and Sonar are not enabled baselines.
+Reporter and owner coordinate disclosure timing based on impact, exploitation, fix readiness and
+availability of a patched release. There is no fixed embargo. Reporter credit is optional and is
+published only with consent. A GitHub Security Advisory and CVE are considered for a real security
+issue affecting a published release and external consumers; an unpublished pre-release defect does
+not receive an artificial CVE.
 
-## SBOM and production licenses
+The full process and state model are in
+[Vulnerability response and repository governance](docs/security/vulnerability-response-and-governance.md).
+Containment procedures are in the
+[Incident response runbook](docs/security/incident-response-runbook.md).
 
-Build and every future release candidate generate CycloneDX 1.6 JSON for all nine publishable
-artifacts plus an aggregate. The fail-closed gate reconciles Maven and OSV production inventories,
-rejects test/build/non-publishable components, SNAPSHOTs and invalid identity or private metadata,
-and requires every compile/runtime dependency to have classified license metadata. Unknown or
-incompatible strong-copyleft licenses block; exact weak/multiple-license reviews have owners and
-expiry. The current baseline has 55 external production components, zero unknown licenses and zero
-unresolved blocks. See the
-[SBOM and dependency/license integrity policy](docs/security/sbom-and-license-integrity.md).
+## Before the first release
 
-## Release signing key incidents
+A vulnerability found before publication stops the candidate. The owner fixes or mitigates it,
+invalidates previous candidate evidence and reruns every affected security, compatibility,
+inventory, reproducibility and signing gate. SBOMs, checksums, release inventory and signatures
+are regenerated from the new clean source commit. No previous candidate is reused.
 
-The planned release identity is the public fingerprint
-`11545CD242C9575DF408AC08F83D364143C798A3`; no private key or passphrase is stored in GitHub
-Actions. If control of that key or its signing workstation may be lost, stop signing and release
-activity immediately, use the offline revocation certificate, publish the revocation, rotate the
-Central token if relevant, preserve non-secret evidence and audit every candidate signed since the
-last known-good event. A replacement fingerprint requires reviewed policy/configuration changes and
-fresh tamper/wrong-signer tests. See the
-[release signing and provenance policy](docs/security/release-signing-and-provenance.md).
+## Security update verification
+
+After publication, a security fix normally produces a new `0.1.x` patch. Consumers should verify:
+
+1. the exact Maven group `io.github.yravelo` and expected `postgres-bulk-*` artifact;
+2. the release tag and source commit stated by the advisory;
+3. the artifact checksum and detached OpenPGP signature;
+4. signer fingerprint `11545CD242C9575DF408AC08F83D364143C798A3` against the tracked public
+   key and current signing policy;
+5. the affected and patched version ranges in the advisory.
+
+The public key is
+[`docs/security/keys/postgres-bulk-release-11545CD242C9575DF408AC08F83D364143C798A3.asc`](docs/security/keys/postgres-bulk-release-11545CD242C9575DF408AC08F83D364143C798A3.asc).
+Never trust a short key ID or a signature whose fingerprint differs from the current reviewed
+policy. Detailed commands are in the governance document.
+
+## Official distribution identity
+
+Before publication, the only official project repository is
+`https://github.com/yravelo/postgres-bulk`; it is private and Maven Central distribution is not
+active. After separately authorized publication, the official Maven group is
+`io.github.yravelo`. Treat look-alike repositories, Maven groups or unsigned release files as
+suspect. Preserve URLs and hashes without executing the artifact, then use the configured private
+channel and the relevant GitHub or Maven Central abuse process.
+
+## Credential or signing-material exposure
+
+Stop the affected workflow, signing or release activity before cleanup. Revoke or rotate the
+affected credential, preserve sanitized evidence, and do not rely on log masking or history
+rewrites. Passphrase-only exposure is assessed separately from private-key exposure; if private key
+control may also be lost, revoke the key and publish the revocation. See the incident runbook for
+GitHub, Central, OpenPGP, runner, workstation, repository and artifact procedures.

@@ -93,6 +93,10 @@ Si se sospecha exposición, se detiene el workflow y se revoca/rota antes de lim
 imprime el finding, no se confía en masking y no se reescribe history automáticamente. La ausencia
 actual de secrets reduce exposición, pero el gate protege el boundary antes de una activación futura.
 
+SEC6 distingue GitHub token, Central token, passphrase, private key y runner registration token en
+la [matriz operativa de incidentes](incident-response-runbook.md#secret-exposure-matrix); cada tipo
+tiene revocación, evidencia y exit criteria propios.
+
 ## Gitleaks reproducible y triage
 
 `scripts/check-secrets.sh` fija Gitleaks 8.30.1 y soporta Linux x86-64/arm64. Descarga desde el

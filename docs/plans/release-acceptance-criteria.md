@@ -70,7 +70,7 @@ Estado auditado para el candidato `0.1.0` tras SEC5. Cada criterio usa exclusiva
 
 - **PASS** — LICENSE, POMs y documentación son consistentes con Apache-2.0.
 - **PASS** — Auditoría reproducible de licencias productivas no presenta metadata desconocida.
-- **PASS** — OSV-Scanner 2.5.1 verifica por checksum e inspecciona 132/132 coordenadas externas;
+- **PASS** — OSV-Scanner 2.5.1 verifica por checksum e inspecciona 138/138 coordenadas externas;
   no queda ningún BLOCK y los cinco WARN exactos tienen owner, evidencia y expiry revisable.
 - **PASS** — El release candidate repite el vulnerability gate antes de cualquier upload futuro;
   scanner error, inventario incompleto, production HIGH/CRITICAL sin triage o accepted risk expirado
@@ -97,8 +97,10 @@ Estado auditado para el candidato `0.1.0` tras SEC5. Cada criterio usa exclusiva
   repository privado; Sigstore no sustituye OpenPGP y queda diferido.
 - **PASS** — Auditoría de patrones sensibles no encuentra tokens, passwords ni private keys hardcoded.
 - **PASS** — `CHANGELOG.md`, release notes y política SemVer `0.x` existen.
-- **DEFERRED (non-blocking)** — GitHub Private Vulnerability Reporting no está disponible para el
-  repository privado actual (API 404); `SECURITY.md` no se presenta como canal activado.
+- **BLOCKED** — No existe todavía un canal privado externo aprobado y probado; `SECURITY.md` lo
+  declara `PENDING OWNER ACTION` y prohíbe inventar el email Git o usar Issues.
+- **DEFERRED (non-blocking como feature)** — GitHub Private Vulnerability Reporting requiere que el
+  repository sea público; REL1 reevaluará/activará PVR y probará notifications/intake.
 - **DEFERRED (non-blocking)** — Branch protection/rules requiere GitHub Pro o hacer público el
   repository; se preservó la visibilidad PRIVATE y no se aplicaron reglas.
 
@@ -131,8 +133,8 @@ Estado auditado para el candidato `0.1.0` tras SEC5. Cada criterio usa exclusiva
   self-hosted `32774191694` pasó todos los gates y Compatibility `32774191674` pasó 11/11. El runner
   es repository-scoped, non-root y usa labels dedicadas; PRs fork/no confiables no se ejecutan
   automáticamente. No se ejecutaron Benchmarks ni Release.
-- **EXTERNAL PREREQUISITE** — Crear `v0.1.0` y autorizar upload/publicación; el canal privado sigue
-  diferido como non-blocking.
+- **EXTERNAL PREREQUISITE** — Configurar/probar el canal privado; sólo después crear `v0.1.0` y
+  autorizar por separado tag, upload y publicación.
 - **PASS** — Release es candidate-only, `workflow_dispatch` desde `main` por `yravelo`; exige stable
   SemVer, full SHA perteneciente a `origin/main` y confirmación literal.
 - **PASS** — El workflow no contiene job/input de upload ni referencias `secrets.*`; todas las
@@ -143,7 +145,8 @@ Estado auditado para el candidato `0.1.0` tras SEC5. Cada criterio usa exclusiva
 
 ## Veredicto
 
-SEC5 está cerrado con identidad OpenPGP y signed dry-run verificable. La release pública aún no está
-autorizada: falta verificar el backup offline, generar el Portal token, crear el tag exacto y
-autorizar upload/publicación. No se requieren Repository Secrets. La fase siguiente recomendada es
-**SEC6 — Vulnerability Response and Repository Governance**.
+SEC5 está cerrado con identidad OpenPGP y signed dry-run verificable. SEC6 implementa policy,
+runbook, governance, CODEOWNERS/checklist y handoff PVR, pero queda `PARTIALLY DONE` porque falta un
+canal privado externo aprobado y probado. La release pública aún no está autorizada: además falta
+verificar el backup offline, generar el Portal token, crear el tag exacto y autorizar
+upload/publicación. No se requieren Repository Secrets y SEC7 no se inicia.

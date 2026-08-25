@@ -5,7 +5,8 @@
 The final project identity, private GitHub repository, Central namespace and local OpenPGP release
 identity are approved. SEC5 signed dry-run and verification are PASS, but `0.1.0` is **not ready for
 public publication**: offline key-backup verification, the Portal token, tag, upload and Portal
-publication remain intentionally withheld. No Release or benchmark workflow ran.
+publication remain intentionally withheld, and SEC6 has no approved/tested external private
+reporting channel. No Release or benchmark workflow ran.
 
 ## Final identity
 
@@ -71,8 +72,10 @@ session data or token is stored. The real Portal user token has not been generat
 
 | Control | Status |
 | --- | --- |
-| GitHub Private Vulnerability Reporting | DEFERRED (non-blocking) — API returned 404 for this private repository; unchanged |
-| OSV dependency gate | PASS — 2.5.1 checksum-pinned; 132/132 exact package versions, zero BLOCK |
+| Current private vulnerability channel | BLOCKED — no approved/tested external channel; release forbidden until owner closes this action |
+| GitHub Private Vulnerability Reporting | DEFERRED (non-blocking as a feature) — public-repository feature; current private API returns 404 |
+| Vulnerability/incident governance | PASS — supported versions, triage, severity, GHSA/CVE/disclosure, compromise runbook and templates implemented |
+| OSV dependency gate | PASS — 2.5.1 checksum-pinned; 138/138 exact package versions, zero BLOCK |
 | Java SAST gate | PASS — SpotBugs 4.10.4 + FindSecBugs 1.14.0; 7 modules, 6/6 initial findings triaged, 0 untriaged |
 | CycloneDX/license gate | PASS — 2.9.3, spec 1.6 JSON; 9 per-artifact + aggregate, 55 external production components, 0 unknown/0 BLOCK |
 | Accepted dependency risks | PASS — five exact WARN records expire 2026-10-24 |
@@ -120,7 +123,8 @@ or coverage. For `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`, Build `32774191694`
 reactor, SBOM/license, consumer and documentation steps on the dedicated runner; Compatibility
 `32774191674` passed all 11 lanes. The earlier pre-step billing rejections remain historical
 evidence, not an open SEC4 blocker. Benchmarks and Release were not executed. SEC4 and SEC5 are
-`DONE`; SEC6 is the next recommended phase.
+`DONE`; SEC6 policy/governance is implemented but remains `PARTIALLY DONE` until its private
+reporting channel is configured and tested. SEC7 has not started.
 
 SEC2 adds a fail-closed dependency gate to Build and the release candidate before any future
 upload. The applicable pgJDBC HIGH finding on 42.7.11 was remediated by selecting supported
@@ -245,12 +249,28 @@ reproducible payloads, SBOMs, SHA-256 inventory and approved OpenPGP signatures 
 minimum provenance baseline. See
 [release signing, inventory and provenance](../security/release-signing-and-provenance.md).
 
+## SEC6 response and governance status
+
+Supported versions, pre-release handling, intake states, severity/applicability, GHSA/CVE and
+coordinated disclosure policy, patch/emergency release rules, exception governance, sensitive-path
+ownership, Dependabot/public-PR boundaries and incident procedures are documented. CODEOWNERS is
+preparatory and does not claim enforcement; read-only APIs still return 403 for rulesets/protection.
+Issues show explicit guidance not to disclose vulnerabilities publicly.
+
+The repository remains private and GitHub PVR/repository-advisory endpoints return 404. No security
+email was inferred from Git identity or invented. Until the owner approves a dedicated channel and
+passes benign inbound, reply, access and recovery tests, SEC6 remains `PARTIALLY DONE`, the first
+supported release is blocked and SEC7 must not start. See
+[vulnerability response and governance](../security/vulnerability-response-and-governance.md) and
+the [incident response runbook](../security/incident-response-runbook.md).
+
 ## Remaining activation sequence
 
 1. Copy the protected key backup and revocation material to separate offline media and verify
    recovery; never place them on a runner or in Actions secrets.
 2. Generate a Portal user token only when a local upload is separately authorized.
-3. Resolve the private vulnerability channel in SEC6.
+3. Approve a private vulnerability channel, verify inbound delivery/reply/owner access/recovery,
+   publish the exact route in `SECURITY.md` and mark SEC6 DONE.
 4. Recheck an authorized candidate SHA from `main`, then create and push `v0.1.0` only with
    separate authorization and make it point to that exact SHA.
 5. Reproduce and verify the signed candidate locally; authorize Central upload and Portal
