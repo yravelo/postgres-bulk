@@ -10,8 +10,9 @@ Support evidence remain outside versioned content.
 
 ## 1. Task result
 
-`IN PROGRESS` while the controlled remote update and fresh CI evidence are pending. The rebuilt
-candidate passes all local rewrite, privacy, equivalence, build, security and reproducibility gates.
+`DONE`. The controlled rewrite, guarded remote update, post-push verification and fresh private
+Build, Compatibility and Security evidence all passed. Open-source activation remains `NO-GO`
+because the explicitly out-of-scope remote identity blockers remain pending.
 
 ## 2. Authorization consumed
 
@@ -22,8 +23,9 @@ AUTHORIZE_PERSONAL_EMAIL_CONTENT_REDACTION_IN_HISTORY
 AUTHORIZE_HISTORY_REWRITE_AND_FORCE_PUSH
 ```
 
-The first authorization was consumed to add the exact historical document-content rule. The
-second will be consumed only by the guarded update of `origin/main` described below.
+The first authorization was consumed by the exact historical document-content rule. The second was
+consumed by the single guarded `origin/main` update described below. Neither authorization was used
+for any other remote mutation.
 
 ## 3. Pre-operation HEAD/origin state
 
@@ -119,7 +121,8 @@ The rebuilt candidate, including the cleanly recreated dry-run report, was
 
 The local pre-operation `main` and the rebuilt pre-report candidate both contain 105 commits. The
 canonical base contains 104 rewritten commits; the dry-run documentation commit was recreated as
-commit 105. This remediation report adds one ordinary post-rewrite commit.
+commit 105. The remediation report created ordinary commit 106; this final status refresh is an
+ordinary post-rewrite documentation commit and does not alter rewritten history.
 
 ## 18. Rewritten commit count
 
@@ -131,9 +134,9 @@ unexpected edits.
 
 ## 19. Ref impact
 
-Only controlled `refs/heads/main` is authorized for remote update. There are no tags. Local backup
-and audit refs remain private and will not be pushed. All GitHub-managed `refs/pull/*` remain
-outside the writable ref set.
+Only controlled `refs/heads/main` was updated. There are no tags. Local backup and audit refs
+remained private and were not pushed. All GitHub-managed `refs/pull/*` remained outside the
+writable ref set.
 
 ## 20. Synthetic PR-ref status
 
@@ -149,7 +152,7 @@ authorized privacy rules or post-rewrite evidence refreshes.
 
 ## 22. Full-history Gitleaks/privacy audit
 
-`PASS`. Gitleaks 8.30.1 scanned all 105 candidate commits and about 4.53 MB with no leak. Exact
+`PASS`. Gitleaks 8.30.1 scanned all 106 candidate commits and about 4.55 MB with no leak. Exact
 personal-email/path checks, private-key markers, credential-bearing URLs, token patterns, private
 repository references and absolute-path privacy checks passed. A broad URL heuristic matched only
 the public SLSA documentation reference and was classified as a false positive.
@@ -185,13 +188,18 @@ SBOMs. Nothing was signed, tagged, released or published.
 
 ## 29. Force-push method/result
 
-`PENDING`. The only permitted method is a single explicit
-`--force-with-lease` update from the validated candidate HEAD to `refs/heads/main`, leased against
-`7750d462dbdba0f69c9462d45de57aea7709d8c9`.
+`PASS`. A single explicit `--force-with-lease` updated only `refs/heads/main`, leased against
+`7750d462dbdba0f69c9462d45de57aea7709d8c9`. The forced update was
+`7750d462dbdba0f69c9462d45de57aea7709d8c9 -> 8a4923757442ecd2291d1a08809ef8b3f036c0d9`.
+No backup, tag or synthetic PR ref was pushed.
 
 ## 30. Final HEAD/origin state
 
-`PENDING` remote update and post-push fetch verification.
+Immediately after the forced update, both `HEAD` and `origin/main` were
+`8a4923757442ecd2291d1a08809ef8b3f036c0d9`; the worktree was clean and GitHub reported the
+repository `PRIVATE`. This report's final status refresh necessarily creates a later ordinary
+documentation-only HEAD; its exact remote binding and fresh CI are recorded in the task handoff to
+avoid a self-referential commit claim.
 
 ## 31. SHA-dependent evidence refreshed
 
@@ -203,15 +211,23 @@ published.
 
 ## 32. Remote Build
 
-`PENDING` fresh run on rewritten final HEAD.
+`PASS` on rewritten evidence commit `8a4923757442ecd2291d1a08809ef8b3f036c0d9`, private Build run
+[`32888286164`](https://github.com/yravelo/postgres-bulk/actions/runs/32888286164). The ordinary
+closure commit is revalidated separately in the task handoff.
 
 ## 33. Remote Compatibility
 
-`PENDING` fresh 11/11 matrix on rewritten final HEAD.
+`PASS` 11/11 on rewritten evidence commit `8a4923757442ecd2291d1a08809ef8b3f036c0d9`, private
+Compatibility run
+[`32888286201`](https://github.com/yravelo/postgres-bulk/actions/runs/32888286201). The ordinary
+closure commit is revalidated separately in the task handoff.
 
 ## 34. Remote Security
 
-`PENDING` fresh run on rewritten final HEAD.
+`PASS` on rewritten evidence commit `8a4923757442ecd2291d1a08809ef8b3f036c0d9`, manually dispatched
+private Security run
+[`32888331084`](https://github.com/yravelo/postgres-bulk/actions/runs/32888331084). The ordinary
+closure commit is revalidated separately in the task handoff.
 
 ## 35. GitHub PR refs blocker
 
@@ -235,8 +251,8 @@ bindings changed. No productive source file changed.
 
 ```text
 repository visibility changed: no
-history rewritten: no (local candidate only)
-force push performed: no
+history rewritten: yes
+force push performed: yes
 Actions logs deleted: no
 runner re-registered: no
 GitHub PVR enabled: no
@@ -251,8 +267,8 @@ REL1-B started: no
 
 ## 40. Definition of Done assessment
 
-`PARTIALLY DONE`: every local R2B gate is satisfied except the final preflights. Controlled remote
-update, post-push validation and fresh Build/Compatibility/Security evidence remain pending.
+`DONE`. Every R2B definition-of-done gate passed. The remaining PR-ref, Actions-log and runner
+items are intentionally outside this authorization and continue to block open-source activation.
 
 ## 41. Remaining blockers
 
@@ -280,13 +296,13 @@ Do not delete logs automatically.
 ## Boundary statement
 
 ```text
-REL1-A-R R2B status: PARTIALLY DONE
-personal email metadata exposure: REMOVED in candidate
-personal email content exposure: REMOVED in candidate
-historical signing path: REMOVED in candidate
-history rewrite completed: no (local candidate only)
-force push performed: no
-PR synthetic refs clean: pending
+REL1-A-R R2B status: DONE
+personal email metadata exposure: REMOVED
+personal email content exposure: REMOVED
+historical signing path: REMOVED
+history rewrite completed: yes
+force push performed: yes
+PR synthetic refs clean: no
 Actions personal identity logs: PENDING
 runner identity neutralized: no
 full-history secrets: PASS
