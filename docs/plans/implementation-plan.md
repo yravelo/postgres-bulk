@@ -771,6 +771,11 @@ tag y no se inicia ninguna fase posterior.
 
 ## Gates transversales
 
+La secuencia de activación posterior al cierre técnico se mantiene en el
+[release roadmap](release-roadmap.md): REL0 readiness, REL1 apertura del repositorio, REL2 Maven
+Central `0.1.0` y REL3 verificación posterior a la publicación. Ninguna fase inicia la siguiente
+automáticamente.
+
 - Todo cambio arquitectónico relevante actualiza o añade ADR.
 - Cada fase prueba errores además del happy path y preserva causa raíz.
 - Nunca se registran entidades o claves completas.

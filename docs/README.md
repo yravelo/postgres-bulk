@@ -69,11 +69,13 @@ This index separates adoption guidance from implementation details.
 - [Multi-schema MS8 benchmark baseline](benchmarks/ms8-multi-schema.md)
 - [0.1.0 release notes](releases/0.1.0.md)
 - [0.1.0 release readiness](releases/release-readiness.md)
+- [REL0 final release-readiness audit](releases/rel0-final-release-readiness.md)
 - [0.1.0 public API baseline](releases/0.1.0-public-api.txt)
 
 ## Planning
 
 - [Implementation plan](plans/implementation-plan.md)
+- [Release roadmap](plans/release-roadmap.md)
 - [Release acceptance criteria](plans/release-acceptance-criteria.md)
 - [Spring Data JDBC roadmap](plans/spring-data-jdbc-roadmap.md)
 - [Multi-schema roadmap](plans/multi-schema-roadmap.md)

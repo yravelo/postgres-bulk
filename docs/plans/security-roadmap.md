@@ -211,8 +211,10 @@ SEC8 cierra la auditoría técnica integrada en
 15/15 amenazas reconciliadas, matriz preventiva/detectiva/respuesta, fixtures adversariales,
 registro de riesgos/prerequisites, reproducibilidad y handoffs REL0/REL1. La semántica final es
 `Security technical baseline: COMPLETE`; SEC6 permanece `PARTIALLY DONE`, el canal privado sigue
-`PENDING` y bloquea REL1. La siguiente fase recomendada es **REL0 — Final Release Readiness**, sin
-iniciarla automáticamente.
+`PENDING` y bloquea REL1. REL0 registra posteriormente la auditoría técnica integrada en
+[`rel0-final-release-readiness.md`](../releases/rel0-final-release-readiness.md). Tras su cierre
+remoto, la siguiente fase recomendada es **REL1 — Open Source Repository Activation**, que no se
+inicia automáticamente y conserva EP-01 como prerrequisito obligatorio.
 
 ## Mantenimiento PRE-SEC6 — DONE (2026-08-25)
 

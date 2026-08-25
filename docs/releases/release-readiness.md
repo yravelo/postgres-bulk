@@ -48,9 +48,10 @@ the single version source: development defaults to `0.1.0-SNAPSHOT`, while relea
 
 ## Repository and public metadata
 
-The repository exists at the URL anticipated by the POM and its HTTPS/SSH SCM metadata. Name,
-description, Apache-2.0 license, project URL, SCM and developer identity `yravelo` are present. No
-email is published. GitHub Issues is enabled.
+The repository exists at the URL anticipated by the POM and its HTTPS/SSH SCM metadata. The POM
+contains the project description, Apache-2.0 license, project URL, SCM and developer identity
+`yravelo`; no email is published. GitHub Issues is enabled. The GitHub repository description is
+currently empty and remains an explicit REL1 public-metadata activation item.
 
 The repository is a **private development repository**. That decision is distinct from
 publishing binary artifacts to Maven Central and does not promise a future public source repository.
@@ -176,8 +177,20 @@ continues to fail as expected while the private reporting channel is `PENDING`.
 This technical closure does not make `0.1.0` publicly ready. SEC6 remains `PARTIALLY DONE`; offline
 OpenPGP recovery verification, the reporting channel and a separately authorized Central token,
 tag, upload and publication remain external activation work. See
-[security baseline technical closure](../security/security-baseline-closure.md). The next possible
-phase is REL0 private readiness, which SEC8 does not start.
+[security baseline technical closure](../security/security-baseline-closure.md). REL0 subsequently
+performs the private readiness decision without activating REL1.
+
+## REL0 final readiness decision
+
+The canonical [REL0 final release-readiness audit](rel0-final-release-readiness.md) reconciles the
+complete product, public API, documentation, security baseline, candidate structure,
+reproducibility, Central requirements and external prerequisites. Its technical decision is
+**TECHNICALLY READY — REL1 BLOCKED BY EXTERNAL PREREQUISITE**.
+
+EP-01 private reporting remains `PENDING` and blocks REL1. EP-02 offline OpenPGP recovery and EP-03
+Central token remain REL2 prerequisites and are not REL1 blockers. REL0 changes no repository
+visibility, creates no tag and performs no upload or publication. The phased activation sequence is
+defined in the [release roadmap](../plans/release-roadmap.md).
 
 ## Phase 16B local validation
 
