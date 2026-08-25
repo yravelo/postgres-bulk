@@ -68,7 +68,7 @@
     <postgres.version>15.18-alpine</postgres.version>
     <postgresql.version>42.7.13</postgresql.version>
     <junit.version>5.14.4</junit.version>
-    <jakarta-activation.version>2.1.1</jakarta-activation.version>
+    <jakarta-activation.version>2.1.4</jakarta-activation.version>
     <jmh.version>1.37</jmh.version>
     <testcontainers.version>2.0.5</testcontainers.version>
 
