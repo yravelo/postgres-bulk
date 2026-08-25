@@ -202,10 +202,10 @@ is a final defense, not authorization.
   manually dispatched Security PASS.
 
 Closure commit `bc288f27a01aa427bb5fd78f38997698b2c4e6d6` passed Build
-[`32850719665`](https://github.com/yravelo/postgres-bulk/actions/runs/32850719665), Compatibility
-[`32850719735`](https://github.com/yravelo/postgres-bulk/actions/runs/32850719735) in all 11 lanes,
+`32850719665` (historical run ID `32850719665`), Compatibility
+`32850719735` (historical run ID `32850719735`) in all 11 lanes,
 and manually dispatched Security
-[`32850787710`](https://github.com/yravelo/postgres-bulk/actions/runs/32850787710). This completes
+`32850787710` (historical run ID `32850787710`). This completes
 REL0 but does not authorize crossing an activation boundary.
 
 ## Mandatory boundary state

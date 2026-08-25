@@ -585,19 +585,19 @@ report also passed `check-security.sh fast` after redacting exact exposure value
 ### 76. Remote Build
 
 `PASS` for `30113f20a9a567173f6ad14bc19fc77041dfe1e5`, run
-[`32871784539`](https://github.com/yravelo/postgres-bulk/actions/runs/32871784539). An earlier report
+`32871784539` (historical run ID `32871784539`). An earlier report
 run `32871560008` correctly failed because the draft repeated the exact private path; the value was
 redacted and the gate passed on the corrected state.
 
 ### 77. Remote Compatibility
 
 `PASS`, all 11/11 jobs for `30113f20a9a567173f6ad14bc19fc77041dfe1e5`, run
-[`32871784542`](https://github.com/yravelo/postgres-bulk/actions/runs/32871784542).
+`32871784542` (historical run ID `32871784542`).
 
 ### 78. Remote Security
 
 `PASS` for `30113f20a9a567173f6ad14bc19fc77041dfe1e5`, manually dispatched run
-[`32873968105`](https://github.com/yravelo/postgres-bulk/actions/runs/32873968105). No Benchmarks or
+`32873968105` (historical run ID `32873968105`). No Benchmarks or
 Release workflow was dispatched.
 
 ### 79. Git commits

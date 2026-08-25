@@ -7,12 +7,12 @@ individually and resolved without auto-merge, publication or activation of SEC6.
 
 | PR | Ecosystem / scope | Change | Classification | Decision | Resulting commit |
 | --- | --- | --- | --- | --- | --- |
-| [#1](https://github.com/yravelo/postgres-bulk/pull/1) | Maven, isolated JDBC consumer | Maven Failsafe `3.5.4` → `3.5.6` | patch, test tooling | squash-merged after full local and remote validation | `cabdc5528d45563a8b39c35f96c50890a336782e` |
-| [#2](https://github.com/yravelo/postgres-bulk/pull/2) | Maven, parent reactor | JUnit BOM `5.12.2` → `5.14.4` | minor, test tooling | squash-merged after full local and remote validation | `07072aeca700535a0315de3114c2e64d776f817d` |
-| [#3](https://github.com/yravelo/postgres-bulk/pull/3) | Maven, JDBC example | Spotless `3.9.0` → `3.10.0` | minor, build tooling | closed as superseded by the repository-wide #5 update | — |
-| [#4](https://github.com/yravelo/postgres-bulk/pull/4) | Maven, JPA example | Spotless `3.9.0` → `3.10.0` | minor, build tooling | closed as superseded by the repository-wide #5 update | — |
-| [#5](https://github.com/yravelo/postgres-bulk/pull/5) | Maven, reactor and examples | six Maven build plugins | patch/minor, build tooling | squash-merged with reviewed formatter compatibility follow-up | `d7ce6be85aad73318b2a717dde06ec7c512865fc` |
-| [#6](https://github.com/yravelo/postgres-bulk/pull/6) | Maven, parent dependency management | Jakarta Activation API `2.1.1` → `2.1.4` | patch, runtime bugfix | squash-merged after resolved-tree and full validation | `4878f5b3eb415b868308658d0fe97d0aa22a780f` |
+| #1 (historical archive PR 1) | Maven, isolated JDBC consumer | Maven Failsafe `3.5.4` → `3.5.6` | patch, test tooling | squash-merged after full local and remote validation | `cabdc5528d45563a8b39c35f96c50890a336782e` |
+| #2 (historical archive PR 2) | Maven, parent reactor | JUnit BOM `5.12.2` → `5.14.4` | minor, test tooling | squash-merged after full local and remote validation | `07072aeca700535a0315de3114c2e64d776f817d` |
+| #3 (historical archive PR 3) | Maven, JDBC example | Spotless `3.9.0` → `3.10.0` | minor, build tooling | closed as superseded by the repository-wide #5 update | — |
+| #4 (historical archive PR 4) | Maven, JPA example | Spotless `3.9.0` → `3.10.0` | minor, build tooling | closed as superseded by the repository-wide #5 update | — |
+| #5 (historical archive PR 5) | Maven, reactor and examples | six Maven build plugins | patch/minor, build tooling | squash-merged with reviewed formatter compatibility follow-up | `d7ce6be85aad73318b2a717dde06ec7c512865fc` |
+| #6 (historical archive PR 6) | Maven, parent dependency management | Jakarta Activation API `2.1.1` → `2.1.4` | patch, runtime bugfix | squash-merged after resolved-tree and full validation | `4878f5b3eb415b868308658d0fe97d0aa22a780f` |
 
 All requested versions were inside the project's supported ranges. None of the pull requests was a
 GitHub Actions update or fixed one of the five recorded OSV accepted risks. GitHub reported zero
@@ -42,10 +42,10 @@ self-hosted execution occurred only after merge on the trusted `push` event.
 
 The isolated consumer still executed its integration-test lifecycle and the update changed only
 the Failsafe patch version. Local gates passed. Post-merge remote evidence: Build
-[`32789710887`](https://github.com/yravelo/postgres-bulk/actions/runs/32789710887) and Compatibility
-[`32789710893`](https://github.com/yravelo/postgres-bulk/actions/runs/32789710893), 11/11 passed.
+`32789710887` (historical run ID `32789710887`) and Compatibility
+`32789710893` (historical run ID `32789710893`), 11/11 passed.
 The reviewed rationale is recorded in the
-[PR comment](https://github.com/yravelo/postgres-bulk/pull/1#issuecomment-5402887768).
+PR comment (historical archive PR 1).
 
 ### PR #5 — grouped Maven build tooling
 
@@ -58,26 +58,26 @@ Dependabot now lets the parent group own Spotless and ignores the duplicate exam
 
 The companion commits are `34d4635f16c96f350cc1f4b34400ed13cb7ef933` and
 `c439296e3330af70a96fb729a289d03b426d6991`. After the compatibility fix, local gates passed and
-remote Build [`32807512454`](https://github.com/yravelo/postgres-bulk/actions/runs/32807512454)
+remote Build `32807512454` (historical run ID `32807512454`)
 and Compatibility
-[`32807512546`](https://github.com/yravelo/postgres-bulk/actions/runs/32807512546) passed 11/11.
+`32807512546` (historical run ID `32807512546`) passed 11/11.
 The intermediate Java 17 failure in run `32807210122` was diagnosed and fixed without weakening
-a gate. See the [PR comment](https://github.com/yravelo/postgres-bulk/pull/5#issuecomment-5404840483).
+a gate. See the PR comment (historical archive PR 5).
 
 ### PRs #3 and #4 — duplicate example updates
 
 Both PRs became unnecessary after #5 updated the same plugin consistently across the reactor and
 examples. They were closed, not merged, and no source change was discarded. The rationale is
-recorded on [#3](https://github.com/yravelo/postgres-bulk/pull/3#issuecomment-5405211058) and
-[#4](https://github.com/yravelo/postgres-bulk/pull/4#issuecomment-5405211357).
+recorded on #3 (historical archive PR 3) and
+#4 (historical archive PR 4).
 
 ### PR #2 — JUnit BOM minor update
 
 The update was confined to test dependency management, introduced no production dependency and
 passed the complete local gate. Post-merge remote evidence: Build
-[`32809621905`](https://github.com/yravelo/postgres-bulk/actions/runs/32809621905) and Compatibility
-[`32809621923`](https://github.com/yravelo/postgres-bulk/actions/runs/32809621923), 11/11 passed.
-See the [PR comment](https://github.com/yravelo/postgres-bulk/pull/2#issuecomment-5405289308).
+`32809621905` (historical run ID `32809621905`) and Compatibility
+`32809621923` (historical run ID `32809621923`), 11/11 passed.
+See the PR comment (historical archive PR 2).
 
 ### PR #6 — Jakarta Activation patch
 
@@ -86,10 +86,10 @@ JAXB, JAXB Core and Angus in the Hibernate, Spring Data, auto-configuration, sta
 basic-example paths. The change updated an existing pin rather than adding a new dependency. The
 complete local gate passed with zero SAST findings, zero OSV blockers, five unrelated accepted
 risks, and clean SBOM/license checks. Post-merge Build
-[`32811776793`](https://github.com/yravelo/postgres-bulk/actions/runs/32811776793) passed; the paired
-Compatibility [`32811776782`](https://github.com/yravelo/postgres-bulk/actions/runs/32811776782)
+`32811776793` (historical run ID `32811776793`) passed; the paired
+Compatibility `32811776782` (historical run ID `32811776782`)
 passed 11/11. See the
-[PR comment](https://github.com/yravelo/postgres-bulk/pull/6#issuecomment-5405622776).
+PR comment (historical archive PR 6).
 
 ## Security and release boundary
 

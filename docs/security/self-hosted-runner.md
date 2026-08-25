@@ -1,173 +1,89 @@
-# Trusted self-hosted CI runner
+# CI runner trust boundary
 
-## Purpose and scope
+## Canonical repository policy
 
-Build and Compatibility use one repository-scoped self-hosted runner because GitHub-hosted jobs
-were rejected before execution by the account billing/spending-limit state. This is a zero-cost
-operational control for the private, single-maintainer repository `yravelo/postgres-bulk`; it does
-not change repository visibility or plan and does not relax any test or security gate.
+The canonical repository `yravelo/postgres-bulk` uses standard GitHub-hosted `ubuntu-latest`
+runners for every workflow. Build and all 11 Compatibility lanes run for `pull_request` and pushes
+to `main`; Security runs on its weekly schedule or explicit dispatch. Benchmarks and the
+candidate-only Release workflow remain manual. No canonical workflow selects `self-hosted` or the
+historical `postgres-bulk-ci` label.
 
-Only `.github/workflows/build.yml` and `.github/workflows/compatibility.yml` select this runner.
-Benchmarks and Release remain on `ubuntu-latest` and manual `workflow_dispatch`; the runner has no
-publication role and must never receive Central or OpenPGP material.
+This is a structural trust boundary, not an actor-name allow-list:
 
-## Host and account boundary
-
-The reviewed host is Ubuntu Linux x86-64 with enough CPU, memory and disk for the Maven reactor,
-Temurin 17/21/25 installations, Docker, Testcontainers and PostgreSQL containers. The official
-GitHub Actions runner is installed outside the development checkout:
-
-| Property | Reviewed value |
-| --- | --- |
-| Hostname | `postgres-bulk-ci-01` |
-| Runner display name | `postgres-bulk-ci-01` |
-| Service account | `postgres-bulk-runner`, locked non-root system account, no login shell |
-| Home | `/home/postgres-bulk-runner`, mode `0750` |
-| Runner directory | `/home/postgres-bulk-runner/actions-runner` |
-| Work directory | `/home/postgres-bulk-runner/actions-runner/_work` |
-| Registration | repository-level, only `yravelo/postgres-bulk` |
-| Labels | `self-hosted`, `linux`, `x64`, `postgres-bulk-ci` |
-| Service | official `svc.sh` systemd unit, enabled at boot |
-
-The service account has no interactive password, sudo role, GitHub PAT, developer SSH key, GPG
-home, GitHub CLI configuration, Git credential store or Maven `settings.xml`. Its runner-internal
-credential files are mode `0600`. The one-time repository registration token was passed directly
-to the official configurator and was not logged, committed, documented or retained as a secret.
-Repository Actions Secrets remained at zero during setup.
-
-REL1-A-R R4C changed the personal host and runner display identities to the stable neutral name
-`postgres-bulk-ci-01` through `hostnamectl` and the official remove/re-register procedure. The
-service account, home/install/work directories and dedicated label did not change. Fresh Build,
-Compatibility and Security bootstrap logs and job metadata contain only the neutral identity.
-
-## Docker trust implication
-
-The service account belongs to the local `docker` group because Testcontainers needs the Docker
-socket. Docker access is approximately root-equivalent: code running as this account can control
-containers and may be able to affect the host. This machine and runner are therefore trusted
-infrastructure, not a sandbox for arbitrary contributors. No inbound port is required or opened by
-the runner; it initiates outbound TLS connections to GitHub and to the existing build dependency,
-scanner and container registries.
-
-Testcontainers/Ryuk owns normal container cleanup. After a failed or cancelled run, inspect only
-project/Testcontainers residue by image, name and the `org.testcontainers=true` label. Remove only
-confirmed residue; never use host-wide `docker system prune`, because the Docker daemon coexists
-with local development workloads.
-
-## Workflow selection and PR trust policy
-
-Every Build and Compatibility job requires the exact label set above. A job-level fail-safe guard
-allows a normal `push` event, and allows a `pull_request` only when both conditions hold:
-
-- `github.actor == 'yravelo'`;
-- `github.event.pull_request.head.repo.full_name == github.repository`.
-
-Thus a trusted owner branch PR from this repository may run. A fork or any other actor's PR is
-skipped and cannot automatically execute on the host, even though the `pull_request` trigger stays
-visible. This policy assumes the current private, single-maintainer repository. Stop the runner and
-review the boundary before adding collaborators, changing ownership/visibility, accepting external
-contributions or adding a new trigger.
-
-The deterministic workflow-security gate enforces the exact labels and guard, the 11 Compatibility
-lanes, `contents: read`, SHA-pinned Actions, non-persistent checkout credentials and explicit
-`clean: true`. It also keeps Benchmarks and Release on the reviewed GitHub-hosted runner. Build and
-Compatibility reference no repository secrets.
-
-## Workspace and Maven cache policy
-
-The runner uses only its own `_work`; it never reuses the maintainer's development checkout.
-`actions/checkout` explicitly performs a clean checkout and retains no credentials. Generated
-reactor files may remain until the next checkout, when `clean: true` removes them. The runner temp
-directory is job-scoped; after an abnormal termination, inspect it before returning the service to
-use.
-
-`actions/setup-java` retains the existing Maven cache behavior. The service account's local
-`~/.m2/repository` and the Actions cache may contain public dependencies and locally built project
-snapshots. Any generated Maven `settings.xml` is forced into the job-scoped `runner.temp`, not the
-persistent home, and contains no publishing credentials. This is acceptable only because all eligible
-jobs are trusted, secret-free repository jobs and every reactor command uses `clean`. On a suspected
-cache or host compromise, stop and deregister the runner first, then discard the affected workspace
-and cache selectively before rebuilding them from reviewed sources.
-
-## Service operation and monitoring
-
-The official service is enabled at boot. The generated unit follows the upstream `svc.sh` default
-and currently has `Restart=no`; no custom daemon or systemd override was added. A host reboot starts
-it automatically, while a runtime crash requires operator inspection and restart.
-
-Run these local administrative commands from the runner directory or through systemd:
-
-```bash
-sudo systemctl status actions.runner.yravelo-postgres-bulk.postgres-bulk-ci-01.service
-sudo systemctl start actions.runner.yravelo-postgres-bulk.postgres-bulk-ci-01.service
-sudo systemctl stop actions.runner.yravelo-postgres-bulk.postgres-bulk-ci-01.service
-sudo systemctl restart actions.runner.yravelo-postgres-bulk.postgres-bulk-ci-01.service
-sudo journalctl -u actions.runner.yravelo-postgres-bulk.postgres-bulk-ci-01.service
+```text
+fork / Dependabot / external / same-repository PR
+                     |
+                     v
+          fresh GitHub-hosted VM
+          contents: read
+          repository secrets: none
+          persistent credentials: none
+          self-hosted labels: impossible
 ```
 
-Also confirm the runner is `online` and not unexpectedly busy in the repository Actions settings.
-Do not paste diagnostic logs into public channels without checking paths and metadata.
+A controlled `main` push uses the same ephemeral runner path and retains the full Build plus
+11-lane Compatibility coverage. There is no reduced PR matrix and no performance gate.
 
-## Updates, incident response and removal
+## Enforced invariants
 
-The installed baseline is the current official x64 release verified against the SHA-256 published
-in the upstream release notes. Official runner auto-update remains enabled. Review upstream runner
-releases and service logs periodically; do not pin an obsolete binary or disable the platform's
-30-day update enforcement.
+`scripts/check-workflow-security.py` and its adversarial fixtures fail closed when:
 
-If unexpected code runs, credentials may be exposed, Docker state looks unowned, or the runner
-behaves anomalously:
+- any workflow selects something other than `ubuntu-latest`;
+- a Build or Compatibility job adds an actor/repository `if` guard that removes the public PR path;
+- `pull_request_target`, `workflow_run` or `repository_dispatch` is introduced;
+- a workflow requests write permissions or references `secrets.*`;
+- checkout persists credentials or an Action is not pinned to an approved full SHA;
+- Compatibility no longer expands to the reviewed 11 lanes.
 
-1. stop the systemd service and prevent new jobs from being assigned;
-2. mark/remove the runner in repository settings;
-3. preserve only non-sensitive logs needed for diagnosis;
-4. rotate any potentially reachable credential before cleanup;
-5. audit the dedicated home, `_work`, Maven cache and Docker objects;
-6. reinstall/re-register from the checksum-verified official package before reuse.
+Repository-level Actions settings add read-only default token permissions, full-SHA enforcement
+and a selected GitHub-owned Actions policy. The versioned gate is narrower still: it allows only
+the reviewed SHAs of checkout, setup-java and upload-artifact.
 
-The SEC6 [runner-compromise runbook](incident-response-runbook.md#self-hosted-runner-compromise)
-adds evidence, credential-rotation and exit criteria. Workspace cleanup alone is explicitly
-insufficient after malicious execution.
+## Docker and Testcontainers
 
-For planned removal, use the ephemeral removal token and commands generated by the repository's
-runner settings, then use official `svc.sh stop` and `svc.sh uninstall`. Remove the dedicated
-account/home only after registration, service, workspaces and evidence have been checked. Never
-store a registration/removal token in this repository, documentation or shell profile.
+The reviewed x64 Ubuntu GitHub-hosted image includes Docker client/server. CI runs a PostgreSQL
+container smoke before full Security validation, and Maven integration tests use Testcontainers.
+`scripts/check-runner-health.sh` snapshots Testcontainers-labelled containers, networks and
+volumes before the run and proves that no new labelled object remains afterwards. Each hosted job
+receives a fresh VM, so persistent host or cache contamination is not part of the canonical path.
 
-## Limitations
+Never add a repository secret merely to make Testcontainers work. Never use host-wide Docker prune
+as a cleanup mechanism.
 
-- Repository-level runner groups are not used; the dedicated repository registration and label
-  provide routing isolation on the current plan.
-- The host is persistent rather than an ephemeral VM, so workspace/cache hygiene and incident
-  response are operational responsibilities.
-- Docker group membership materially weakens host isolation and is acceptable only with the
-  owner-only/fail-safe PR boundary.
-- The official service has boot autostart but no automatic restart-on-failure override.
-- Hosted-runner billing independence applies only to Build and Compatibility. It does not activate
-  or execute Benchmarks, Release, signing, provenance, upload or publication.
+## Historical archive runner
 
-## SEC4R validation evidence
+The private rollback archive `yravelo/postgres-bulk-private-archive` still owns one repository-level
+runner named `postgres-bulk-ci-01`. It is not registered in the canonical repository, is not
+selected by canonical workflow YAML and was not moved during MIG3. The local `archive` remote is
+fetch-only with push URL `DISABLED`.
 
-For commit `6d6556b92a123b9720d39bcafef73a9bdf369119`, Build run `32774191694` passed every security,
-reactor, SBOM/license, consumer and documentation step on `<OLD_RUNNER_NAME_REDACTED>`.
-Compatibility run `32774191674` passed all 11 lanes on the same runner and SHA. A post-run audit
-found zero Testcontainers-labelled containers, networks or volumes and confirmed the runner stayed
-online with zero Repository Actions Secrets.
+The archive runner remains trusted persistent infrastructure with Docker/root-equivalent reach.
+It must never be registered to the canonical repository or exposed to public PR code without a new
+explicit authorization and a separate threat review. Its eventual stop, deregistration and host
+decommission are later rollback-retirement work; archive deletion is not part of this baseline.
 
-R4C supersedes only that historical runner identity. Build `32890808627` attempt 2, Compatibility
-`32890808601` attempt 2 (11/11) and Security `32890829062` attempt 2 passed on
-`postgres-bulk-ci-01`; the joint privacy scan found zero old runner name, old hostname or personal
-owner-path occurrence, and post-CI Testcontainers residue remained zero.
+## Public activation
 
-That audit also found an empty, credential-free `~/.m2/settings.xml` created by `setup-java` despite
-`overwrite-settings: false`. It was removed, and the workflows/gate now require `settings-path`
-under `runner.temp` so subsequent jobs cannot persist it in the service account home. No token or
-credential field was present in the removed file.
+When the repository becomes public, MIG4 must set the public fork-workflow approval policy to
+require approval for all external contributors and re-audit the effective settings. Approval is
+defense in depth: even an approved external workflow still runs only on GitHub-hosted infrastructure
+with read-only token permissions and no repository secrets.
+
+Private Vulnerability Reporting, public-plan rulesets/branch protection and any public-only
+security features are also MIG4 steps. They do not weaken or replace this hosted-only boundary.
+
+## Incident response
+
+If a canonical job unexpectedly reports a self-hosted label, persistent hostname/path, write token
+or secret access, cancel it, preserve sanitized metadata, disable the affected workflow and follow
+the [runner compromise runbook](incident-response-runbook.md#self-hosted-runner-compromise). If the
+archive runner is suspected compromised, stop/deregister it and rotate reachable credentials before
+cleanup; workspace cleanup alone is insufficient.
 
 ## Official references
 
-- [Adding self-hosted runners](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/add-runners)
-- [Using self-hosted runners in a workflow](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/use-in-a-workflow)
-- [Configuring the runner as a service](https://docs.github.com/en/actions/how-tos/manage-runners/self-hosted-runners/configure-the-application)
-- [Self-hosted runner reference](https://docs.github.com/en/actions/reference/runners/self-hosted-runners)
-- [Actions runner releases and checksums](https://github.com/actions/runner/releases)
+- [GitHub-hosted runners](https://docs.github.com/en/actions/reference/runners/github-hosted-runners)
+- [Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions)
+- [Approving runs from forks](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/approve-runs-from-forks)
+- [Secure use reference](https://docs.github.com/en/actions/reference/security/secure-use)
+- [Ubuntu runner image inventory](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md)

@@ -95,7 +95,7 @@ All GitHub Actions must use an approved full commit SHA with a human-readable ve
 Keep workflow permissions read-only, checkout credentials non-persistent and event/input expressions
 outside shell blocks. Secret masking is only defense-in-depth; it is not an authorization or
 isolation boundary. Release, signing and Central credentials are intentionally absent from GitHub
-Actions and the self-hosted runner; local signing/upload requires separate owner authorization.
+Actions; local signing/upload requires separate owner authorization.
 No candidate, build, test, cache or artifact may contain secret material.
 
 Dependabot opens bounded weekly Maven and Actions update PRs. It never auto-merges. Review
@@ -148,10 +148,11 @@ sensitive values in errors or metrics. Update user documentation when observable
 Do not add generated IDs, retries, adaptive lookup or new mapping support merely to simplify an
 example; document friction and propose the behavior separately.
 
-Build and Compatibility currently run on trusted self-hosted infrastructure. Only owner branches
-from this repository may execute there; external or otherwise untrusted PR code must not run on the
-self-hosted runner. Maintainers must preserve the exact PR guard and dedicated labels documented in
-the [self-hosted runner security model](docs/security/self-hosted-runner.md).
+Build and all 11 Compatibility lanes run on fresh GitHub-hosted `ubuntu-latest` virtual machines for
+both `pull_request` and `push` to `main`. They use `contents: read`, receive no repository secrets
+and never select persistent self-hosted labels. Preserve this structural boundary for fork,
+Dependabot, external-actor and same-repository PRs as documented in the
+[CI runner security model](docs/security/self-hosted-runner.md).
 
 ## Responsible security reporting
 
@@ -175,7 +176,7 @@ independent approval on the private single-maintainer plan.
 Before merging such a change:
 
 - identify the threat, trust boundary, owner, rollback and exit criteria;
-- preserve immutable Action pins, least privilege, safe shell inputs and the self-hosted PR guard;
+- preserve immutable Action pins, least privilege, safe shell inputs and the hosted-only PR path;
 - verify scanner provenance/checksums and retain fail-closed behavior;
 - keep accepted risks, SAST exclusions and license exceptions exact, evidenced and expiring;
 - preserve source-bound inventory, reproducibility, approved fingerprint and signing isolation;

@@ -1,11 +1,12 @@
 # Secrets and GitHub Actions hardening
 
-**Estado:** SEC1 `DONE` (2026-08-24). La publicación continúa congelada. Esta fase no creó
-secrets, tags, releases ni uploads y no activó Dependabot, SCA, SAST o SBOM.
+**Estado:** SEC1 `DONE` (2026-08-24), actualizado por REL1-MIG3 el 2026-08-26. La publicación
+continúa congelada. MIG3 conservó cero secrets/tags/releases/uploads, movió toda la CI canónica a
+GitHub-hosted y activó la baseline de Dependabot sin auto-merge.
 
 ## Resultado y límites
 
-Los cuatro workflows usan permisos `contents: read`, una allow-list versionada de tres Actions y
+Los cinco workflows usan permisos `contents: read`, una allow-list versionada de tres Actions y
 full commit SHAs verificados contra los tags oficiales. Checkout nunca persiste credenciales; los
 jobs no publicadores impiden que `setup-java` genere settings Maven. Los valores dinámicos de shell
 entran por `env` y se citan; Benchmarks conserva además un `choice` y un `case` con la misma
@@ -20,22 +21,16 @@ referencia cero secrets.
 
 | Workflow | Triggers e inputs | Jobs/permisos | Actions, caches y artifacts | Secrets y trust boundary |
 | --- | --- | --- | --- | --- |
-| Build | `push` sólo `main`; `pull_request`; sin inputs | `verify`; self-hosted dedicado; `contents: read`; timeout 120; concurrency por ref cancelable | checkout limpio/setup-java; cache Maven por POM; sin artifact/service | sólo push o PR owner+same-repo; sin secrets/deploy/token write; current-tree Gitleaks y policy gate antes del build |
-| Compatibility | `push` sólo `main`; `pull_request`; matrices Java/PostgreSQL/Hibernate/pgJDBC versionadas en YAML | siete jobs/11 lanes; self-hosted dedicado; `contents: read`; timeout 60; concurrency por ref cancelable | checkout limpio/setup-java; cache Maven; sin artifact/service | sólo push o PR owner+same-repo; sin secrets/deploy; matrix shell values pasan por `env` quoted |
+| Build | `push` sólo `main`; `pull_request`; sin inputs | `verify`; `ubuntu-latest`; `contents: read`; timeout 120; concurrency por ref cancelable | checkout limpio/setup-java; cache Maven por POM; sin artifact/service | fork/Dependabot/external/same-repo usan VM efímera; sin secrets/deploy/token write; current-tree Gitleaks y policy gate antes del build |
+| Compatibility | `push` sólo `main`; `pull_request`; matrices Java/PostgreSQL/Hibernate/pgJDBC versionadas en YAML | siete jobs/11 lanes; `ubuntu-latest`; `contents: read`; timeout 60; concurrency por ref cancelable | checkout limpio/setup-java; cache Maven; sin artifact/service | las 11 lanes completas están disponibles para todo PR; sin secrets/deploy; matrix shell values pasan por `env` quoted |
 | Benchmarks | `workflow_dispatch`; `profile` tipo `choice` con cinco valores | `benchmark`; `contents: read`; timeout 120; concurrency única no cancelable | checkout/setup-java/upload-artifact; cache Maven; JSON JMH 14 días | sin secrets; profile validado en dispatch, workflow y script; artifact no tiene consumidor automático |
 | Release | sólo `workflow_dispatch`; version, full SHA y confirmación literal | sólo `candidate` 120; `contents: read`; concurrencia no cancelable | candidate usa cache Maven y sube staging/checksums 7 días | sin secrets, firma, token ni upload; workflow no fue ejecutado |
 
-No existen `pull_request_target`, `workflow_run`, `repository_dispatch`, schedules, triggers de tag,
-services ni composite Actions. Build y Compatibility usan exclusivamente el selector
-`[self-hosted, linux, x64, postgres-bulk-ci]`; Benchmarks y Release conservan `ubuntu-latest` y
-siguen manuales. Compatibility no acepta inputs; sus matrices sólo pueden cambiar mediante commit
-revisado.
-
-El guard exacto de cada job self-hosted permite push y, para PR, exige simultáneamente actor
-`yravelo` y `head.repo.full_name == github.repository`. El trigger conserva visibilidad, pero un
-fork u otro actor queda skipped antes de asignar el host. Docker confiere capacidad aproximadamente
-equivalente a root, por lo que este límite es obligatorio y se documenta operativamente en
-[Trusted self-hosted CI runner](self-hosted-runner.md).
+No existen `pull_request_target`, `workflow_run`, `repository_dispatch`, triggers de tag, services
+ni composite/reusable workflows. Los cinco workflows seleccionan exclusivamente `ubuntu-latest`;
+Benchmarks y Release siguen manuales. Compatibility no acepta inputs y conserva sus 11 lanes
+completas. Ningún guard de actor decide la infraestructura: todo PR usa una VM efímera hosted. El
+modelo operativo está en [CI runner trust boundary](self-hosted-runner.md).
 
 ## Action allow-list y pins
 
@@ -53,15 +48,15 @@ tag→SHA, changelog y diff antes de cambiar simultáneamente la allow-list y lo
 
 ## Checkout, setup-java y GITHUB_TOKEN
 
-Todos los checkout fijan `persist-credentials: false`; Build y Compatibility fijan además
-`clean: true` por usar un host persistente. Build, Compatibility y Benchmarks declaran
+Todos los checkout fijan `persist-credentials: false`; Build y Compatibility conservan además
+`clean: true` como higiene determinista. Build, Compatibility y Benchmarks declaran
 `fetch-depth: 1`, mientras Release usa `fetch-depth: 0` para validar history y ancestry. LFS y
 submodules permanecen false. Ningún checkout recibe token custom ni existe `git push`.
 
 Los jobs Build/candidate/test fijan `overwrite-settings: false`: `setup-java` instala Temurin y
 puede usar cache Maven, pero no genera un `settings.xml` publicador, no recibe server credentials ni
-importa GPG. En Build/Compatibility, `settings-path` queda aislado bajo `runner.temp` para que el
-host persistente no conserve settings en su home. SEC5 eliminó la excepción `central-upload`;
+importa GPG. En Build/Compatibility, `settings-path` queda aislado bajo `runner.temp`. SEC5 eliminó
+la excepción `central-upload`;
 ningún job recibe inputs de publicación o importa GPG.
 
 El `GITHUB_TOKEN` remoto tiene default read-only y no puede aprobar PR reviews. Los workflows
@@ -136,9 +131,9 @@ en SEC2, no desactivando cache en SEC1.
 
 `scripts/check-workflow-security.py` parsea YAML con `PyYAML.BaseLoader` y exige inventario exacto,
 triggers, permissions, timeouts, allow-list/pins, checkout/setup-java, ausencia de interpolación
-shell, secret scope, retention y guards Release. También fija el selector y guard self-hosted, la
-limpieza del checkout y las 11 lanes Compatibility; Build/Compatibility no pueden referenciar
-secrets. Falla cerrado y no usa `continue-on-error`.
+shell, secret scope, retention y guards Release. También exige `ubuntu-latest` en todo job, prohíbe
+guards de actor en Build/Compatibility, conserva checkout limpio y las 11 lanes completas;
+ningún workflow puede referenciar secrets. Falla cerrado y no usa `continue-on-error`.
 
 `scripts/test-workflow-security.py` demuestra que:
 
@@ -147,31 +142,23 @@ secrets. Falla cerrado y no usa `continue-on-error`.
 - un secret en candidate se detecta;
 - un trigger push en Release falla;
 - `contents: write` falla.
-- Build en GitHub-hosted o sin label dedicado falla;
-- Compatibility sin guard PR confiable falla;
-- el selector self-hosted válido pasa y Release sigue en GitHub-hosted.
+- Build con selector self-hosted falla;
+- Compatibility con guard de actor que excluya PRs falla;
+- fork, Dependabot, actor externo, PR owner, push `main` y dispatch Security seleccionan hosted;
+- los workflows reales permanecen secret-free y Release sigue candidate-only.
 
 ## Configuración remota auditada
 
-REL1-A-R R4C re-registró oficialmente el runner repository-level con display name y hostname
-neutrales `postgres-bulk-ci-01`. El selector dedicado no cambió: GitHub reporta `self-hosted`,
-`Linux`, `X64`, `postgres-bulk-ci`, mientras YAML conserva sus equivalentes lowercase. Los 13 jobs
-nuevos de Build, Compatibility y Security usaron la identidad neutral, 0 repository secrets y
-`persist-credentials: false`; no se añadió ningún acoplamiento al display name.
+MIG3 configuró NEW con Actions habilitadas, `allowed_actions: selected`, full-SHA remoto obligatorio,
+GitHub-owned permitido, verified creators genéricos deshabilitados, default `GITHUB_TOKEN` read-only
+y sin capacidad de aprobar reviews. La policy versionada es más estrecha que el setting remoto:
+permite sólo tres repositorios de Action y tres SHAs exactos. Repository y Dependabot Actions
+Secrets, variables, environments y runners canónicos permanecen en cero.
 
-La auditoría read-only del 2026-08-24 confirmó: repositorio privado, default branch `main`, Actions
-habilitadas, `allowed_actions: all`, `sha_pinning_required: false`, default workflow permissions
-read, incapacidad del token para aprobar reviews y cero nombres de Repository Actions Secrets. La
-API de fork-approval respondió que el ajuste no aplica a private repositories. El environment
-`maven-central` no tiene protection rules ni deployment branch policy. Retención default global no
-quedó expuesta por los endpoints usados; por eso cada upload declara su retención.
-
-No se cambió configuración remota. Restringir Actions globalmente a `actions/*` es posible, pero
-la policy versionada es más estrecha: permite tres repos+SHAs y se valida en Build/candidate. El
-setting remoto sigue siendo defensa adicional futura, no sustituto del gate en Git. Rulesets y
-required reviews continúan limitados por el plan/visibilidad; single-maintainer, exact SHA/tag,
-dispatch manual, least privilege y CI fail-closed son controles compensatorios, no una simulación
-de separación de funciones.
+La aprobación para contribuyentes externos y los rulesets respondieron que no están disponibles
+mientras el repo sea privado en el plan actual; MIG4 los configura después del cambio de visibilidad.
+El runner histórico `postgres-bulk-ci-01` permanece exclusivamente en el archive privado y no está
+registrado en NEW.
 
 ## Fuentes oficiales
 

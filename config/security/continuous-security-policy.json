@@ -105,6 +105,7 @@
     {"id": "release-preflight", "command": "./scripts/check-release-security-preflight.sh technical", "modes": ["release"], "ci": "manual release preparation", "failure": "RELEASE_CONTROL"}
   ],
   "runner": {
+    "execution": "github-hosted-ephemeral",
     "minimum_free_disk_gib": 5,
     "minimum_actions_runner_version": "2.328.0",
     "postgres_image": "postgres:15.18-alpine"

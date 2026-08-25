@@ -15,11 +15,7 @@ concurrency:
 jobs:
   verify:
     name: Baseline — Java 17 / Boot 3.5.16 / PostgreSQL 15.18
-    if: >-
-      github.event_name != 'pull_request' ||
-      (github.actor == 'yravelo' &&
-      github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
+    runs-on: ubuntu-latest
     timeout-minutes: 120
 
     defaults:

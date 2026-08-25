@@ -234,21 +234,21 @@ published.
 ## 32. Remote Build
 
 `PASS` on rewritten evidence commit `8a4923757442ecd2291d1a08809ef8b3f036c0d9`, private Build run
-[`32888286164`](https://github.com/yravelo/postgres-bulk/actions/runs/32888286164). The ordinary
+`32888286164` (historical run ID `32888286164`). The ordinary
 closure commit is revalidated separately in the task handoff.
 
 ## 33. Remote Compatibility
 
 `PASS` 11/11 on rewritten evidence commit `8a4923757442ecd2291d1a08809ef8b3f036c0d9`, private
 Compatibility run
-[`32888286201`](https://github.com/yravelo/postgres-bulk/actions/runs/32888286201). The ordinary
+`32888286201` (historical run ID `32888286201`). The ordinary
 closure commit is revalidated separately in the task handoff.
 
 ## 34. Remote Security
 
 `PASS` on rewritten evidence commit `8a4923757442ecd2291d1a08809ef8b3f036c0d9`, manually dispatched
 private Security run
-[`32888331084`](https://github.com/yravelo/postgres-bulk/actions/runs/32888331084). The ordinary
+`32888331084` (historical run ID `32888331084`). The ordinary
 closure commit is revalidated separately in the task handoff.
 
 ## 35. GitHub PR refs blocker

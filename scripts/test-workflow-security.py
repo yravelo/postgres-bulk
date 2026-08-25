@@ -92,26 +92,22 @@ class WorkflowSecurityTests(unittest.TestCase):
         self.assertEqual(2, result.returncode)
         self.assertIn("usage:", result.stderr)
 
-    def test_build_using_github_hosted_runner_fails(self) -> None:
+    def test_build_using_self_hosted_runner_fails(self) -> None:
         workflow = self.load("build.yml")
-        workflow["jobs"]["verify"]["runs-on"] = "ubuntu-latest"
+        workflow["jobs"]["verify"]["runs-on"] = [
+            "self-hosted", "linux", "x64", "postgres-bulk-ci"
+        ]
         errors = SECURITY.runner_boundary_errors("build.yml", workflow)
-        self.assertTrue(any("dedicated self-hosted label set" in error for error in errors))
+        self.assertTrue(any("persistent self-hosted runners are forbidden" in error for error in errors))
 
-    def test_build_without_dedicated_label_fails(self) -> None:
-        workflow = self.load("build.yml")
-        workflow["jobs"]["verify"]["runs-on"] = ["self-hosted", "linux", "x64"]
-        errors = SECURITY.runner_boundary_errors("build.yml", workflow)
-        self.assertTrue(any("dedicated self-hosted label set" in error for error in errors))
-
-    def test_compatibility_without_trusted_pr_guard_fails(self) -> None:
+    def test_compatibility_actor_guard_fails(self) -> None:
         workflow = self.load("compatibility.yml")
-        workflow["jobs"]["java"].pop("if")
+        workflow["jobs"]["java"]["if"] = "github.actor == 'yravelo'"
         errors = SECURITY.runner_boundary_errors("compatibility.yml", workflow)
-        self.assertTrue(any("trusted pull-request guard" in error for error in errors))
+        self.assertTrue(any("must not gate public PR" in error for error in errors))
 
-    def test_valid_self_hosted_selectors_pass(self) -> None:
-        for name in ("build.yml", "compatibility.yml", "security.yml"):
+    def test_all_workflows_use_reviewed_hosted_runner(self) -> None:
+        for name in SECURITY.WORKFLOWS:
             workflow = self.load(name)
             self.assertEqual([], SECURITY.runner_boundary_errors(name, workflow))
 
@@ -127,7 +123,7 @@ class WorkflowSecurityTests(unittest.TestCase):
         errors = SECURITY.runner_boundary_errors("security.yml", workflow)
         self.assertTrue(any("must not reference" in error for error in errors))
 
-    def test_self_hosted_persistent_maven_settings_fail(self) -> None:
+    def test_ci_persistent_maven_settings_fail(self) -> None:
         workflow = self.load("build.yml")
         setup = next(
             step
@@ -149,33 +145,35 @@ class WorkflowSecurityTests(unittest.TestCase):
         errors = SECURITY.common_semantic_errors("build.yml", workflow)
         self.assertTrue(any("persist-credentials" in error for error in errors))
 
-    def test_untrusted_fork_pr_is_skipped(self) -> None:
-        self.assertFalse(
-            SECURITY.trusted_self_hosted_event_allowed(
-                "pull_request", "external-user", "external-user/postgres-bulk", "yravelo/postgres-bulk"
-            )
-        )
+    def assert_public_pr_path_is_hosted_and_secret_free(self, name: str) -> None:
+        workflow = self.load(name)
+        self.assertTrue(SECURITY.public_pr_jobs_use_hosted_runner(workflow))
+        self.assertEqual(set(), SECURITY.secret_references(workflow))
 
-    def test_dependabot_pr_is_skipped(self) -> None:
-        self.assertFalse(
-            SECURITY.trusted_self_hosted_event_allowed(
-                "pull_request", "dependabot[bot]", "yravelo/postgres-bulk", "yravelo/postgres-bulk"
-            )
-        )
+    def test_fork_pr_selects_hosted_without_secrets(self) -> None:
+        for name in SECURITY.PUBLIC_PR_WORKFLOWS:
+            self.assert_public_pr_path_is_hosted_and_secret_free(name)
 
-    def test_owner_same_repository_pr_is_allowed(self) -> None:
-        self.assertTrue(
-            SECURITY.trusted_self_hosted_event_allowed(
-                "pull_request", "yravelo", "yravelo/postgres-bulk", "yravelo/postgres-bulk"
-            )
-        )
+    def test_dependabot_pr_cannot_select_self_hosted(self) -> None:
+        for name in SECURITY.PUBLIC_PR_WORKFLOWS:
+            self.assert_public_pr_path_is_hosted_and_secret_free(name)
 
-    def test_trusted_push_is_allowed(self) -> None:
-        self.assertTrue(
-            SECURITY.trusted_self_hosted_event_allowed(
-                "push", "yravelo", None, "yravelo/postgres-bulk"
-            )
-        )
+    def test_external_actor_cannot_select_self_hosted(self) -> None:
+        for name in SECURITY.PUBLIC_PR_WORKFLOWS:
+            self.assert_public_pr_path_is_hosted_and_secret_free(name)
+
+    def test_owner_same_repository_pr_selects_hosted(self) -> None:
+        for name in SECURITY.PUBLIC_PR_WORKFLOWS:
+            self.assert_public_pr_path_is_hosted_and_secret_free(name)
+
+    def test_trusted_main_push_selects_hosted(self) -> None:
+        for name in SECURITY.PUBLIC_PR_WORKFLOWS:
+            workflow = self.load(name)
+            self.assertTrue(SECURITY.public_pr_jobs_use_hosted_runner(workflow))
+
+    def test_security_dispatch_selects_hosted(self) -> None:
+        workflow = self.load("security.yml")
+        self.assertTrue(SECURITY.public_pr_jobs_use_hosted_runner(workflow))
 
     def test_release_remains_on_github_hosted_runner(self) -> None:
         workflow = self.load("release.yml")

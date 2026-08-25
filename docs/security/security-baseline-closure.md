@@ -15,7 +15,7 @@ workflow run, OpenPGP use with the real private key, Central upload or publicati
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Secret scanning | committed credential/history leakage | `check-secrets.sh`, Gitleaks 8.30.1 with verified binary | current and full-history scans | safe synthetic GitHub-token-shaped input is detected; corrupt download fails | Build fast; Security/release history | mandatory before candidate/REL1 | pattern detection cannot recognize every secret |
 | Workflow policy | Action, trigger, permission, input or runner bypass | deterministic YAML auditor and SHA allow-list | all five real workflows pass | mutable/unlisted Action, write permission, secret, unexpected trigger/workflow and unsafe checkout fail | Build, Security, release candidate | prevents hidden publication/trust bypass | approved Action SHA still depends on upstream review |
-| Self-hosted trust | untrusted PR on Docker-capable persistent host | exact labels plus owner/same-repository job guard | trusted push and owner PR allowed | fork and Dependabot PR skipped; missing label/guard fails | Build and Compatibility | runner never signs or publishes | host is persistent and Docker is root-equivalent |
+| Runner trust | untrusted PR on Docker-capable persistent host | hosted-only jobs and zero canonical runner registrations | fork, Dependabot, external, owner PR and main select hosted | any self-hosted selector, actor gate or secret reference fails | Build and Compatibility | runner never signs or publishes | GitHub-hosted execution depends on the Actions platform |
 | Dependency SCA | vulnerable, unscanned or confused component | resolved Maven inventory, OSV 2.5.1 and accepted-risk registry | real 138/138 scan, zero BLOCK | untriaged, expired, stale, wrong-scope, incomplete and malformed result fail | Build, Security, candidate | fresh result required | advisory data and reachability judgment can lag |
 | Tool/module drift | new POM/tool/version escaping coverage | continuous and baseline machine policies | 14 POMs, reactor and tool versions reconcile | new POM/module and version drift fail | fast/full/release | inventory must be complete | policy still requires maintainer review |
 | Java SAST | injection and bytecode security defects | SpotBugs 4.10.4 + FindSecBugs 1.14.0 | seven reports, zero untriaged findings | new finding, analyzer/missing class, expired/stale exclusion fail | Build/Security/candidate | no untriaged productive finding | framework dataflow needs six exact exclusions |
@@ -43,7 +43,7 @@ response coverage; none is left unclassified.
 | T-07 | accidental committed secret | `MITIGATED` | ignore/guidance | Gitleaks current/history | revoke, preserve, then clean |
 | T-08 | artifact tampering | `MITIGATED` | synchronized source/reproducibility/signing | hashes/signatures/comparison | artifact response |
 | T-09 | dependency confusion | `MITIGATED` | final namespace/Central-only | POM/SBOM/isolated consumers | build-chain/impersonation response |
-| T-10 | untrusted PR on runner | `MITIGATED` | exact job guard/labels | workflow fixtures | runner compromise response |
+| T-10 | untrusted PR on runner | `MITIGATED` | hosted-only jobs/no canonical registration | workflow fixtures/remote audit | runner compromise response |
 | T-11 | accidental release | `MITIGATED` | manual candidate/separate authorizations | workflow/preflights | invalidate and stop candidate |
 | T-12 | license incompatibility | `MITIGATED` | exact policy/no shading | SBOM/license audit | replace or reviewed exception |
 | T-13 | mutable container image | `ACCEPTED` | exact patch tags/trusted host | Docker/Compatibility smoke | build-chain response |
@@ -55,10 +55,10 @@ response coverage; none is left unclassified.
 - Gitleaks detects a deliberately invalid synthetic fixture and passes the real current tree and
   full history. There is no broad `.gitleaks.toml` allow-list.
 - Workflow fixtures reject `pull_request_target`, `workflow_run`, release push, write permission,
-  secret reference, mutable/unclassified Action, unclassified workflow, missing dedicated label,
-  missing PR guard and persistent checkout/settings credentials.
-- The job-guard model proves fork and Dependabot PRs skipped, owner same-repository PR and trusted
-  push allowed.
+  secret reference, mutable/unclassified Action, unclassified workflow, any self-hosted selector,
+  actor-dependent PR guards and persistent checkout/settings credentials.
+- The runner model proves fork, Dependabot, external-actor and owner PRs plus trusted `main` pushes
+  all select hosted infrastructure without secrets.
 - OSV triage rejects production findings without review, expired/stale/wrong-scope acceptances,
   incomplete coverage and malformed scanner output.
 - SAST rejects any nonzero finding, disabled FindSecBugs, analyzer error, missing class/report and
@@ -142,12 +142,12 @@ EP-01 is retained in the inventory as resolved evidence.
 | ID | Classification | Risk | Control / review | Blocks |
 | --- | --- | --- | --- | --- |
 | RR-01 | `ACCEPTED RISK` | single-maintainer trust concentration | MFA/manual authorization/runbook; 2027-02-24 | none |
-| RR-02 | `ACCEPTED RISK` | persistent Docker-capable runner | owner-only jobs/health/incident response; 2027-02-24 | external PR on runner |
+| RR-02 | `ACCEPTED RISK` | archive retains persistent Docker-capable runner | private archive isolation; canonical workflows hosted-only; 2027-02-24 | none |
 | RR-03 | `DEFERRED ENHANCEMENT` | mutable PostgreSQL patch tags | exact tag/smoke/matrix; 2027-02-24 | none |
 | RR-04 | `ACCEPTED RISK` | five OSV WARN findings | exact registry; 2026-10-24 | none while valid |
 | RR-05 | `ACCEPTED RISK` | six SAST exclusions | exact source/expiry; 2027-02-24 | none while valid |
 | RR-06 | `ACCEPTED RISK` | eight license reviews | exact coordinate/license/expiry; 2027-02-24 | none while valid |
-| RR-07 | `FUTURE GENERATION` | PVR/rulesets/public PR CI inactive | REL1 handoff; 2026-10-24 | REL1 |
+| RR-07 | `FUTURE GENERATION` | PVR/fork approval/rulesets public-only features inactive | MIG4 ordered activation; 2026-10-24 | public visibility until MIG4 step |
 | RR-08 | `DEFERRED ENHANCEMENT` | no SLSA/attestation/Sigstore | inventory/hash/OpenPGP; 2027-02-24 | none |
 | RR-09 | `ACCEPTED RISK` | caller-controlled resource exhaustion | batching/streaming/guidance; 2027-02-24 | none |
 

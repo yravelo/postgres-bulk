@@ -114,7 +114,7 @@ CI are `0`.
 
 ## 22. Minimal validation run
 
-Build run [`32890808627`](https://github.com/yravelo/postgres-bulk/actions/runs/32890808627),
+Build run `32890808627` (historical run ID `32890808627`),
 attempt 2, completed successfully in 5m08s before Compatibility or Security was allowed to run.
 
 ## 23. Old runner identity in new logs
@@ -173,11 +173,11 @@ the only self-hosted paths; fork, Dependabot and untrusted actors remain denied.
 ## 34. Remote Compatibility
 
 `11/11 PASS`, run
-[`32890808601`](https://github.com/yravelo/postgres-bulk/actions/runs/32890808601), attempt 2.
+`32890808601` (historical run ID `32890808601`), attempt 2.
 
 ## 35. Remote Security
 
-`PASS`, run [`32890829062`](https://github.com/yravelo/postgres-bulk/actions/runs/32890829062),
+`PASS`, run `32890829062` (historical run ID `32890829062`),
 attempt 2.
 
 ## 36. New CI privacy audit

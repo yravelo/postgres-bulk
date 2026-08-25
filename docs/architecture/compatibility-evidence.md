@@ -229,10 +229,10 @@ explícitamente aislamiento del starter. Ambos workflows disparan en pull reques
 
 La primera ejecución remota de MS7 sobre `726cbec` terminó verde el 2026-08-24:
 
-- Build [`32714347790`](https://github.com/yravelo/postgres-bulk/actions/runs/32714347790): PASS;
-- Compatibility [`32714347857`](https://github.com/yravelo/postgres-bulk/actions/runs/32714347857): PASS en sus 11 jobs.
+- Build `32714347790` (historical run ID `32714347790`): PASS;
+- Compatibility `32714347857` (historical run ID `32714347857`): PASS en sus 11 jobs.
 
 La primera ejecución remota de cierre J7 sobre `2717f10` terminó verde el 2026-08-20:
 
-- Build [`32351155913`](https://github.com/yravelo/postgres-bulk/actions/runs/32351155913): PASS;
-- Compatibility [`32351155919`](https://github.com/yravelo/postgres-bulk/actions/runs/32351155919): PASS en sus 10 jobs.
+- Build `32351155913` (historical run ID `32351155913`): PASS;
+- Compatibility `32351155919` (historical run ID `32351155919`): PASS en sus 10 jobs.

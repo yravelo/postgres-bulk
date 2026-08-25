@@ -32,12 +32,11 @@ coverage visible without paying the same scan in every matrix lane.
 ## Scheduled Security workflow
 
 `.github/workflows/security.yml` runs every Monday at `04:17 UTC` and supports an explicit manual
-dispatch. It uses only the trusted repository-scoped runner labels
-`[self-hosted, linux, x64, postgres-bulk-ci]`, declares `contents: read`, has a 150-minute timeout,
+dispatch. It uses a fresh GitHub-hosted `ubuntu-latest` VM, declares `contents: read`, has a 150-minute timeout,
 serializes runs without cancelling one in progress, checks out full history without credentials
 and references zero `secrets.*`. Checkout and Java setup use the same full-SHA allow-list as the
 other workflows. The deterministic workflow auditor now requires exactly five workflows and
-rejects schedule drift, a secret reference, an event-dependent bypass or a runner-boundary change.
+rejects schedule drift, a secret reference, an event-dependent bypass or any non-hosted selector.
 
 Scheduled validation intentionally does not run the 11-lane Compatibility matrix. The normal
 Build and Compatibility workflows remain the supported-boundary evidence for every `main` change;
@@ -180,10 +179,10 @@ SBOMs plus aggregate with 55 external production components and zero license BLO
 OpenPGP identity and zero new Testcontainers-labelled Docker objects. Remote public-key retrieval
 also matched the full approved fingerprint.
 
-The implementation SHA then passed [Build `32828408419`](https://github.com/yravelo/postgres-bulk/actions/runs/32828408419),
-[Compatibility `32828408347`](https://github.com/yravelo/postgres-bulk/actions/runs/32828408347)
+The implementation SHA then passed Build `32828408419` (historical run ID `32828408419`),
+Compatibility `32828408347` (historical run ID `32828408347`)
 in all 11 jobs, and manually dispatched
-[Security `32828466698`](https://github.com/yravelo/postgres-bulk/actions/runs/32828466698).
+Security `32828466698` (historical run ID `32828466698`).
 Build exercised Java 17 and the full product/security/adoption pipeline; Security completed its
 full mode in approximately 3 minutes 22 seconds on the trusted runner. No failed gate was retried
 or weakened. The SEC7 fixture set additionally passed 8 policy, 18 workflow, 5 vulnerability,

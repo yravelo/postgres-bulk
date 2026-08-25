@@ -19,11 +19,7 @@ defaults:
 jobs:
   multi-schema-composition:
     name: Multi-schema — JPA, JDBC and both starters / Java 17 / PostgreSQL 15.18
-    if: >-
-      github.event_name != 'pull_request' ||
-      (github.actor == 'yravelo' &&
-      github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Check out repository
@@ -54,11 +50,7 @@ jobs:
 
   java:
     name: Multi-schema — Java ${{ matrix.java }} / JDBC + JPA baseline stack
-    if: >-
-      github.event_name != 'pull_request' ||
-      (github.actor == 'yravelo' &&
-      github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -85,11 +77,7 @@ jobs:
 
   boot-minimum:
     name: Multi-schema minimum — Java 17 / Boot + Data JDBC 3.5.0 / pgJDBC 42.7.13 / PostgreSQL 15.18
-    if: >-
-      github.event_name != 'pull_request' ||
-      (github.actor == 'yravelo' &&
-      github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Check out repository
@@ -122,11 +110,7 @@ jobs:
 
   postgres:
     name: Multi-schema — PostgreSQL ${{ matrix.postgres }} / JDBC + JPA baseline stack
-    if: >-
-      github.event_name != 'pull_request' ||
-      (github.actor == 'yravelo' &&
-      github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -158,11 +142,7 @@ jobs:
 
   newest:
     name: Multi-schema newest — Java 21 / Boot 3.5.16 / Data JDBC 3.5.13 / pgJDBC 42.7.13 / PostgreSQL 18.4
-    if: >-
-      github.event_name != 'pull_request' ||
-      (github.actor == 'yravelo' &&
-      github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Check out repository
@@ -196,11 +176,7 @@ jobs:
 
   hibernate-adapter:
     name: Hibernate adapter ${{ matrix.hibernate }}
-    if: >-
-      github.event_name != 'pull_request' ||
-      (github.actor == 'yravelo' &&
-      github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -233,11 +209,7 @@ jobs:
 
   pgjdbc:
     name: pgJDBC ${{ matrix.pgjdbc }}
-    if: >-
-      github.event_name != 'pull_request' ||
-      (github.actor == 'yravelo' &&
-      github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
       fail-fast: false

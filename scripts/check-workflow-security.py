@@ -38,14 +38,9 @@ BENCHMARK_PROFILES = {
     "multi-schema-smoke",
     "multi-schema-baseline",
 }
-SELF_HOSTED_WORKFLOWS = {"build.yml", "compatibility.yml", "security.yml"}
-TRUSTED_PR_WORKFLOWS = {"build.yml", "compatibility.yml"}
-SELF_HOSTED_LABELS = ["self-hosted", "linux", "x64", "postgres-bulk-ci"]
-TRUSTED_PULL_REQUEST_GUARD = (
-    "github.event_name != 'pull_request' || "
-    "(github.actor == 'yravelo' && "
-    "github.event.pull_request.head.repo.full_name == github.repository)"
-)
+HOSTED_RUNNER = "ubuntu-latest"
+PUBLIC_PR_WORKFLOWS = {"build.yml", "compatibility.yml"}
+HARDENED_CHECKOUT_WORKFLOWS = {"build.yml", "compatibility.yml", "security.yml"}
 COMPATIBILITY_LANES = {
     "multi-schema-composition": None,
     "java": ("java", ["21", "25"]),
@@ -59,15 +54,12 @@ USES_LINE = re.compile(r"^\s*uses:\s*([^\s#]+)\s+#\s*(v\d+(?:\.\d+\.\d+)?)\s*$")
 SECRET_REFERENCE = re.compile(r"\$\{\{\s*secrets\.([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
 
 
-def trusted_self_hosted_event_allowed(
-    event_name: str,
-    actor: str,
-    head_repository: str | None,
-    repository: str,
-) -> bool:
-    """Model the exact Build/Compatibility job guard for adversarial fixtures."""
-    return event_name != "pull_request" or (
-        actor == "yravelo" and head_repository == repository
+def public_pr_jobs_use_hosted_runner(workflow: dict[str, Any]) -> bool:
+    """Return true only when every public-PR job selects the reviewed ephemeral runner."""
+    jobs = workflow.get("jobs", {})
+    return isinstance(jobs, dict) and bool(jobs) and all(
+        isinstance(job, dict) and job.get("runs-on") == HOSTED_RUNNER
+        for job in jobs.values()
     )
 
 
@@ -207,10 +199,10 @@ def common_semantic_errors(name: str, workflow: dict[str, Any]) -> list[str]:
             expected_depth = "0" if name in {"release.yml", "security.yml"} else "1"
             if not isinstance(inputs, dict) or inputs.get("fetch-depth") != expected_depth:
                 errors.append(f"{job_name}: checkout fetch-depth must be {expected_depth}")
-            if name in SELF_HOSTED_WORKFLOWS and (
+            if name in HARDENED_CHECKOUT_WORKFLOWS and (
                 not isinstance(inputs, dict) or inputs.get("clean") != "true"
             ):
-                errors.append(f"{job_name}: self-hosted checkout must set clean: true")
+                errors.append(f"{job_name}: CI checkout must set clean: true")
 
         if isinstance(uses, str) and uses.startswith("actions/setup-java@"):
             if not isinstance(inputs, dict) or inputs.get("distribution") != "temurin":
@@ -226,12 +218,12 @@ def common_semantic_errors(name: str, workflow: dict[str, Any]) -> list[str]:
                 errors.append(f"{job_name}: setup-java must not create publishing settings")
             if isinstance(inputs, dict) and forbidden & set(inputs):
                 errors.append(f"{job_name}: setup-java contains publishing inputs")
-            if name in SELF_HOSTED_WORKFLOWS and (
+            if name in HARDENED_CHECKOUT_WORKFLOWS and (
                 not isinstance(inputs, dict)
                 or inputs.get("settings-path") != "${{ runner.temp }}"
             ):
                 errors.append(
-                    f"{job_name}: self-hosted setup-java settings must stay in runner.temp"
+                    f"{job_name}: CI setup-java settings must stay in runner.temp"
                 )
 
         if isinstance(uses, str) and uses.startswith("actions/upload-artifact@"):
@@ -248,24 +240,19 @@ def runner_boundary_errors(name: str, workflow: dict[str, Any]) -> list[str]:
     if not isinstance(jobs, dict):
         return ["jobs must be a mapping"]
 
-    if name in SELF_HOSTED_WORKFLOWS:
-        if secret_references(workflow):
-            errors.append("self-hosted workflows must not reference repository secrets")
-        for job_name, job in jobs.items():
-            if not isinstance(job, dict):
-                continue
-            if job.get("runs-on") != SELF_HOSTED_LABELS:
-                errors.append(
-                    f"job {job_name} must use the exact dedicated self-hosted label set"
-                )
-            if name in TRUSTED_PR_WORKFLOWS and job.get("if") != TRUSTED_PULL_REQUEST_GUARD:
-                errors.append(f"job {job_name} must use the exact trusted pull-request guard")
-            if name == "security.yml" and "if" in job:
-                errors.append(f"job {job_name} must not add an event-dependent bypass")
-    else:
-        for job_name, job in jobs.items():
-            if isinstance(job, dict) and job.get("runs-on") != "ubuntu-latest":
-                errors.append(f"job {job_name} must remain on the reviewed GitHub-hosted runner")
+    if secret_references(workflow):
+        errors.append("workflows must not reference repository secrets")
+    for job_name, job in jobs.items():
+        if not isinstance(job, dict):
+            continue
+        if job.get("runs-on") != HOSTED_RUNNER:
+            errors.append(
+                f"job {job_name} must use {HOSTED_RUNNER}; persistent self-hosted runners are forbidden"
+            )
+        if name in PUBLIC_PR_WORKFLOWS and "if" in job:
+            errors.append(
+                f"job {job_name} must not gate public PR execution by actor or repository identity"
+            )
     return errors
 
 

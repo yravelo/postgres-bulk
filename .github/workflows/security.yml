@@ -14,8 +14,8 @@ concurrency:
 
 jobs:
   validate:
-    name: Continuous security and runner resilience
-    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
+    name: Continuous security and hosted-runner resilience
+    runs-on: ubuntu-latest
     timeout-minutes: 150
     steps:
       - name: Check out full repository history
