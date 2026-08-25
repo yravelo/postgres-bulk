@@ -148,7 +148,7 @@ rulesets/protection requieren cambio de plan o visibilidad. Como no existe un al
 y probado, el estado honesto es `PARTIALLY DONE — PENDING OWNER ACTION`. Esa acción bloquea REL1,
 pero no bloquea SEC7, SEC8 ni la evaluación técnica REL0.
 
-## SEC7 — Continuous Security Validation & Operational Resilience — IMPLEMENTED (2026-08-25)
+## SEC7 — Continuous Security Validation & Operational Resilience — DONE (2026-08-25)
 
 | Campo | Definición |
 | --- | --- |
@@ -161,7 +161,7 @@ pero no bloquea SEC7, SEC8 ni la evaluación técnica REL0.
 | Tests | local fast/full commands, expiry fixtures, Docker/Testcontainers cleanup, remote Build/Compatibility/Security jobs and explicit REL1 blocked fixture |
 | False positives | exact accepted risks/exclusions/license reviews retain owner and expiry; stale/expired entries fail |
 | Documentation | [`continuous-security-validation.md`](../security/continuous-security-validation.md), timing budget, ownership, outage classification and preflight boundaries |
-| Acceptance | implementation complete; final `DONE` requires local full plus remote Build, Compatibility 11/11 and manually dispatched Security PASS on the implementation SHA |
+| Acceptance | DONE: local full PASS; implementation SHA `0533866b04b4d89ea9199473dd5abf2cceb852c0` passed Build `32828408419`, Compatibility `32828408347` 11/11 and manual Security `32828466698` |
 | Risks | rate limits, flaky databases, cache poisoning assumptions, CI fatigue |
 | Dependencies | SEC1–SEC5 controls plus implemented SEC6 policy; SEC6 channel closure is non-blocking here and blocking only at REL1 |
 | Deferred | paid/private-only GitHub features and future Java/Boot generation |

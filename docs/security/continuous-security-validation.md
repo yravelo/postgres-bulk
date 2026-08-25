@@ -1,7 +1,9 @@
 # Continuous security validation and operational resilience
 
-**SEC7 status:** implementation complete on 2026-08-25; remote closure evidence is recorded after
-the implementation commit reaches `main`. SEC6 remains `PARTIALLY DONE`: its private reporting
+**SEC7 status:** `DONE` on 2026-08-25. Implementation commit
+`0533866b04b4d89ea9199473dd5abf2cceb852c0` passed Build `32828408419`, all 11 Compatibility
+jobs in `32828408347` and manually dispatched Security `32828466698`. SEC6 remains
+`PARTIALLY DONE`: its private reporting
 channel is pending. That owner action does not block SEC7, SEC8 or technical `REL0` evaluation, but
 it continues to block `REL1` and any supported public release.
 
@@ -167,3 +169,19 @@ SEC7 does not configure a private reporting address and does not mark SEC6 `DONE
 visibility remains private. Benchmarks, Release, signing, tag creation, Central upload and
 publication remain unexecuted. After local and remote SEC7 gates are green, the next exact phase is
 `SEC8 — Security Baseline Technical Closure`; this document does not start it.
+
+## Closure evidence
+
+The local `full` run passed: 103-commit Gitleaks history, OSV 138/138 with zero BLOCK and five
+reviewed WARNs, clean 13-project reactor, seven SAST reports with zero findings, nine per-artifact
+SBOMs plus aggregate with 55 external production components and zero license BLOCK, valid local
+OpenPGP identity and zero new Testcontainers-labelled Docker objects. Remote public-key retrieval
+also matched the full approved fingerprint.
+
+The implementation SHA then passed [Build `32828408419`](https://github.com/yravelo/postgres-bulk/actions/runs/32828408419),
+[Compatibility `32828408347`](https://github.com/yravelo/postgres-bulk/actions/runs/32828408347)
+in all 11 jobs, and manually dispatched
+[Security `32828466698`](https://github.com/yravelo/postgres-bulk/actions/runs/32828466698).
+Build exercised Java 17 and the full product/security/adoption pipeline; Security completed its
+full mode in approximately 3 minutes 22 seconds on the trusted runner. No failed gate was retried
+or weakened.

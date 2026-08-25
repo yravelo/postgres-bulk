@@ -87,7 +87,7 @@ session data or token is stored. The real Portal user token has not been generat
 | GitHub branch protection/rules | DEFERRED (non-blocking) — unavailable for this private repository on the current plan |
 | Repository Secrets model | SUPERSEDED — signing is local; Release references zero repository secrets |
 | Trusted self-hosted Build/Compatibility/Security runner | PASS — repository-scoped, non-root, dedicated labels, owner+same-repo PR guard for PR workflows; 11/11 compatibility lanes |
-| Continuous Security workflow | IMPLEMENTED — weekly UTC plus manual dispatch, full-history/fresh gates, read-only and zero secrets; remote closure pending |
+| Continuous Security workflow | PASS — weekly UTC plus manual dispatch, full-history/fresh gates, read-only and zero secrets; run `32828466698` |
 | Expiry/drift and runner-health gates | PASS locally — policy fixtures, module/POM/workflow/tool drift, Docker/PostgreSQL smoke and Testcontainers residue boundary |
 | GitHub environment `maven-central` | DEFERRED (non-blocking) — retained as an inert marker; not referenced by release workflow |
 | Environment protection | DEFERRED (non-blocking) — unavailable for this private repository on the current entitlement |
@@ -147,6 +147,20 @@ quoting, inmutabilidad y lifecycle reales. Seis exclusiones Bug/Class/Method con
 FindSecBugs/reportes; Compatibility omite scans duplicados. No cambió source ni API productiva.
 El commit de baseline `b0313efb557bd26c54a4954c5c398355b1c98b01` pasó Build `32758573085`
 y los 11 jobs de Compatibility `32758573080`; Benchmarks y Release no se ejecutaron.
+
+## SEC7 continuous validation closure
+
+SEC7 is `DONE` for implementation SHA `0533866b04b4d89ea9199473dd5abf2cceb852c0`.
+Build `32828408419` passed the complete Java 17 product/security/adoption pipeline, Compatibility
+`32828408347` passed 11/11, and manually dispatched Security `32828466698` passed the canonical
+full-history/fresh validation on the trusted runner. Local full validation also passed with OSV
+138/138, zero vulnerability BLOCK, seven clean SAST reports, nine SBOMs plus aggregate, zero
+license BLOCK, valid OpenPGP public identity and no new Testcontainers residue.
+
+The technical release preflight passes for clean synchronized `main` while the REL1 preflight
+fails closed because the reporting channel is still `PENDING`. This closes SEC7 without changing
+SEC6 from `PARTIALLY DONE` and without authorizing a release, tag, signing, upload or publication.
+The next exact phase is `SEC8 — Security Baseline Technical Closure`; it has not started.
 
 ## Phase 16B local validation
 
