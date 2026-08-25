@@ -21,9 +21,13 @@ run_gate() {
 fast_gates() {
   run_gate policy-drift CONTROL "${SCRIPT_DIR}/check-security-policy.py"
   run_gate policy-fixtures CONTROL "${SCRIPT_DIR}/test-security-policy.py"
+  run_gate operational-fixtures CONTROL "${SCRIPT_DIR}/test-operational-security.py"
+  run_gate baseline-closure CONTROL "${SCRIPT_DIR}/check-security-baseline.py"
+  run_gate baseline-fixtures CONTROL "${SCRIPT_DIR}/test-security-baseline.py"
   run_gate workflow-hardening CONTROL "${SCRIPT_DIR}/check-workflow-security.py"
   run_gate workflow-fixtures CONTROL "${SCRIPT_DIR}/test-workflow-security.py"
   run_gate dependabot-policy CONTROL "${SCRIPT_DIR}/check-dependabot-config.py"
+  run_gate secret-fixture SECURITY "${SCRIPT_DIR}/check-secrets.sh" fixture
   run_gate current-secrets SECURITY "${SCRIPT_DIR}/check-secrets.sh" current
 }
 

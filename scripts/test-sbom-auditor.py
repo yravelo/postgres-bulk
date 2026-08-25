@@ -95,10 +95,31 @@ class SbomAuditorTests(unittest.TestCase):
         document["components"][0] = component("org.example", "safe-library", "1.0-SNAPSHOT")
         self.assertTrue(any("SNAPSHOT" in error for error in self.errors(document)))
 
+    def test_wrong_version_fails(self) -> None:
+        document = valid_document()
+        document["metadata"]["component"] = component(
+            "io.github.yravelo", "fixture-root", "0.2.0"
+        )
+        self.assertTrue(any("wrong root identity" in error for error in self.errors(document)))
+
     def test_unknown_production_license_fails(self) -> None:
         document = valid_document()
         document["components"][0]["licenses"] = []
         self.assertTrue(any("unknown production license" in error for error in self.errors(document)))
+
+    def test_blocked_production_license_fails(self) -> None:
+        document = valid_document()
+        document["components"][0] = component(
+            "org.example", "safe-library", "1.0.0", "GPL-3.0-only"
+        )
+        self.assertTrue(any("blocked strong-copyleft" in error for error in self.errors(document)))
+
+    def test_review_license_wrong_coordinate_or_version_fails(self) -> None:
+        document = valid_document()
+        document["components"][0] = component(
+            "org.example", "wrong-coordinate", "9.9.9", "LGPL-2.1-only"
+        )
+        self.assertTrue(any("exact approved exception" in error for error in self.errors(document)))
 
     def test_wrong_internal_group_fails(self) -> None:
         document = valid_document()
@@ -111,6 +132,18 @@ class SbomAuditorTests(unittest.TestCase):
             {"type": "distribution", "url": "/home/private/artifact.jar"}
         ]
         self.assertTrue(any("absolute/file path" in error for error in self.errors(document)))
+
+    def test_broken_dependency_edge_fails(self) -> None:
+        document = valid_document()
+        document["dependencies"][0]["dependsOn"] = ["pkg:maven/org.example/missing@1.0.0?type=jar"]
+        self.assertTrue(any("edge references missing component" in error for error in self.errors(document)))
+
+    def test_unclassified_publishable_module_fails(self) -> None:
+        document = valid_document()
+        document["components"][0] = component(
+            "io.github.yravelo", "postgres-bulk-unclassified", "0.1.0"
+        )
+        self.assertTrue(any("unclassified internal component" in error for error in self.errors(document)))
 
     def test_stale_license_exception_fails(self) -> None:
         errors = CHECK.license_review_set_errors(

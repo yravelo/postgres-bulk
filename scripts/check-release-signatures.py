@@ -81,6 +81,7 @@ def main() -> int:
     parser.add_argument("--inventory", type=Path, required=True)
     parser.add_argument("--checksums", type=Path, required=True)
     parser.add_argument("--gnupghome", type=Path, required=True)
+    parser.add_argument("--expected-source-commit", required=True)
     args = parser.parse_args()
 
     policy = json.loads(args.policy.read_text(encoding="utf-8"))
@@ -89,6 +90,12 @@ def main() -> int:
     release = inventory.get("release", {})
     if release.get("approved_signer_fingerprint") != fingerprint:
         raise SystemExit("release inventory signer fingerprint differs from policy")
+    if release.get("group_id") != policy["group_id"]:
+        raise SystemExit("release inventory group differs from policy")
+    if release.get("planned_tag") != policy["planned_tag"]:
+        raise SystemExit("release inventory planned tag differs from policy")
+    if release.get("source_commit") != args.expected_source_commit:
+        raise SystemExit("release inventory source commit differs from expected commit")
     if release.get("version") != policy["release_version"] or release.get("tag_created") is not False:
         raise SystemExit("release inventory version/tag state is not the reviewed candidate")
     if len(inventory.get("artifacts", [])) != policy["expected_central_artifacts"]:

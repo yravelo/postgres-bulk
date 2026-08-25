@@ -78,6 +78,13 @@ snapshot_testcontainers() {
   } | sort -u
 }
 
+testcontainers_cleanup_complete() {
+  local state_file=$1
+  local current=$2
+  snapshot_testcontainers > "${current}"
+  ! comm -13 "${state_file}" "${current}" | rg -q .
+}
+
 case "${MODE}" in
   check)
     docker run --rm "${POSTGRES_IMAGE}" postgres --version >/dev/null
@@ -94,8 +101,17 @@ case "${MODE}" in
     fi
     CURRENT=$(mktemp)
     trap 'rm -f -- "${CURRENT}"' EXIT
-    snapshot_testcontainers > "${CURRENT}"
-    if comm -13 "${STATE_FILE}" "${CURRENT}" | rg -q .; then
+    CLEANUP_COMPLETE=false
+    for attempt in 1 2 3 4 5 6; do
+      if testcontainers_cleanup_complete "${STATE_FILE}" "${CURRENT}"; then
+        CLEANUP_COMPLETE=true
+        break
+      fi
+      if [[ "${attempt}" -lt 6 ]]; then
+        sleep 2
+      fi
+    done
+    if [[ "${CLEANUP_COMPLETE}" != "true" ]]; then
       echo "Runner health failed: the validation left new Testcontainers/Ryuk Docker objects." >&2
       exit 1
     fi

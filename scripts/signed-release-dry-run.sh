@@ -7,12 +7,16 @@ MAVEN_PROJECT=${REPOSITORY_ROOT}/code/postgres-bulk-parent
 MAVEN=${MAVEN_PROJECT}/mvnw
 POLICY=${REPOSITORY_ROOT}/config/security/release-signing-policy.json
 VERSION=${1:-0.1.0}
-GNUPG_HOME=${2:-<LOCAL_SIGNING_PATH>}
+GNUPG_HOME=${2:-}
 CANDIDATE_ROOT=${REPOSITORY_ROOT}/target/signed-release-candidate
 UNSIGNED_STAGING=${CANDIDATE_ROOT}/unsigned-staging
 SIGNED_STAGING=${CANDIDATE_ROOT}/staging
 EVIDENCE=${CANDIDATE_ROOT}/evidence
 
+if [[ -z "${GNUPG_HOME}" ]]; then
+  echo "Usage: $0 <version> <dedicated-release-gnupghome>" >&2
+  exit 2
+fi
 if [[ ! "${VERSION}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
   echo "A stable SemVer release version is required, got: ${VERSION}" >&2
   exit 1

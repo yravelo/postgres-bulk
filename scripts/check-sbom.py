@@ -314,6 +314,8 @@ def audit_document(
         if coordinate.name.startswith("postgres-bulk-"):
             if coordinate.group != policy.root_group or coordinate.version != version:
                 errors.append(f"wrong internal coordinate/version: {coordinate.gav}")
+            elif coordinate.name not in policy.publishable:
+                errors.append(f"unclassified internal component: {coordinate.gav}")
         if coordinate.group == "io.ybr.postgresbulk":
             errors.append(f"Java namespace used as Maven group: {coordinate.gav}")
         if coordinate.name in policy.non_publishable:

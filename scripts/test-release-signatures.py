@@ -123,8 +123,21 @@ class ReleaseSignatureTests(unittest.TestCase):
             "python3", str(CHECKER_PATH), "--policy", str(self.policy),
             "--staging", str(self.staging), "--evidence-directory", str(self.evidence),
             "--inventory", str(self.inventory), "--checksums", str(self.checksums),
-            "--gnupghome", str(self.home), ok=False,
+            "--gnupghome", str(self.home), "--expected-source-commit", "a" * 40,
+            ok=False,
         )
+
+    def checker_with_release_field(
+        self, field: str, value: object
+    ) -> subprocess.CompletedProcess[str]:
+        original = self.inventory.read_text(encoding="utf-8")
+        document = json.loads(original)
+        document["release"][field] = value
+        self.inventory.write_text(json.dumps(document), encoding="utf-8")
+        try:
+            return self.checker()
+        finally:
+            self.inventory.write_text(original, encoding="utf-8")
 
     def test_valid_fixture(self) -> None:
         self.assertEqual(0, self.checker().returncode)
@@ -153,6 +166,47 @@ class ReleaseSignatureTests(unittest.TestCase):
         target.write_text("tampered\n", encoding="utf-8")
         with self.assertRaisesRegex(ValueError, "invalid signature"):
             CHECKER.verify_signature(target, signature, self.home, self.signer)
+
+    def test_tampered_signature(self) -> None:
+        target = self.root / "tampered-signature.txt"
+        target.write_text("signed content\n", encoding="utf-8")
+        signature = sign(self.home, self.signer, target)
+        data = bytearray(signature.read_bytes())
+        data[len(data) // 2] ^= 1
+        signature.write_bytes(bytes(data))
+        with self.assertRaisesRegex(ValueError, "invalid signature"):
+            CHECKER.verify_signature(target, signature, self.home, self.signer)
+
+    def test_wrong_source_commit(self) -> None:
+        result = self.checker_with_release_field("source_commit", "b" * 40)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("source commit differs", result.stderr + result.stdout)
+
+    def test_wrong_planned_tag(self) -> None:
+        result = self.checker_with_release_field("planned_tag", "v9.9.9")
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("planned tag differs", result.stderr + result.stdout)
+
+    def test_wrong_stable_version(self) -> None:
+        result = self.checker_with_release_field("version", "0.1.1")
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("version/tag state", result.stderr + result.stdout)
+
+    def test_missing_supplemental_evidence(self) -> None:
+        original = self.inventory.read_text(encoding="utf-8")
+        document = json.loads(original)
+        document["supplemental_evidence"] = [
+            item
+            for item in document["supplemental_evidence"]
+            if item["role"] != "aggregate-sbom"
+        ]
+        self.inventory.write_text(json.dumps(document), encoding="utf-8")
+        try:
+            result = self.checker()
+        finally:
+            self.inventory.write_text(original, encoding="utf-8")
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("supplemental evidence", result.stderr + result.stdout)
 
     def test_wrong_checksum(self) -> None:
         bad = self.root / "bad-SHA256SUMS"

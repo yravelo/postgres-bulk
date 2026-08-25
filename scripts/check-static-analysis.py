@@ -114,23 +114,33 @@ def audit_exclusions() -> None:
             fail(f"stale exclusion method target: {class_name}.{method_name}")
 
 
-def audit_report(module: str) -> None:
-    report = PARENT / module / "target" / "spotbugsXml.xml"
+def report_error(report: Path, module: str) -> str | None:
     if not report.is_file():
-        fail(f"missing report for productive module {module}")
-    root = ET.parse(report).getroot()
+        return f"missing report for productive module {module}"
+    try:
+        root = ET.parse(report).getroot()
+    except ET.ParseError:
+        return f"invalid analyzer report in {module}"
     plugin = root.find("./Project/Plugin[@id='com.h3xstream.findsecbugs']")
     if plugin is None or plugin.attrib.get("enabled") != "true":
-        fail(f"FindSecBugs is not enabled in {module}")
+        return f"FindSecBugs is not enabled in {module}"
     errors = root.find("Errors")
     if errors is None:
-        fail(f"missing analyzer error summary in {module}")
+        return f"missing analyzer error summary in {module}"
     if errors.attrib.get("errors") != "0" or errors.attrib.get("missingClasses") != "0":
-        fail(f"analyzer errors or missing classes in {module}")
+        return f"analyzer errors or missing classes in {module}"
     summary = root.find("FindBugsSummary")
     if summary is None or summary.attrib.get("total_bugs") != "0":
         count = "unknown" if summary is None else summary.attrib.get("total_bugs", "unknown")
-        fail(f"{module} contains {count} untriaged findings")
+        return f"{module} contains {count} untriaged findings"
+    return None
+
+
+def audit_report(module: str) -> None:
+    report = PARENT / module / "target" / "spotbugsXml.xml"
+    error = report_error(report, module)
+    if error:
+        fail(error)
 
 
 def main() -> None:

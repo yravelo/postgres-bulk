@@ -61,6 +61,19 @@ def severity_label(value: float) -> str:
     return "LOW"
 
 
+def risk_scope_matches(scope: object, classifications: tuple[str, ...]) -> bool:
+    reviewed = {part.strip() for part in str(scope).split(",") if part.strip()}
+    for classification in classifications:
+        if classification in reviewed:
+            continue
+        if classification == "production" and any(
+            item.startswith("production") for item in reviewed
+        ):
+            continue
+        return False
+    return bool(classifications)
+
+
 def main() -> int:
     parsed = args()
     inventory = load_object(parsed.inventory)
@@ -156,6 +169,7 @@ def main() -> int:
                 finding["dependency"] == risk["dependency"]
                 and finding["version"] == risk["version"]
                 and finding["aliases"] & risk_aliases
+                and risk_scope_matches(risk["scope"], finding["classifications"])
             ):
                 matched_index = index
                 break

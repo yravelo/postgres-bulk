@@ -57,8 +57,23 @@ case "${MODE}" in
     git -C "${REPOSITORY_ROOT}" rev-parse --is-inside-work-tree >/dev/null
     "${GITLEAKS}" git --redact=100 --no-banner --exit-code 1 "${REPOSITORY_ROOT}"
     ;;
+  fixture)
+    FIXTURE_DIRECTORY=$(mktemp -d)
+    trap 'rm -rf -- "${FIXTURE_DIRECTORY}"' EXIT
+    printf '%s%s\n' 'token = "ghp_' '2k8F4mQ7vR9xT1zW3cY5uI6oP0aS7dG8hJ9K"' \
+      > "${FIXTURE_DIRECTORY}/synthetic-not-a-real-secret.txt"
+    set +e
+    "${GITLEAKS}" dir --redact=100 --no-banner --exit-code 1 "${FIXTURE_DIRECTORY}" \
+      >/dev/null 2>&1
+    FIXTURE_STATUS=$?
+    set -e
+    if [[ "${FIXTURE_STATUS}" -ne 1 ]]; then
+      echo "Gitleaks adversarial fixture failed: synthetic detector input was not rejected." >&2
+      exit 1
+    fi
+    ;;
   *)
-    echo "Usage: $0 {current|history}" >&2
+    echo "Usage: $0 {current|history|fixture}" >&2
     exit 2
     ;;
 esac

@@ -52,6 +52,11 @@ class WorkflowSecurityTests(unittest.TestCase):
         errors = SECURITY.trigger_errors("build.yml", workflow)
         self.assertTrue(any("forbidden triggers" in error for error in errors))
 
+    def test_workflow_run_fails(self) -> None:
+        workflow = {"on": {"workflow_run": {"workflows": ["Build"]}}}
+        errors = SECURITY.trigger_errors("build.yml", workflow)
+        self.assertTrue(any("forbidden triggers" in error for error in errors))
+
     def test_release_push_trigger_fails(self) -> None:
         workflow = {"on": {"push": {"branches": ["main"]}}}
         errors = SECURITY.trigger_errors("release.yml", workflow)
@@ -132,6 +137,45 @@ class WorkflowSecurityTests(unittest.TestCase):
         setup["with"].pop("settings-path")
         errors = SECURITY.common_semantic_errors("build.yml", workflow)
         self.assertTrue(any("settings must stay in runner.temp" in error for error in errors))
+
+    def test_checkout_with_persistent_credentials_fails(self) -> None:
+        workflow = self.load("build.yml")
+        checkout = next(
+            step
+            for step in workflow["jobs"]["verify"]["steps"]
+            if step.get("name") == "Check out repository"
+        )
+        checkout["with"]["persist-credentials"] = "true"
+        errors = SECURITY.common_semantic_errors("build.yml", workflow)
+        self.assertTrue(any("persist-credentials" in error for error in errors))
+
+    def test_untrusted_fork_pr_is_skipped(self) -> None:
+        self.assertFalse(
+            SECURITY.trusted_self_hosted_event_allowed(
+                "pull_request", "external-user", "external-user/postgres-bulk", "yravelo/postgres-bulk"
+            )
+        )
+
+    def test_dependabot_pr_is_skipped(self) -> None:
+        self.assertFalse(
+            SECURITY.trusted_self_hosted_event_allowed(
+                "pull_request", "dependabot[bot]", "yravelo/postgres-bulk", "yravelo/postgres-bulk"
+            )
+        )
+
+    def test_owner_same_repository_pr_is_allowed(self) -> None:
+        self.assertTrue(
+            SECURITY.trusted_self_hosted_event_allowed(
+                "pull_request", "yravelo", "yravelo/postgres-bulk", "yravelo/postgres-bulk"
+            )
+        )
+
+    def test_trusted_push_is_allowed(self) -> None:
+        self.assertTrue(
+            SECURITY.trusted_self_hosted_event_allowed(
+                "push", "yravelo", None, "yravelo/postgres-bulk"
+            )
+        )
 
     def test_release_remains_on_github_hosted_runner(self) -> None:
         workflow = self.load("release.yml")

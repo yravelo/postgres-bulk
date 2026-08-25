@@ -80,7 +80,11 @@
   ],
   "gates": [
     {"id": "policy-drift", "command": "./scripts/check-security-policy.py", "modes": ["fast", "full", "release"], "ci": "Build and Security", "failure": "CONTROL"},
+    {"id": "operational-fixtures", "command": "./scripts/test-operational-security.py", "modes": ["fast", "full", "release"], "ci": "Build and Security", "failure": "CONTROL"},
+    {"id": "baseline-closure", "command": "./scripts/check-security-baseline.py", "modes": ["fast", "full", "release"], "ci": "Build and Security", "failure": "CONTROL"},
+    {"id": "baseline-fixtures", "command": "./scripts/test-security-baseline.py", "modes": ["fast", "full", "release"], "ci": "Build and Security", "failure": "CONTROL"},
     {"id": "workflow-hardening", "command": "./scripts/check-workflow-security.py", "modes": ["fast", "full", "release"], "ci": "Build and Security", "failure": "CONTROL"},
+    {"id": "secret-fixture", "command": "./scripts/check-secrets.sh fixture", "modes": ["fast", "full", "release"], "ci": "Build and Security", "failure": "SECURITY"},
     {"id": "current-secrets", "command": "./scripts/check-secrets.sh current", "modes": ["fast", "full", "release"], "ci": "Build and Security", "failure": "SECURITY"},
     {"id": "history-secrets", "command": "./scripts/check-secrets.sh history", "modes": ["full", "release"], "ci": "Security and Release", "failure": "SECURITY"},
     {"id": "dependencies", "command": "./scripts/check-vulnerabilities.sh", "modes": ["full", "release"], "ci": "Build, Security and Release", "failure": "SECURITY_OR_EXTERNAL"},

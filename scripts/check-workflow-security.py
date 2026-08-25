@@ -59,6 +59,18 @@ USES_LINE = re.compile(r"^\s*uses:\s*([^\s#]+)\s+#\s*(v\d+(?:\.\d+\.\d+)?)\s*$")
 SECRET_REFERENCE = re.compile(r"\$\{\{\s*secrets\.([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
 
 
+def trusted_self_hosted_event_allowed(
+    event_name: str,
+    actor: str,
+    head_repository: str | None,
+    repository: str,
+) -> bool:
+    """Model the exact Build/Compatibility job guard for adversarial fixtures."""
+    return event_name != "pull_request" or (
+        actor == "yravelo" and head_repository == repository
+    )
+
+
 def load_workflow(path: Path) -> tuple[dict[str, Any], str]:
     text = path.read_text(encoding="utf-8")
     try:
