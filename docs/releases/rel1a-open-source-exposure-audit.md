@@ -5,6 +5,19 @@ Audited source: `43fc6f5fdcb5a4c216c9e5a8898c7eb77be22cb4`
 Repository: `yravelo/postgres-bulk` (`PRIVATE`)  
 Decision: **OPEN-SOURCE ACTIVATION NO-GO — REMOTE IDENTITY BLOCKERS PENDING**
 
+## REL1-A-R R4C remediation addendum
+
+R4C changed the active OS hostname and repository runner display identity to
+`postgres-bulk-ci-01` using the supported host and official runner procedures. Build passed,
+Compatibility passed 11/11 and Security passed. Across all 13 new jobs/logs, the old runner name,
+old hostname and personal owner path each occurred zero times; new job metadata is fully neutral.
+
+The active runner identity blocker is `REMEDIATED`. Historical job metadata remains queryable and
+contains `<OLD_RUNNER_NAME_REDACTED>` in 270 jobs across 58 runs; it is an `OWNER DECISION REQUIRED`
+blocker because no job-metadata-only deletion is supported. Six synthetic PR refs remain pending,
+so activation remains `NO-GO`. See
+[R4C runner identity remediation](rel1ar-runner-identity-remediation.md).
+
 ## REL1-A-R R3 remediation addendum
 
 R3 selectively deleted the logs of all 58 runs in the exact `DELETE_LOGS` set. The complete
@@ -497,7 +510,8 @@ verified project channel and private-evidence boundary. It changed no code, hist
 | Exact owner home/signing path in controlled `main` | REMOVED BY R2B | HIGH PRIVACY/SECURITY | PASS for controlled history |
 | Old objects in synthetic PR refs/caches | PENDING SUPPORT ACTION | HIGH PRIVACY/SECURITY | BLOCKER |
 | Personal hostname/runner name in Actions logs | REMOVED BY R3 | HIGH PRIVACY/SECURITY | PASS for log content |
-| Active runner identity and historical job metadata | PENDING | HIGH PRIVACY/SECURITY | BLOCKER |
+| Active runner identity and new CI metadata/logs | REMOVED BY R4C | HIGH PRIVACY/SECURITY | PASS |
+| Historical job metadata runner name | OWNER DECISION REQUIRED | HIGH PRIVACY/SECURITY | BLOCKER |
 | Missing Code of Conduct | CLEANUP BEFORE PUBLIC | LOW HYGIENE | REL1-B entry cleanup |
 | No secrets/private keys/credentials | SAFE TO PUBLISH | INFO | PASS |
 | Product/docs/examples/benchmarks/security evidence | SAFE TO PUBLISH | INFO | PASS |
@@ -594,23 +608,21 @@ NO-GO — OWNER DECISION REQUIRED
 
 ### 84. Blocking findings
 
-The active personal runner/host identity, retained historical job-metadata runner identity and six
-GitHub-managed synthetic PR refs. Controlled `main` email/path history and Actions log content are
-already remediated.
+Retained historical job-metadata runner identity and six GitHub-managed synthetic PR refs. Active
+runner/host identity, controlled `main` email/path history and Actions log content are remediated.
 
 ### 85. Owner decisions required before REL1-B
 
-Authorize and execute the runner-neutralization plan, resolve synthetic PR refs, and select a Code
-of Conduct/enforcement contact. REL1-B cannot start merely by accepting the remaining risk
-implicitly.
+Decide how to handle historical job metadata, resolve synthetic PR refs, and select a Code of
+Conduct/enforcement contact. REL1-B cannot start merely by accepting the remaining risk implicitly.
 
 ### 86. REL1-B entry criteria
 
 - History rewrite authorized, rehearsed, executed and fully rescanned; or a new explicit audit
   decision that explains why the path is acceptable (this report recommends rewrite).
 - Personal email decision recorded and implemented.
-- Affected Actions logs removed with authorization (`DONE`); runner identity neutralized and
-  replacement logs scanned (`PENDING`).
+- Affected Actions logs removed with authorization; runner identity neutralized and replacement
+  logs scanned (`DONE`). Historical job metadata remains separately pending.
 - Local full security, technical and REL1 preflights pass on rewritten final history.
 - Remote Build, Compatibility 11/11 and Security pass on final synchronized `main`.
 - Code of Conduct selected; hosted untrusted-PR CI, ruleset, CodeQL, Dependency Review and PVR
@@ -618,9 +630,10 @@ implicitly.
 
 ### 87. Next recommended action
 
-Do **not** start `REL1-B — Public Repository Activation & External Verification`. Prepare the
-runner-neutralization plan and request `AUTHORIZE_RUNNER_REREGISTRATION`; synthetic PR-ref cleanup
-also remains separately governed. Only a subsequent explicit GO may name REL1-B as the next action.
+Do **not** start `REL1-B — Public Repository Activation & External Verification`. Prepare a
+read-only plan for historical job metadata and synthetic PR-ref remediation. Do not delete runs or
+contact GitHub Support automatically. Only a subsequent explicit GO may name REL1-B as the next
+action.
 
 ## Boundary statement
 

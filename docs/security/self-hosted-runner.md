@@ -19,6 +19,8 @@ GitHub Actions runner is installed outside the development checkout:
 
 | Property | Reviewed value |
 | --- | --- |
+| Hostname | `postgres-bulk-ci-01` |
+| Runner display name | `postgres-bulk-ci-01` |
 | Service account | `postgres-bulk-runner`, locked non-root system account, no login shell |
 | Home | `/home/postgres-bulk-runner`, mode `0750` |
 | Runner directory | `/home/postgres-bulk-runner/actions-runner` |
@@ -32,6 +34,11 @@ home, GitHub CLI configuration, Git credential store or Maven `settings.xml`. It
 credential files are mode `0600`. The one-time repository registration token was passed directly
 to the official configurator and was not logged, committed, documented or retained as a secret.
 Repository Actions Secrets remained at zero during setup.
+
+REL1-A-R R4C changed the personal host and runner display identities to the stable neutral name
+`postgres-bulk-ci-01` through `hostnamectl` and the official remove/re-register procedure. The
+service account, home/install/work directories and dedicated label did not change. Fresh Build,
+Compatibility and Security bootstrap logs and job metadata contain only the neutral identity.
 
 ## Docker trust implication
 
@@ -91,11 +98,11 @@ it automatically, while a runtime crash requires operator inspection and restart
 Run these local administrative commands from the runner directory or through systemd:
 
 ```bash
-sudo systemctl status actions.runner.yravelo-postgres-bulk.postgres-bulk-owner-ubuntu.service
-sudo systemctl start actions.runner.yravelo-postgres-bulk.postgres-bulk-owner-ubuntu.service
-sudo systemctl stop actions.runner.yravelo-postgres-bulk.postgres-bulk-owner-ubuntu.service
-sudo systemctl restart actions.runner.yravelo-postgres-bulk.postgres-bulk-owner-ubuntu.service
-sudo journalctl -u actions.runner.yravelo-postgres-bulk.postgres-bulk-owner-ubuntu.service
+sudo systemctl status actions.runner.yravelo-postgres-bulk.postgres-bulk-ci-01.service
+sudo systemctl start actions.runner.yravelo-postgres-bulk.postgres-bulk-ci-01.service
+sudo systemctl stop actions.runner.yravelo-postgres-bulk.postgres-bulk-ci-01.service
+sudo systemctl restart actions.runner.yravelo-postgres-bulk.postgres-bulk-ci-01.service
+sudo journalctl -u actions.runner.yravelo-postgres-bulk.postgres-bulk-ci-01.service
 ```
 
 Also confirm the runner is `online` and not unexpectedly busy in the repository Actions settings.
@@ -142,10 +149,15 @@ store a registration/removal token in this repository, documentation or shell pr
 ## SEC4R validation evidence
 
 For commit `6d6556b92a123b9720d39bcafef73a9bdf369119`, Build run `32774191694` passed every security,
-reactor, SBOM/license, consumer and documentation step on `postgres-bulk-owner-ubuntu`.
+reactor, SBOM/license, consumer and documentation step on `<OLD_RUNNER_NAME_REDACTED>`.
 Compatibility run `32774191674` passed all 11 lanes on the same runner and SHA. A post-run audit
 found zero Testcontainers-labelled containers, networks or volumes and confirmed the runner stayed
 online with zero Repository Actions Secrets.
+
+R4C supersedes only that historical runner identity. Build `32890808627` attempt 2, Compatibility
+`32890808601` attempt 2 (11/11) and Security `32890829062` attempt 2 passed on
+`postgres-bulk-ci-01`; the joint privacy scan found zero old runner name, old hostname or personal
+owner-path occurrence, and post-CI Testcontainers residue remained zero.
 
 That audit also found an empty, credential-free `~/.m2/settings.xml` created by `setup-java` despite
 `overwrite-settings: false`. It was removed, and the workflows/gate now require `settings-path`

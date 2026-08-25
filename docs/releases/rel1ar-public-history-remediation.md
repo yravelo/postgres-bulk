@@ -4,6 +4,17 @@ Audit date: 2026-08-25
 Repository: `yravelo/postgres-bulk` (`PRIVATE`)  
 Decision: **OPEN-SOURCE ACTIVATION NO-GO**
 
+## REL1-A-R R4C remediation addendum
+
+R4C is `DONE` under the exact hostname-change and runner-re-registration authorizations. Active OS
+hostname and runner display identity are now `postgres-bulk-ci-01`; the repository-level scope,
+dedicated labels, non-root account and trust guards are unchanged. Fresh Build passed,
+Compatibility passed 11/11 and Security passed; 13/13 jobs and all new bootstrap logs are neutral.
+
+Historical job metadata remains a separate `OWNER DECISION REQUIRED` blocker: 270 jobs across 58
+runs retain `<OLD_RUNNER_NAME_REDACTED>`. Six synthetic PR refs also remain pending. See
+[R4C runner identity remediation](rel1ar-runner-identity-remediation.md).
+
 ## REL1-A-R R3 remediation addendum
 
 R3 is `DONE` under `AUTHORIZE_ACTIONS_LOG_DELETION`. An exact 196-run inventory classified 58 runs
@@ -251,7 +262,8 @@ closure commit is revalidated separately in the task handoff.
 
 ## 37. Runner identity blocker
 
-`PENDING`.
+`REMEDIATED BY R4C` for active host/runner identity and new CI evidence. Historical job metadata is
+tracked separately and remains pending.
 
 ## 38. Files created/modified
 
@@ -285,8 +297,7 @@ items are intentionally outside this authorization and continue to block open-so
 ## 41. Remaining blockers
 
 - GitHub-managed PR refs cleanup.
-- Neutral runner/host identity, explicit treatment of retained historical job metadata and fresh
-  validation after that separate change.
+- Owner decision on retained historical job metadata; no run deletion is authorized.
 
 ## 42. Final open-source activation verdict
 
@@ -296,14 +307,8 @@ OPEN-SOURCE ACTIVATION NO-GO
 
 ## 43. Exact next action
 
-R3 completed the separately authorized log cleanup. Prepare the runner-neutralization plan and
-request the separate authorization:
-
-```text
-AUTHORIZE_RUNNER_REREGISTRATION
-```
-
-Do not mutate the runner automatically.
+Prepare a read-only remediation plan for historical job metadata and GitHub synthetic
+`refs/pull/*`. Do not delete runs or contact GitHub Support automatically.
 
 ## Boundary statement
 
@@ -316,7 +321,7 @@ history rewrite completed: yes
 force push performed: yes
 PR synthetic refs clean: no
 Actions personal identity logs: REMEDIATED
-runner identity neutralized: no
+runner identity neutralized: yes
 full-history secrets: PASS
 repository public: no
 REL1-B started: no

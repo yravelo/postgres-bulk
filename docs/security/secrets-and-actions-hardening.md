@@ -153,6 +153,12 @@ secrets. Falla cerrado y no usa `continue-on-error`.
 
 ## Configuración remota auditada
 
+REL1-A-R R4C re-registró oficialmente el runner repository-level con display name y hostname
+neutrales `postgres-bulk-ci-01`. El selector dedicado no cambió: GitHub reporta `self-hosted`,
+`Linux`, `X64`, `postgres-bulk-ci`, mientras YAML conserva sus equivalentes lowercase. Los 13 jobs
+nuevos de Build, Compatibility y Security usaron la identidad neutral, 0 repository secrets y
+`persist-credentials: false`; no se añadió ningún acoplamiento al display name.
+
 La auditoría read-only del 2026-08-24 confirmó: repositorio privado, default branch `main`, Actions
 habilitadas, `allowed_actions: all`, `sha_pinning_required: false`, default workflow permissions
 read, incapacidad del token para aprobar reviews y cero nombres de Repository Actions Secrets. La
