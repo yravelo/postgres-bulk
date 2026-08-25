@@ -27,6 +27,12 @@ Remote closure: Build `32850719665` PASS, Compatibility `32850719735` 11/11 PASS
 
 **Status:** `NOT STARTED`.
 
+REL1-MIG0 completed its read-only feasibility analysis on 2026-08-26 and recommends replacing the
+current private repository with a clean private repository at the same final URL. MIG1 has not
+started: rename and new-repository creation each require the explicit owner authorizations named in
+the [MIG0 report](../releases/rel1-mig0-clean-repository-migration-feasibility.md). Archive deletion
+is a much later, separately gated operation.
+
 Entry criteria:
 
 - REL0 is `DONE`;
@@ -66,5 +72,6 @@ attempting to replace immutable components.
 
 ## Current handoff
 
-REL0 remains `DONE`. EP-01 is `PASS`, so the readiness decision is **READY FOR REL1**. EP-02 and
-EP-03 remain `PENDING` REL2 prerequisites. REL1 is not started and no downstream phase is active.
+REL0 remains `DONE`. EP-01 is `PASS`, so the readiness decision is **READY FOR REL1**. REL1-MIG0 is
+`DONE` in read-only/plan-only mode with `MIGRATION RECOMMENDED`; MIG1 and REL1-B are not started.
+EP-02 and EP-03 remain `PENDING` REL2 prerequisites. No downstream phase is active.
