@@ -498,32 +498,44 @@ GitHub logs without storing sensitive excerpts.
 
 ### 75. Local security/preflight validation
 
-`PENDING` at report creation. Closure must record `check-security.sh full`, technical release
-preflight and REL1 preflight as `PASS`, plus documentation/link validation.
+`PASS`. Documentation/link validation checked 226 relative targets. `check-security.sh full`
+passed policy, fixtures, current/full-history Gitleaks, 138/138 OSV inventory with zero blockers,
+reactor/Testcontainers, SAST, SBOM/license, OpenPGP-public-key and runner-health gates. The technical
+release preflight and REL1 preflight both passed on synchronized private `main`. The corrected
+report also passed `check-security.sh fast` after redacting exact exposure values.
 
 ### 76. Remote Build
 
-`PENDING` for the report/cleanup state. Baseline `4652c7a` previously passed run `32864144166`.
+`PASS` for `b83e5c0037eca9e28e0325abc62a39471e8a3b20`, run
+[`32871784539`](https://github.com/yravelo/postgres-bulk/actions/runs/32871784539). An earlier report
+run `32871560008` correctly failed because the draft repeated the exact private path; the value was
+redacted and the gate passed on the corrected state.
 
 ### 77. Remote Compatibility
 
-`PENDING` for the report/cleanup state. Baseline `4652c7a` previously passed all 11 jobs in run
-`32864142986`.
+`PASS`, all 11/11 jobs for `b83e5c0037eca9e28e0325abc62a39471e8a3b20`, run
+[`32871784542`](https://github.com/yravelo/postgres-bulk/actions/runs/32871784542).
 
 ### 78. Remote Security
 
-`PENDING` for the report/cleanup state. Baseline `4652c7a` previously passed run `32864172565`.
+`PASS` for `b83e5c0037eca9e28e0325abc62a39471e8a3b20`, manually dispatched run
+[`32873968105`](https://github.com/yravelo/postgres-bulk/actions/runs/32873968105). No Benchmarks or
+Release workflow was dispatched.
 
 ### 79. Git commits
 
 - `82ee79a docs(security): refresh verified reporting guidance`
-- Report and remote-evidence closure commits: `PENDING` until closure.
+- `3dedc05 docs(release): record REL1-A exposure audit`
+- `b83e5c0 docs(release): redact REL1-A exposure evidence`
+- Remote-evidence closure: the commit containing this final evidence update.
 
 No rewrite or force-push commit was made.
 
 ### 80. Final Git state
 
-`PENDING` until remote closure. Required: clean worktree, `HEAD == origin/main`, repository private.
+The validated `b83e5c0` state was clean, synchronized with `origin/main` and private. The
+evidence-only closure commit must end in the same clean/synchronized/private state and receives the
+normal remote Build/Compatibility checks plus a manually dispatched Security check.
 
 ### 81. Remote actions performed
 
@@ -543,9 +555,9 @@ REL1-B started: no
 
 ### 82. Definition of Done assessment
 
-The exhaustive audit scope and report are complete. Local/remote validation and synchronization are
-pending at report creation. Activation remains intentionally blocked; findings do not make the audit
-itself incomplete.
+`PASS` for REL1-A audit completion: the exhaustive scope, report, local validation and remote
+Build/Compatibility/Security evidence are complete. Activation remains intentionally blocked;
+findings do not make the audit itself incomplete.
 
 ### 83. Final open-source activation verdict
 
