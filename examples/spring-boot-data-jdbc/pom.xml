@@ -24,7 +24,7 @@
     <postgresql.version>42.7.13</postgresql.version>
     <postgres.version>15.18-alpine</postgres.version>
     <testcontainers.version>2.0.5</testcontainers.version>
-    <google-java-format.version>1.28.0</google-java-format.version>
+    <google-java-format.version>1.30.0</google-java-format.version>
     <spotless-maven-plugin.version>3.10.0</spotless-maven-plugin.version>
     <maven.deploy.skip>true</maven.deploy.skip>
     <maven.install.skip>true</maven.install.skip>

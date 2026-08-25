@@ -47,6 +47,7 @@ updates:
       - dependency-name: "*"
         update-types:
           - version-update:semver-major
+      - dependency-name: com.diffplug.spotless:spotless-maven-plugin
 
   - package-ecosystem: maven
     directory: /examples/spring-boot-data-jdbc
@@ -60,6 +61,7 @@ updates:
       - dependency-name: "*"
         update-types:
           - version-update:semver-major
+      - dependency-name: com.diffplug.spotless:spotless-maven-plugin
 
   - package-ecosystem: maven
     directory: /verification/spring-boot-jdbc-consumer
