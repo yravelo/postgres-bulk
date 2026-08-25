@@ -23,7 +23,7 @@
     <postgres-bulk.version>${revision}</postgres-bulk.version>
     <postgresql.version>42.7.13</postgresql.version>
     <testcontainers.version>2.0.5</testcontainers.version>
-    <google-java-format.version>1.30.0</google-java-format.version>
+    <google-java-format.version>1.28.0</google-java-format.version>
     <spotless-maven-plugin.version>3.10.0</spotless-maven-plugin.version>
     <maven.deploy.skip>true</maven.deploy.skip>
     <maven.install.skip>true</maven.install.skip>
@@ -101,6 +101,16 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>google-java-format-java-25</id>
+      <activation>
+        <jdk>[25,26)</jdk>
+      </activation>
+      <properties>
+        <google-java-format.version>1.30.0</google-java-format.version>
+      </properties>
+    </profile>
+
     <profile>
       <id>staged</id>
       <activation>
