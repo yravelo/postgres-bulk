@@ -17,26 +17,24 @@ an advisory explicitly states a transition period. Multiple maintenance branches
 
 ## Reporting a vulnerability
 
-**Private reporting status: PENDING OWNER ACTION.** The repository is private, GitHub Private
-Vulnerability Reporting is unavailable in this configuration, and no dedicated security email or
-other external private channel has been approved and tested. Do not send vulnerability details to
-the Git commit email, open a GitHub Issue, start a public Discussion, or post them in another public
-forum. The first supported release is blocked until a real channel passes a delivery, reply and
-recovery test.
+Report vulnerabilities privately to **postgresbulk-security@proton.me**. This Proton Mail channel
+is controlled exclusively by the project owner and was verified on 2026-08-25: MFA and recovery
+are configured, external delivery passed, and a reply from the security account was received by
+the external tester. Only this sanitized result is public; authentication and message metadata are
+not retained in the repository.
 
-The temporary fallback is intentionally limited: a person who already has an independently
-established private relationship with the owner may request agreement on a secure transfer method
-without including vulnerability details in that first contact. This is not a general public intake
-channel and does not make the current reporting status configured.
+Do not send vulnerability details to the Git commit email, open a GitHub Issue, start a public
+Discussion, or post them in another public forum. Use the address above for initial intake. If a
+report requires live secrets, private data or other unusually sensitive evidence, first send a
+minimal description and agree on a safer transfer method.
 
 When the repository becomes public, REL1 must reevaluate and preferably enable GitHub Private
-Vulnerability Reporting. A tested, owner-approved security mailbox may remain as fallback. This
-file will then name the exact active channel and remove this pending notice.
+Vulnerability Reporting, test it from an independent account and retain this verified mailbox as a
+fallback. PVR is not enabled while the repository remains private.
 
 ## What a private report should include
 
-Once a channel is configured, include only the information needed to reproduce and assess the
-report:
+When reporting, include only the information needed to reproduce and assess the report:
 
 - affected released version or exact commit;
 - affected module and Maven coordinate;

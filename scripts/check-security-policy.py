@@ -218,13 +218,35 @@ def audit_preflight(policy: dict[str, Any], preflight: str | None) -> None:
     if preflight is None:
         return
     channel = policy["reporting_channel"]
+    if channel["status"] == "CONFIGURED":
+        required_text = ("provider", "public_address", "verified_on")
+        if not all(channel.get(field) for field in required_text):
+            raise ValueError("configured private reporting channel lacks public evidence")
+        parse_iso(channel["verified_on"], "reporting_channel.verified_on")
+        required_true = (
+            "owner_control_verified",
+            "mfa_enabled",
+            "recovery_configured",
+        )
+        if not all(channel.get(field) is True for field in required_true):
+            raise ValueError("configured private reporting channel lacks control/recovery evidence")
+        if channel.get("delivery_test") != "PASS" or channel.get("reply_round_trip") != "PASS":
+            raise ValueError("configured private reporting channel lacks delivery/reply evidence")
+    elif channel["status"] != "PENDING":
+        raise ValueError(f"invalid private reporting channel status: {channel['status']}")
     if preflight == "technical":
         if channel["blocks_technical_security_work"] or channel["blocks_rel0"]:
             raise ValueError("reporting-channel policy unexpectedly blocks technical/REL0 work")
-        print("Technical security preflight: PASS (private reporting channel remains PENDING)")
+        print(
+            "Technical security preflight: PASS "
+            f"(private reporting channel is {channel['status']})"
+        )
         return
     if channel["status"] != "CONFIGURED" or channel["blocks_rel1"]:
-        raise ValueError("REL1 preflight blocked: private vulnerability reporting channel is PENDING")
+        raise ValueError(
+            "REL1 preflight blocked: private vulnerability reporting channel is "
+            f"{channel['status']}"
+        )
     print("REL1 security preflight: PASS")
 
 

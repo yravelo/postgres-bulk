@@ -4,10 +4,18 @@
   "reviewed_on": "2026-08-25",
   "review_warning_days": 30,
   "reporting_channel": {
-    "status": "PENDING",
+    "status": "CONFIGURED",
+    "provider": "Proton Mail",
+    "public_address": "postgresbulk-security@proton.me",
+    "verified_on": "2026-08-25",
+    "owner_control_verified": true,
+    "mfa_enabled": true,
+    "recovery_configured": true,
+    "delivery_test": "PASS",
+    "reply_round_trip": "PASS",
     "blocks_technical_security_work": false,
     "blocks_rel0": false,
-    "blocks_rel1": true
+    "blocks_rel1": false
   },
   "workflows": {
     "build.yml": ["push", "pull_request"],

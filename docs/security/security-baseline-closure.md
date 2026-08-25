@@ -2,8 +2,9 @@
 
 **SEC8 verdict:** `DONE` on 2026-08-25 after local adversarial closure and final remote
 Build, Compatibility and Security validation. The Security & Supply Chain technical roadmap is
-`COMPLETE`; this does not mean every phase is formally complete. SEC6 remains `PARTIALLY DONE`
-because the private vulnerability reporting channel is an external `PENDING` prerequisite.
+`COMPLETE`. EP-01 subsequently closed on 2026-08-25 with an owner-authorized, externally tested
+private reporting channel, so SEC6 and the full SEC0–SEC8 roadmap are now `DONE` without reopening
+the SEC8 technical audit.
 
 The repository remains private. This closure does not authorize REL0, REL1, a tag, a Release
 workflow run, OpenPGP use with the real private key, Central upload or publication.
@@ -23,7 +24,7 @@ workflow run, OpenPGP use with the real private key, Central upload or publicati
 | Artifact reproducibility | source/binary mismatch | two clean release builds and semantic SBOM compare | byte-identical primary artifacts and semantic SBOM equality | inventory drift and unexpected artifacts fail | candidate/local release preparation | mandatory evidence | build environment remains part of trust boundary |
 | Signing/inventory | tamper, wrong signer or leaked non-product artifact | source-bound manifest, SHA-256 and detached OpenPGP verifier | ephemeral valid signed fixture and historical real candidate evidence | missing/wrong/tampered signature, content/checksum, version/tag/commit and leakage fail | candidate fixtures; owner workstation for real key | mandatory before authorized upload | real private key remains external/offline-controlled |
 | Continuous operation | stale successful result or unhealthy runner | fast/full/release orchestration and weekly Security workflow | local full and manual Security PASS | scanner checksum, keyserver required-mode, policy expiry and runner failures stay non-PASS | weekly/manual Security | freshness required | a health PASS does not prove absence of compromise |
-| Release boundary | accidental tag/upload/publication or missing reporting channel | candidate-only workflow and separate technical/REL1 preflights | technical preflight PASS | dirty/wrong HEAD fail; REL1 fails while channel pending | candidate and local activation review | fail-closed activation boundary | sole owner remains authorization authority |
+| Release boundary | accidental tag/upload/publication or missing reporting channel | candidate-only workflow and separate technical/REL1 preflights | technical and REL1 preflights PASS after verified channel closure | dirty/wrong HEAD or reporting-state regression fail | candidate and local activation review | fail-closed activation boundary | sole owner remains authorization authority |
 
 ## SEC0 threat reconciliation and coverage matrix
 
@@ -68,8 +69,10 @@ response coverage; none is left unclassified.
 - Signing fixtures use only ephemeral keys and reject missing signature, wrong signer, tampered
   content, tampered signature, wrong checksum, unexpected artifact/evidence, SNAPSHOT, benchmark,
   wrong release version, planned tag and source commit.
-- Technical-preflight fixtures reject dirty and local-only Git state. A synthetic `CONFIGURED`
-  reporting policy removes that one REL1 blocker without changing the real `PENDING` state.
+- Technical-preflight fixtures reject dirty and local-only Git state. Reporting-policy fixtures
+  prove that `PENDING` fails closed and `CONFIGURED` clears only the REL1 entry blocker; the real
+  configured evidence is separately checked for provider, address, date, control, MFA, recovery,
+  delivery and reply-round-trip integrity.
 - Operational fixtures corrupt a scanner download and force a required keyserver connection
   failure; neither can become PASS.
 
@@ -108,10 +111,10 @@ validity. Remote retrieval is availability evidence; the tracked complete export
 authority. No real private-key operation is performed by SEC8. Historical SEC5 signed-candidate
 evidence remains valid; SEC8 revalidates its verifier adversarially with ephemeral keys.
 
-The technical preflight permits the external reporting prerequisite to remain pending but requires
-a clean tree and `HEAD == origin/main`. The REL1 preflight deliberately fails in the real state.
-Release remains `workflow_dispatch` candidate-only, secret-free and `autoPublish=false`; no
-workflow or audited script creates/pushes a tag, performs Central upload or publishes.
+The technical preflight requires a clean tree and `HEAD == origin/main`. The REL1 preflight now
+passes with the verified channel and remains fail-closed against a policy regression. Release
+remains `workflow_dispatch` candidate-only, secret-free and `autoPublish=false`; no workflow or
+audited script creates/pushes a tag, performs Central upload or publishes.
 
 ## Runner and operational resilience
 
@@ -127,11 +130,12 @@ remains authoritative.
 
 | ID | State | Blocks | Required owner action |
 | --- | --- | --- | --- |
-| EP-01 private reporting channel | `PENDING` | REL1, supported public release | approve channel; benign inbound/reply/access/recovery test; update `SECURITY.md` |
+| EP-01 private reporting channel | `PASS` | none | Proton Mail channel verified 2026-08-25: owner control, MFA, recovery, inbound and reply round-trip PASS |
 | EP-02 offline OpenPGP recovery | `PENDING` | tag, Central upload, publication | verify separate protected backup and revocation recovery |
 | EP-03 Central Portal token | `MISSING` | Central upload | create a named token only after separate authorization |
 
-These are external activation steps, not failures of the SEC8 technical baseline.
+EP-02 and EP-03 remain external REL2 activation steps, not failures of the SEC8 technical baseline.
+EP-01 is retained in the inventory as resolved evidence.
 
 ## Residual risk and security-debt register
 
@@ -173,28 +177,25 @@ rather than changing architecture or publication identity.
 
 ## REL0 private handoff
 
-REL0 may evaluate final private release readiness, API/docs/examples, candidate staging and the
-technical security preflight. It must not silently satisfy EP-01/EP-02/EP-03, create a tag, run
-Release, upload or publish. SEC8 does not start REL0.
+REL0 completed final private release readiness before EP-01 closed. The later prerequisite update
+does not reopen REL0 and does not satisfy EP-02/EP-03, create a tag, run Release, upload or publish.
 
 ## REL1 open-source handoff
 
-Before REL1: configure/test the private channel; complete a full-history open-source privacy and
-license review; move public/fork PR CI to GitHub-hosted unprivileged infrastructure; enable/test
-PVR; reevaluate CodeQL, Dependency Review, Scorecard, rulesets and attestations; verify anonymous
-clone/docs/links; and rerun the REL1 preflight. The persistent personal runner must not execute
-external PR code.
+EP-01 is complete and the REL1 entry preflight can pass. REL1 itself must complete a full-history
+open-source privacy/license review, move public/fork PR CI to unprivileged infrastructure,
+enable/test PVR when available, reevaluate CodeQL, Dependency Review, Scorecard, rulesets and
+attestations, and verify anonymous clone/docs/links before visibility changes. The persistent
+personal runner must not execute external PR code.
 
 ## Completion semantics
 
 ```text
 Security technical baseline: COMPLETE
-SEC0-SEC5: DONE
-SEC6: PARTIALLY DONE (external prerequisite)
-SEC7: DONE
-SEC8: DONE
-Open-source activation prerequisite: PENDING
+SEC0-SEC8: DONE
+EP-01 private reporting: PASS
+REL1 entry gate: READY
 ```
 
-The next recommended phase is `REL0 — Final Release Readiness`, but this document does not initiate
-it or authorize any external release action.
+The next recommended phase is `REL1 — Open Source Repository Activation`, but this document does
+not initiate it or authorize any visibility or release action.

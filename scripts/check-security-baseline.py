@@ -72,16 +72,46 @@ def audit_policy(policy: dict[str, Any]) -> None:
         raise ValueError("scanner gap review is incomplete")
 
 
-def audit_external_boundary(policy: dict[str, Any]) -> None:
-    continuous = load(ROOT / "config/security/continuous-security-policy.json")
+def audit_external_boundary(
+    policy: dict[str, Any], continuous: dict[str, Any] | None = None
+) -> None:
+    if continuous is None:
+        continuous = load(ROOT / "config/security/continuous-security-policy.json")
     channel = continuous["reporting_channel"]
     prerequisite = next(item for item in policy["external_prerequisites"] if item["id"] == "EP-01")
-    if channel["status"] != "PENDING" or prerequisite["status"] != "PENDING":
+    if channel["status"] == "PENDING" and prerequisite["status"] == "PENDING":
+        if (
+            channel["blocks_technical_security_work"]
+            or channel["blocks_rel0"]
+            or not channel["blocks_rel1"]
+            or "REL1" not in prerequisite["blocks"]
+        ):
+            raise ValueError("pending private reporting channel blocking semantics drift")
+        return
+    if channel["status"] != "CONFIGURED" or prerequisite["status"] != "PASS":
         raise ValueError("private reporting channel state drift")
-    if channel["blocks_technical_security_work"] or channel["blocks_rel0"] or not channel["blocks_rel1"]:
-        raise ValueError("private reporting channel blocking semantics drift")
-    if "REL1" not in prerequisite["blocks"]:
-        raise ValueError("private reporting prerequisite must block REL1")
+    if (
+        channel["blocks_technical_security_work"]
+        or channel["blocks_rel0"]
+        or channel["blocks_rel1"]
+        or prerequisite["blocks"]
+    ):
+        raise ValueError("configured private reporting channel blocking semantics drift")
+    expected_evidence = {
+        "provider": "Proton Mail",
+        "public_address": "postgresbulk-security@proton.me",
+        "verified_on": "2026-08-25",
+        "owner_control_verified": True,
+        "mfa_enabled": True,
+        "recovery_configured": True,
+        "delivery_test": "PASS",
+        "reply_round_trip": "PASS",
+    }
+    for field, expected in expected_evidence.items():
+        if channel.get(field) != expected:
+            raise ValueError(f"configured private reporting evidence drift: {field}")
+    if prerequisite.get("resolved_on") != channel["verified_on"]:
+        raise ValueError("private reporting resolution date drift")
 
 
 def audit_namespaces_and_publication() -> None:

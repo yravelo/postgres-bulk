@@ -1,6 +1,6 @@
 # Criterios de aceptación de la primera release pública
 
-Estado auditado para el candidato `0.1.0` tras SEC5. Cada criterio usa exclusivamente `PASS`,
+Estado auditado para el candidato `0.1.0` tras el cierre de EP-01. Cada criterio usa exclusivamente `PASS`,
 `BLOCKED`, `EXTERNAL PREREQUISITE` o `DEFERRED (non-blocking)`.
 
 ## Funcionalidad
@@ -100,8 +100,8 @@ Estado auditado para el candidato `0.1.0` tras SEC5. Cada criterio usa exclusiva
   publicables/no publicables, expiries y fingerprint OpenPGP; drift o caducidad falla cerrado.
 - **PASS** — Security tiene schedule semanal UTC y dispatch manual sobre el runner confiable, con
   `contents: read`, cero secrets, full history, timeout y concurrencia explícitos.
-- **PASS** — El preflight técnico admite el canal privado `PENDING`; el preflight REL1 lo bloquea
-  de forma separada hasta que sea aprobado y probado.
+- **PASS** — Los preflights técnico y REL1 pasan con el canal privado configurado; una regresión de
+  su estado vuelve a bloquear REL1.
 - **PASS** — SEC7 cierra sobre `0533866b04b4d89ea9199473dd5abf2cceb852c0`: Build
   `32828408419`, Compatibility `32828408347` 11/11 y Security manual `32828466698` pasan sin retry
   ni gate debilitado.
@@ -112,11 +112,11 @@ Estado auditado para el candidato `0.1.0` tras SEC5. Cada criterio usa exclusiva
   source commit/tag/version incorrectos y preflight Git dirty/divergente.
 - **PASS** — El registro canónico clasifica prerequisites y riesgos residuales con owner, review y
   `blocks what`; no hay blocker interno de la baseline técnica.
-- **PASS** — `Security technical baseline: COMPLETE` y SEC8 `DONE` no alteran SEC6: el canal privado
-  continúa como `EXTERNAL PREREQUISITE`, `PENDING` y blocker de REL1.
+- **PASS** — `Security technical baseline: COMPLETE`, SEC0–SEC8 `DONE` y EP-01 `PASS`; el canal
+  Proton Mail fue verificado con control/MFA/recovery y delivery/reply round-trip.
 - **PASS** — `CHANGELOG.md`, release notes y política SemVer `0.x` existen.
-- **BLOCKED** — No existe todavía un canal privado externo aprobado y probado; `SECURITY.md` lo
-  declara `PENDING OWNER ACTION` y prohíbe inventar el email Git o usar Issues.
+- **PASS** — `postgresbulk-security@proton.me` es el canal privado aprobado; `SECURITY.md` prohíbe
+  usar Issues y registra sólo evidencia sanitizada de la verificación del 2026-08-25.
 - **DEFERRED (non-blocking como feature)** — GitHub Private Vulnerability Reporting requiere que el
   repository sea público; REL1 reevaluará/activará PVR y probará notifications/intake.
 - **DEFERRED (non-blocking)** — Branch protection/rules requiere GitHub Pro o hacer público el
@@ -151,8 +151,8 @@ Estado auditado para el candidato `0.1.0` tras SEC5. Cada criterio usa exclusiva
   self-hosted `32774191694` pasó todos los gates y Compatibility `32774191674` pasó 11/11. El runner
   es repository-scoped, non-root y usa labels dedicadas; PRs fork/no confiables no se ejecutan
   automáticamente. No se ejecutaron Benchmarks ni Release.
-- **EXTERNAL PREREQUISITE** — Configurar/probar el canal privado; sólo después crear `v0.1.0` y
-  autorizar por separado tag, upload y publicación.
+- **PASS** — EP-01 está resuelto y el gate de entrada REL1 puede pasar. Tag, upload y publicación
+  siguen separados y dependen de REL2, EP-02/EP-03 y autorización posterior.
 - **PASS** — Release es candidate-only, `workflow_dispatch` desde `main` por `yravelo`; exige stable
   SemVer, full SHA perteneciente a `origin/main` y confirmación literal.
 - **PASS** — El workflow no contiene job/input de upload ni referencias `secrets.*`; todas las
@@ -163,10 +163,7 @@ Estado auditado para el candidato `0.1.0` tras SEC5. Cada criterio usa exclusiva
 
 ## Veredicto
 
-SEC5 está cerrado con identidad OpenPGP y signed dry-run verificable. SEC6 implementa policy,
-runbook, governance, CODEOWNERS/checklist y handoff PVR, pero queda `PARTIALLY DONE` porque falta un
-canal privado externo aprobado y probado. SEC7 queda `DONE` con validación continua, drift,
-expiries, salud del runner y preflights separados; su cierre remoto no autoriza REL1. SEC8 completa
-la baseline técnica, pero la release pública aún no está autorizada: además falta verificar el
-backup offline, generar el Portal token, crear el tag exacto y autorizar upload/publicación. No se
-requieren Repository Secrets y REL0 no se inicia.
+SEC0–SEC8 están `DONE`, la baseline técnica está `COMPLETE` y EP-01 está `PASS`. El candidato queda
+`READY FOR REL1`, no ready for publication. La release pública aún no está autorizada: REL1 no se
+ha iniciado, y para REL2 falta verificar el backup offline, generar el Portal token, crear el tag
+exacto y autorizar upload/publicación. No se requieren Repository Secrets.

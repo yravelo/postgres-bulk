@@ -2,11 +2,10 @@
 
 ## Verdict
 
-The final project identity, private GitHub repository, Central namespace and local OpenPGP release
-identity are approved. SEC5 signed dry-run and verification are PASS, but `0.1.0` is **not ready for
-public publication**: offline key-backup verification, the Portal token, tag, upload and Portal
-publication remain intentionally withheld, and SEC6 has no approved/tested external private
-reporting channel. No Release or benchmark workflow ran.
+The project is **READY FOR REL1**, not ready for public publication. Identity, the private GitHub
+repository, Central namespace, local OpenPGP release identity and EP-01 private reporting are
+approved. Offline key-backup verification, the Portal token, REL1 activation, tag, upload and
+Portal publication remain intentionally withheld. No Release or benchmark workflow ran.
 
 ## Final identity
 
@@ -73,7 +72,7 @@ session data or token is stored. The real Portal user token has not been generat
 
 | Control | Status |
 | --- | --- |
-| Current private vulnerability channel | PENDING — non-blocking for SEC7/SEC8/REL0; blocks REL1 and a supported release |
+| Current private vulnerability channel | PASS — `postgresbulk-security@proton.me`; Proton Mail; owner control/MFA/recovery and external delivery/reply verified 2026-08-25 |
 | GitHub Private Vulnerability Reporting | DEFERRED (non-blocking as a feature) — public-repository feature; current private API returns 404 |
 | Vulnerability/incident governance | PASS — supported versions, triage, severity, GHSA/CVE/disclosure, compromise runbook and templates implemented |
 | OSV dependency gate | PASS — 2.5.1 checksum-pinned; 138/138 exact package versions, zero BLOCK |
@@ -126,9 +125,8 @@ or coverage. For `fbb1105c83c3a75312604ae6c9bb5f14b74a782c`, Build `32774191694`
 reactor, SBOM/license, consumer and documentation steps on the dedicated runner; Compatibility
 `32774191674` passed all 11 lanes. The earlier pre-step billing rejections remain historical
 evidence, not an open SEC4 blocker. Benchmarks and Release were not executed. SEC4 and SEC5 are
-`DONE`; SEC6 policy/governance is implemented but remains `PARTIALLY DONE` until its private
-reporting channel is configured and tested. SEC7 continuous validation is implemented; its channel
-exception is explicitly non-blocking for technical closure and blocking for REL1.
+`DONE`; SEC6 is also `DONE` after its private reporting channel was configured and tested. SEC7
+continuous validation remains unchanged; the former channel exception is closed.
 
 SEC2 adds a fail-closed dependency gate to Build and the release candidate before any future
 upload. The applicable pgJDBC HIGH finding on 42.7.11 was remediated by selecting supported
@@ -158,11 +156,10 @@ full-history/fresh validation on the trusted runner. Local full validation also 
 138/138, zero vulnerability BLOCK, seven clean SAST reports, nine SBOMs plus aggregate, zero
 license BLOCK, valid OpenPGP public identity and no new Testcontainers residue.
 
-The technical release preflight passes for clean synchronized `main` while the REL1 preflight
-fails closed because the reporting channel is still `PENDING`. This closes SEC7 without changing
-SEC6 from `PARTIALLY DONE` and without authorizing a release, tag, signing, upload or publication.
-SEC8 subsequently completed the integrated technical baseline audit without changing the SEC6
-reporting-channel state.
+The technical release preflight passes for clean synchronized `main`. SEC7 originally verified
+that REL1 failed closed while reporting was pending; after the independent EP-01 closure, the real
+REL1 preflight passes. Neither event authorizes a release, tag, signing, upload or publication.
+SEC8 remains the completed integrated technical baseline audit.
 
 ## SEC8 security baseline technical closure
 
@@ -171,12 +168,12 @@ adds a machine-readable prerequisite/residual-risk registry, verifies preventive
 coverage and expands negative fixtures for secret detection, workflow/runner bypass, OSV scope and
 outage, SAST reports, SBOM/licenses, signed inventory source/tag binding and Git preflight state.
 Two clean artifact builds and two semantic SBOM generations remain the release reproducibility
-gate. The technical release preflight passes on clean synchronized `main`; the REL1 preflight
-continues to fail as expected while the private reporting channel is `PENDING`.
+gate. The technical release preflight passes on clean synchronized `main`; the REL1 preflight also
+passes after the verified reporting-channel closure.
 
-This technical closure does not make `0.1.0` publicly ready. SEC6 remains `PARTIALLY DONE`; offline
-OpenPGP recovery verification, the reporting channel and a separately authorized Central token,
-tag, upload and publication remain external activation work. See
+This technical closure does not make `0.1.0` publicly ready. SEC6 is `DONE`; offline OpenPGP
+recovery verification and a separately authorized Central token, tag, upload and publication
+remain REL2 activation work. See
 [security baseline technical closure](../security/security-baseline-closure.md). REL0 subsequently
 performs the private readiness decision without activating REL1.
 
@@ -184,11 +181,11 @@ performs the private readiness decision without activating REL1.
 
 The canonical [REL0 final release-readiness audit](rel0-final-release-readiness.md) reconciles the
 complete product, public API, documentation, security baseline, candidate structure,
-reproducibility, Central requirements and external prerequisites. Its technical decision is
-**TECHNICALLY READY — REL1 BLOCKED BY EXTERNAL PREREQUISITE**.
+reproducibility, Central requirements and external prerequisites. REL0 remains `DONE`; its updated
+entry decision after EP-01 closure is **READY FOR REL1**.
 
-EP-01 private reporting remains `PENDING` and blocks REL1. EP-02 offline OpenPGP recovery and EP-03
-Central token remain REL2 prerequisites and are not REL1 blockers. REL0 changes no repository
+EP-01 private reporting is `PASS`. EP-02 offline OpenPGP recovery and EP-03 Central token remain
+`PENDING` REL2 prerequisites and are not REL1 blockers. REL0 changes no repository
 visibility, creates no tag and performs no upload or publication. The phased activation sequence is
 defined in the [release roadmap](../plans/release-roadmap.md).
 
@@ -304,27 +301,25 @@ ownership, Dependabot/public-PR boundaries and incident procedures are documente
 preparatory and does not claim enforcement; read-only APIs still return 403 for rulesets/protection.
 Issues show explicit guidance not to disclose vulnerabilities publicly.
 
-The repository remains private and GitHub PVR/repository-advisory endpoints return 404. No security
-email was inferred from Git identity or invented. Until the owner approves a dedicated channel and
-passes benign inbound, reply, access and recovery tests, SEC6 remains `PARTIALLY DONE` and the first
-supported release/REL1 is blocked. SEC7, SEC8 and REL0 technical work may proceed. See
+The repository remains private and GitHub PVR/repository-advisory endpoints return 404. The owner
+approved `postgresbulk-security@proton.me`; benign inbound, reply, exclusive access, MFA and
+recovery verification passed on 2026-08-25. SEC6 is `DONE` and EP-01 no longer blocks REL1. See
 [vulnerability response and governance](../security/vulnerability-response-and-governance.md) and
 the [incident response runbook](../security/incident-response-runbook.md).
 
 ## Remaining activation sequence
 
-1. Copy the protected key backup and revocation material to separate offline media and verify
+1. Execute REL1 separately: public-readiness/privacy audit, untrusted-PR CI isolation, public
+   metadata review and PVR reevaluation before any visibility change.
+2. Copy the protected key backup and revocation material to separate offline media and verify
    recovery; never place them on a runner or in Actions secrets.
-2. Generate a Portal user token only when a local upload is separately authorized.
-3. Approve a private vulnerability channel, verify inbound delivery/reply/owner access/recovery,
-   publish the exact route in `SECURITY.md` and mark SEC6 DONE.
+3. Generate a Portal user token only when a local upload is separately authorized.
 4. Recheck an authorized candidate SHA from `main`, then create and push `v0.1.0` only with
    separate authorization and make it point to that exact SHA.
 5. Reproduce and verify the signed candidate locally; authorize Central upload and Portal
    publication separately. The candidate workflow does not upload.
 
-SEC7 adds a separate technical release preflight that can pass before step 3 and a REL1 preflight
-that must fail until step 3 is complete. See
+SEC7 keeps separate technical and REL1 preflights; both now pass, but neither initiates step 1. See
 [continuous security validation](../security/continuous-security-validation.md).
 
 No external action above is authorized by this document.

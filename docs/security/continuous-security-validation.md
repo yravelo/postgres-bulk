@@ -3,9 +3,9 @@
 **SEC7 status:** `DONE` on 2026-08-25. Implementation commit
 `0533866b04b4d89ea9199473dd5abf2cceb852c0` passed Build `32828408419`, all 11 Compatibility
 jobs in `32828408347` and manually dispatched Security `32828466698`. SEC6 remains
-`PARTIALLY DONE`: its private reporting
-channel is pending. That owner action does not block SEC7, SEC8 or technical `REL0` evaluation, but
-it continues to block `REL1` and any supported public release.
+`DONE`: the owner-authorized private reporting channel passed delivery, reply, control, MFA and
+recovery verification on 2026-08-25. This later prerequisite closure does not alter the historical
+SEC7 evidence or start `REL1`.
 
 ## Control model
 
@@ -140,10 +140,10 @@ keyserver result is availability evidence, never a replacement trust anchor.
 The release boundaries are intentionally separate:
 
 - `scripts/check-release-security-preflight.sh technical` requires policy/key PASS, a clean tree,
-  a successful `origin/main` fetch and `HEAD == origin/main`. The private reporting channel may be
-  pending.
-- `scripts/check-release-security-preflight.sh rel1` fails while that channel is pending. It is the
-  activation boundary for the first supported public release.
+  a successful `origin/main` fetch and `HEAD == origin/main`.
+- `scripts/check-release-security-preflight.sh rel1` requires the configured, verified reporting
+  channel and fails closed if that policy state regresses. It is the REL1 entry boundary, not
+  authorization to change visibility.
 
 Neither preflight imports a private key, asks for a passphrase, executes signing fixtures with real
 material, creates a tag, runs Release, uploads a Central bundle or publishes. Existing signing
@@ -158,7 +158,7 @@ From the repository root:
 ./scripts/check-security.sh full
 ./scripts/check-security.sh release
 ./scripts/check-release-security-preflight.sh technical
-./scripts/check-release-security-preflight.sh rel1  # expected BLOCK while channel is pending
+./scripts/check-release-security-preflight.sh rel1
 ```
 
 The target budget is under two minutes for `fast`, under 30 minutes for a warm `full` run and no
@@ -168,10 +168,9 @@ the failed gate/class without printing secrets, complete scanner JSON, private p
 
 ## Boundary and handoff
 
-SEC7 does not configure a private reporting address and does not mark SEC6 `DONE`. Repository
-visibility remains private. Benchmarks, Release, signing, tag creation, Central upload and
-publication remain unexecuted. After local and remote SEC7 gates are green, the next exact phase is
-`SEC8 — Security Baseline Technical Closure`; this document does not start it.
+SEC7 did not originally configure a private reporting address or mark SEC6 `DONE`; EP-01 later
+closed independently without reopening SEC7. Repository visibility remains private. Benchmarks,
+Release, signing, tag creation, Central upload and publication remain unexecuted.
 
 ## Closure evidence
 

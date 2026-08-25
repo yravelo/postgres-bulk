@@ -3,7 +3,7 @@
 Audit date: 2026-08-25  
 Audited product source: `cca6aa02c1d69f4a369296033dbf5eb66198769f`  
 Candidate version: `0.1.0`  
-Decision: **TECHNICALLY READY — REL1 BLOCKED BY EXTERNAL PREREQUISITE**
+Decision: **READY FOR REL1** after EP-01 closure on 2026-08-25
 
 ## Scope and boundary
 
@@ -26,12 +26,12 @@ validated again by the normal remote workflows.
 | Candidate structure | PASS | Local `0.1.0` staging contains 37 primary files and nine attached SBOMs; isolated JPA/JDBC consumers pass. |
 | Reproducibility | PASS | Primary release artifacts are byte-identical across two clean builds; SBOMs compare semantically. |
 | Central structural readiness | PASS | POM metadata, sources, Javadocs, checksums, SBOMs and manual-publication configuration are present. |
-| REL1 operational entry | BLOCKED | EP-01 private vulnerability reporting is `PENDING`; the fail-closed REL1 preflight must reject activation. |
+| REL1 operational entry | READY | EP-01 private vulnerability reporting is `PASS`; the real REL1 preflight passes. REL1 remains not started. |
 | REL2 operational entry | NOT EVALUATED | EP-02 offline OpenPGP recovery is `PENDING` and EP-03 Central token is `MISSING`; neither is a REL1 blocker. |
 
-REL0 may close technically with EP-01 pending, but the only valid verdict is **TECHNICALLY READY —
-REL1 BLOCKED BY EXTERNAL PREREQUISITE**. `READY FOR REL1` would misrepresent the fail-closed
-security policy.
+REL0 closed technically while EP-01 was pending. The owner later supplied complete channel
+evidence, so the prerequisite update changes the entry verdict to **READY FOR REL1** without
+reopening REL0 or starting REL1.
 
 ## Repository and identity
 
@@ -166,12 +166,12 @@ Official references:
 
 | ID | Prerequisite | State | Blocks | REL0 treatment |
 | --- | --- | --- | --- | --- |
-| EP-01 | Approved and tested private vulnerability reporting channel | `PENDING` | REL1 and a supported public release | Hard blocker; REL1 preflight must fail |
+| EP-01 | Approved and tested private vulnerability reporting channel | `PASS` | none | Proton Mail; owner control/MFA/recovery and external delivery/reply verified 2026-08-25 |
 | EP-02 | Offline OpenPGP backup/revocation recovery verification | `PENDING` | signed tag, Central upload and publication | REL2 prerequisite; not a REL1 blocker |
 | EP-03 | Nominal Central Publisher Portal token | `MISSING` | Central upload | REL2 prerequisite; not a REL1 blocker |
 
-All three remain owner-operated external actions. REL0 neither invents evidence nor weakens their
-guards.
+EP-01 is retained as resolved owner evidence. EP-02 and EP-03 remain owner-operated external
+actions; REL0 neither satisfies nor weakens their guards.
 
 ## Residual-risk review
 
@@ -184,10 +184,10 @@ silently deleted or reclassified by REL0.
 
 ## Release guards and preflights
 
-The technical release preflight is expected to pass only from clean synchronized `main`. The REL1
-preflight is expected to fail closed while EP-01 is `PENDING`. Release automation remains
-candidate-only, owner-dispatched, secret-free and unable to publish. `autoPublish=false` is a final
-defense, not authorization.
+The technical release preflight passes only from clean synchronized `main`. The REL1 preflight now
+passes because EP-01 is verified and would fail closed if that state regressed. Release automation
+remains candidate-only, owner-dispatched, secret-free and unable to publish. `autoPublish=false`
+is a final defense, not authorization.
 
 ## REL0 definition of done
 
@@ -213,16 +213,20 @@ REL0 but does not authorize crossing an activation boundary.
 ```text
 REL0 status: DONE
 technical release readiness: PASS
+technical release preflight: PASS
 Security technical baseline: COMPLETE
-SEC6 status: PARTIALLY DONE
-EP-01 private reporting: PENDING
+Security & Supply Chain roadmap: COMPLETE
+SEC6 status: DONE
+EP-01 private reporting: PASS
 EP-02 OpenPGP recovery: PENDING
 EP-03 Central token: PENDING
-REL1 preflight: EXPECTED_FAIL
+REL1 preflight: PASS
+REL1 entry gate: READY
 Build: PASS
 Compatibility: 11/11
 Security: PASS
 repository public: no
+GitHub PVR enabled: no
 tag created: no
 Central upload: no
 publication activated: no
@@ -235,7 +239,7 @@ Build and Compatibility gates plus a manually dispatched Security run.
 
 ## Next phase recommendation
 
-After REL0 remote closure, the only recommended next phase is **REL1 — Open Source Repository
-Activation**. It is not started. EP-01 must be configured and tested, the REL1 preflight must pass,
-and a fresh full-history privacy/public-readiness audit must succeed before repository visibility
-can change. EP-02 and EP-03 remain later REL2 prerequisites.
+After REL0 and EP-01 closure, the only recommended next phase is **REL1 — Open Source Repository
+Activation**. It is not started. A fresh full-history privacy/public-readiness audit and public-PR
+CI isolation must succeed inside REL1 before repository visibility can change. EP-02 and EP-03
+remain later REL2 prerequisites.

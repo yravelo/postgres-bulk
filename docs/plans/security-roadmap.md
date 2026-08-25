@@ -122,31 +122,32 @@ Reglas transversales:
 | Dependencies | SEC4 artifact/SBOM inventory |
 | Deferred | GitHub attestations/Scorecard until plan/public visibility supports them |
 
-## SEC6 — Vulnerability Response and Repository Governance — PARTIALLY DONE (2026-08-25)
+## SEC6 — Vulnerability Response and Repository Governance — DONE (2026-08-25)
 
 | Campo | Definición |
 | --- | --- |
 | Objective | create a real confidential reporting and coordinated response process |
 | Scope | supported versions, approved private channel, triage targets, GHSA/CVE/disclosure, maintainer access/MFA review, governance triggers |
 | Non-goals | invent/publicar un email, promise commercial SLA, change visibility/plan, enable PVR if unavailable |
-| Tools/cost | documentation/CODEOWNERS now; approved email alias or PVR still pending; €0 target |
+| Tools/cost | documentation/CODEOWNERS plus verified Proton Mail intake; €0 recurring project cost |
 | Affected | `SECURITY.md`, CONTRIBUTING, CODEOWNERS/issue guidance, release checklist, runbook and response templates |
 | Gates | supported release forbidden without tested private channel and owner; critical incidents stop release and rotate affected credentials |
-| Tests | end-to-end benign report drill, access/recovery test, advisory/patch tabletop without publication |
+| Tests | benign external delivery and reply round-trip PASS; exclusive control, MFA and recovery verified; advisory/patch tabletop without publication |
 | False positives | reporter evidence kept private; duplicate/invalid reports recorded without public disclosure |
 | Documentation | channel, scope, expectations, severity, credit/disclosure and EOL |
-| Acceptance | PARTIAL: policy/runbook/governance implemented; no contact invented; tested external private channel still missing and blocks release |
+| Acceptance | DONE: policy/runbook/governance implemented; owner-authorized channel published; delivery/reply/control/MFA/recovery PASS |
 | Risks | spam/privacy, lost mailbox/key, misleading response promise, single-maintainer availability |
-| Dependencies | SEC5 release model; owner approval for channel |
+| Dependencies | SEC5 release model; owner channel evidence completed 2026-08-25 |
 | Deferred | enforced CODEOWNER reviews/rulesets until collaborators or entitlement change; PVR until repository is public |
 
 SEC6 implementa supported versions, intake/triage/severity, GHSA/CVE/disclosure, respuesta para
 dependencies/build chain/secrets/OpenPGP/runner/workstation/repository/artifacts, governance común
 de excepciones, CODEOWNERS documental, checklist sensible, issue guidance y handoff REL1. La API
 read-only confirma que PVR/advisories devuelven 404 mientras el repo siga privado y que
-rulesets/protection requieren cambio de plan o visibilidad. Como no existe un alias privado aprobado
-y probado, el estado honesto es `PARTIALLY DONE — PENDING OWNER ACTION`. Esa acción bloquea REL1,
-pero no bloquea SEC7, SEC8 ni la evaluación técnica REL0.
+rulesets/protection requieren cambio de plan o visibilidad. El canal
+`postgresbulk-security@proton.me` fue autorizado y probado el 2026-08-25 con delivery/reply,
+control exclusivo, MFA y recovery PASS. SEC6 queda `DONE`; PVR se conserva como trabajo REL1 y el
+mailbox verificado como fallback.
 
 ## SEC7 — Continuous Security Validation & Operational Resilience — DONE (2026-08-25)
 
@@ -163,7 +164,7 @@ pero no bloquea SEC7, SEC8 ni la evaluación técnica REL0.
 | Documentation | [`continuous-security-validation.md`](../security/continuous-security-validation.md), timing budget, ownership, outage classification and preflight boundaries |
 | Acceptance | DONE: local full PASS; implementation SHA `0533866b04b4d89ea9199473dd5abf2cceb852c0` passed Build `32828408419`, Compatibility `32828408347` 11/11 and manual Security `32828466698` |
 | Risks | rate limits, flaky databases, cache poisoning assumptions, CI fatigue |
-| Dependencies | SEC1–SEC5 controls plus implemented SEC6 policy; SEC6 channel closure is non-blocking here and blocking only at REL1 |
+| Dependencies | SEC1–SEC5 controls plus implemented SEC6 policy; EP-01 closed later without reopening SEC7 |
 | Deferred | paid/private-only GitHub features and future Java/Boot generation |
 
 ## SEC8 — Security Baseline Technical Closure — DONE (2026-08-25)
@@ -201,20 +202,18 @@ SEC0 investigation
 SEC5 está cerrado con identidad OpenPGP local protegida, fingerprint público fijado, inventario
 source-bound de 46 archivos Central y tres evidencias, comparación unsigned/signed y regresiones
 fail-closed. El workflow remoto es candidate-only y no contiene clave, passphrase, token ni upload.
-No se creó tag, no se ejecutó Release y no hubo upload/publicación. SEC6 está implementado salvo el
-canal privado externo, que bloquea REL1. SEC7 puede cerrar técnicamente con ese estado pendiente;
-tras su evidencia verde puede recomendarse **SEC8 — Security Baseline Technical Closure** sin
-iniciarlo automáticamente.
+No se creó tag, no se ejecutó Release y no hubo upload/publicación. SEC6 cerró después con el canal
+privado verificado; ese cierre no reabre SEC7/SEC8 ni autoriza REL1.
 
 SEC8 cierra la auditoría técnica integrada en
 [`security-baseline-closure.md`](../security/security-baseline-closure.md): inventario control→amenaza,
 15/15 amenazas reconciliadas, matriz preventiva/detectiva/respuesta, fixtures adversariales,
 registro de riesgos/prerequisites, reproducibilidad y handoffs REL0/REL1. La semántica final es
-`Security technical baseline: COMPLETE`; SEC6 permanece `PARTIALLY DONE`, el canal privado sigue
-`PENDING` y bloquea REL1. REL0 registra posteriormente la auditoría técnica integrada en
+`Security technical baseline: COMPLETE`; SEC6 queda posteriormente `DONE`, EP-01 `PASS` y
+SEC0–SEC8 `DONE`. REL0 registra la auditoría técnica integrada en
 [`rel0-final-release-readiness.md`](../releases/rel0-final-release-readiness.md). Tras su cierre
-remoto, la siguiente fase recomendada es **REL1 — Open Source Repository Activation**, que no se
-inicia automáticamente y conserva EP-01 como prerrequisito obligatorio.
+remoto y el cierre EP-01, la siguiente fase recomendada es **REL1 — Open Source Repository
+Activation**, que no se inicia automáticamente.
 
 ## Mantenimiento PRE-SEC6 — DONE (2026-08-25)
 

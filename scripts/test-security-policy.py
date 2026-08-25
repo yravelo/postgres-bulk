@@ -182,12 +182,39 @@ class SecurityPolicyTests(unittest.TestCase):
         policy = {
             "reporting_channel": {
                 "status": "CONFIGURED",
+                "provider": "Fixture Mail",
+                "public_address": "security@example.invalid",
+                "verified_on": "2026-08-25",
+                "owner_control_verified": True,
+                "mfa_enabled": True,
+                "recovery_configured": True,
+                "delivery_test": "PASS",
+                "reply_round_trip": "PASS",
                 "blocks_technical_security_work": False,
                 "blocks_rel0": False,
                 "blocks_rel1": False,
             }
         }
         POLICY.audit_preflight(policy, "rel1")
+
+    def test_configured_reporting_channel_requires_round_trip_evidence(self) -> None:
+        policy = {
+            "reporting_channel": {
+                "status": "CONFIGURED",
+                "provider": "Fixture Mail",
+                "public_address": "security@example.invalid",
+                "verified_on": "2026-08-25",
+                "owner_control_verified": True,
+                "mfa_enabled": True,
+                "recovery_configured": True,
+                "delivery_test": "PASS",
+                "blocks_technical_security_work": False,
+                "blocks_rel0": False,
+                "blocks_rel1": False,
+            }
+        }
+        with self.assertRaisesRegex(ValueError, "delivery/reply evidence"):
+            POLICY.audit_preflight(policy, "rel1")
 
     def test_technical_preflight_rejects_dirty_tree(self) -> None:
         with tempfile.TemporaryDirectory(prefix="postgres-bulk-dirty-preflight-") as temp:

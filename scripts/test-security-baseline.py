@@ -30,6 +30,31 @@ class SecurityBaselineTests(unittest.TestCase):
         BASELINE.audit_namespaces_and_publication()
         BASELINE.audit_git_privacy()
 
+    def test_configured_channel_requires_complete_evidence(self) -> None:
+        continuous = BASELINE.load(
+            BASELINE.ROOT / "config/security/continuous-security-policy.json"
+        )
+        continuous["reporting_channel"].pop("recovery_configured")
+        with self.assertRaisesRegex(ValueError, "evidence drift: recovery_configured"):
+            BASELINE.audit_external_boundary(self.policy, continuous)
+
+    def test_pending_channel_must_remain_fail_closed(self) -> None:
+        policy = copy.deepcopy(self.policy)
+        prerequisite = next(
+            item for item in policy["external_prerequisites"] if item["id"] == "EP-01"
+        )
+        prerequisite.update({"status": "PENDING", "blocks": ["REL1"]})
+        continuous = {
+            "reporting_channel": {
+                "status": "PENDING",
+                "blocks_technical_security_work": False,
+                "blocks_rel0": False,
+                "blocks_rel1": False,
+            }
+        }
+        with self.assertRaisesRegex(ValueError, "pending.*blocking semantics drift"):
+            BASELINE.audit_external_boundary(policy, continuous)
+
     def test_tracked_binary_or_generated_evidence_fails(self) -> None:
         errors = BASELINE.tracked_path_errors({"evidence/candidate.tar.gz", "target/osv.json"})
         self.assertEqual(2, len(errors))

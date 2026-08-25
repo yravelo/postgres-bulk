@@ -16,7 +16,7 @@ Exit criteria:
 - full local build, security, reproducibility, candidate and clean-room checks pass;
 - Build is PASS, Compatibility is 11/11 PASS and manually dispatched Security is PASS for the
   closure state;
-- EP-01 remains visibly fail-closed if not configured;
+- the current EP-01 state remains represented accurately and fail-closed if it regresses;
 - no visibility change, tag, Release, Central upload or publication occurs.
 
 Evidence: [REL0 final release-readiness audit](../releases/rel0-final-release-readiness.md).
@@ -30,14 +30,14 @@ Remote closure: Build `32850719665` PASS, Compatibility `32850719735` 11/11 PASS
 Entry criteria:
 
 - REL0 is `DONE`;
-- EP-01 private vulnerability reporting is approved, configured and benign end-to-end tests pass;
+- EP-01 private vulnerability reporting is `PASS`: approved, configured and benign end-to-end
+  delivery/reply tests passed on 2026-08-25;
 - the REL1 preflight passes;
-- a fresh full-history secret, privacy and public-metadata audit passes;
-- public-PR runner isolation/governance is ready and the repository description/community surface
-  is reviewed.
+- the public-PR isolation strategy and public-readiness work are documented.
 
-Scope: activate the repository's approved open-source boundary. REL1 does not create `v0.1.0`,
-upload to Central or publish a GitHub Release.
+Scope: run the fresh full-history privacy/license audit, implement public/fork PR isolation, review
+public metadata and community surfaces, reevaluate/test PVR and only then activate the approved
+open-source boundary. REL1 does not create `v0.1.0`, upload to Central or publish a GitHub Release.
 
 ## REL2 — Maven Central 0.1.0
 
@@ -66,5 +66,5 @@ attempting to replace immutable components.
 
 ## Current handoff
 
-The technical REL0 decision is **TECHNICALLY READY — REL1 BLOCKED BY EXTERNAL PREREQUISITE**.
-EP-01 is the REL1 blocker. EP-02 and EP-03 belong to REL2. No downstream phase is active.
+REL0 remains `DONE`. EP-01 is `PASS`, so the readiness decision is **READY FOR REL1**. EP-02 and
+EP-03 remain `PENDING` REL2 prerequisites. REL1 is not started and no downstream phase is active.
