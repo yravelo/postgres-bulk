@@ -4,6 +4,17 @@ Audit date: 2026-08-25
 Repository: `yravelo/postgres-bulk` (`PRIVATE`)  
 Decision: **OPEN-SOURCE ACTIVATION NO-GO**
 
+## REL1-A-R R3 remediation addendum
+
+R3 is `DONE` under `AUTHORIZE_ACTIONS_LOG_DELETION`. An exact 196-run inventory classified 58 runs
+as `DELETE_LOGS`, 125 as `KEEP`, 13 as `LOGS_ALREADY_UNAVAILABLE` and zero as `REVIEW`. All 58
+authorized log deletions succeeded; their run metadata/results remain, no workflow run or artifact
+was deleted, and post-delete verification found zero known privacy-sensitive historical logs.
+
+The active runner identity, retained historical job-metadata runner name and six GitHub-managed
+synthetic PR refs remain separate blockers. The repository remains private and REL1-B has not
+started. See [R3 Actions log remediation](rel1ar-actions-log-remediation.md).
+
 This report records the authorized, exact-scope rewrite of controlled `main`. It never records the
 original personal email or signing path. Private backup locations, rewrite inputs and GitHub
 Support evidence remain outside versioned content.
@@ -235,7 +246,8 @@ closure commit is revalidated separately in the task handoff.
 
 ## 36. Actions log blocker
 
-`PENDING`.
+`REMEDIATED BY R3`. The exact selective deletion and retained-metadata evidence is recorded in
+`docs/releases/rel1ar-actions-log-remediation.md`.
 
 ## 37. Runner identity blocker
 
@@ -273,8 +285,8 @@ items are intentionally outside this authorization and continue to block open-so
 ## 41. Remaining blockers
 
 - GitHub-managed PR refs cleanup.
-- Historical Actions log privacy cleanup.
-- Neutral runner identity and fresh validation after that separate change.
+- Neutral runner/host identity, explicit treatment of retained historical job metadata and fresh
+  validation after that separate change.
 
 ## 42. Final open-source activation verdict
 
@@ -284,14 +296,14 @@ OPEN-SOURCE ACTIVATION NO-GO
 
 ## 43. Exact next action
 
-After R2B itself succeeds, prepare the sanitized Actions log deletion inventory and request the
-separate authorization:
+R3 completed the separately authorized log cleanup. Prepare the runner-neutralization plan and
+request the separate authorization:
 
 ```text
-AUTHORIZE_ACTIONS_LOG_DELETION
+AUTHORIZE_RUNNER_REREGISTRATION
 ```
 
-Do not delete logs automatically.
+Do not mutate the runner automatically.
 
 ## Boundary statement
 
@@ -303,7 +315,7 @@ historical signing path: REMOVED
 history rewrite completed: yes
 force push performed: yes
 PR synthetic refs clean: no
-Actions personal identity logs: PENDING
+Actions personal identity logs: REMEDIATED
 runner identity neutralized: no
 full-history secrets: PASS
 repository public: no

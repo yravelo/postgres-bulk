@@ -5,6 +5,19 @@ Audited source: `43fc6f5fdcb5a4c216c9e5a8898c7eb77be22cb4`
 Repository: `yravelo/postgres-bulk` (`PRIVATE`)  
 Decision: **OPEN-SOURCE ACTIVATION NO-GO — REMOTE IDENTITY BLOCKERS PENDING**
 
+## REL1-A-R R3 remediation addendum
+
+R3 selectively deleted the logs of all 58 runs in the exact `DELETE_LOGS` set. The complete
+196-run post-delete pass found 58 unavailable and 138 preserved log endpoints with zero mismatch;
+run metadata/results remain, and no run or artifact was deleted. Known privacy-sensitive
+historical Actions logs remaining: `0`.
+
+The runner display name remains in historical job metadata for affected runs and the active
+runner/host identity is not neutralized. Those facts belong to the separate runner-identity
+blocker. Six synthetic PR refs also remain pending. The repository therefore remains private and
+open-source activation remains `NO-GO`. See
+[R3 Actions log remediation](rel1ar-actions-log-remediation.md).
+
 ## REL1-A-R R2B remediation addendum
 
 The original audit below is retained as historical evidence, with project commit references mapped
@@ -483,7 +496,8 @@ verified project channel and private-evidence boundary. It changed no code, hist
 | Personal email in controlled `main` metadata/content | REMOVED BY R2B | HIGH PRIVACY/SECURITY | PASS for controlled history |
 | Exact owner home/signing path in controlled `main` | REMOVED BY R2B | HIGH PRIVACY/SECURITY | PASS for controlled history |
 | Old objects in synthetic PR refs/caches | PENDING SUPPORT ACTION | HIGH PRIVACY/SECURITY | BLOCKER |
-| Personal hostname/runner name in Actions logs | BLOCKER | HIGH PRIVACY/SECURITY | BLOCKER |
+| Personal hostname/runner name in Actions logs | REMOVED BY R3 | HIGH PRIVACY/SECURITY | PASS for log content |
+| Active runner identity and historical job metadata | PENDING | HIGH PRIVACY/SECURITY | BLOCKER |
 | Missing Code of Conduct | CLEANUP BEFORE PUBLIC | LOW HYGIENE | REL1-B entry cleanup |
 | No secrets/private keys/credentials | SAFE TO PUBLISH | INFO | PASS |
 | Product/docs/examples/benchmarks/security evidence | SAFE TO PUBLISH | INFO | PASS |
@@ -580,13 +594,14 @@ NO-GO — OWNER DECISION REQUIRED
 
 ### 84. Blocking findings
 
-Reachable personal signing path, personal email decision, retained Actions personal host identity,
-and the unperformed authorized cleanup/revalidation sequence.
+The active personal runner/host identity, retained historical job-metadata runner identity and six
+GitHub-managed synthetic PR refs. Controlled `main` email/path history and Actions log content are
+already remediated.
 
 ### 85. Owner decisions required before REL1-B
 
-Explicitly approve the email outcome, history rewrite and Actions-log deletion/runner-neutralization
-plan. Select a Code of Conduct/enforcement contact. REL1-B cannot start merely by accepting the risk
+Authorize and execute the runner-neutralization plan, resolve synthetic PR refs, and select a Code
+of Conduct/enforcement contact. REL1-B cannot start merely by accepting the remaining risk
 implicitly.
 
 ### 86. REL1-B entry criteria
@@ -594,8 +609,8 @@ implicitly.
 - History rewrite authorized, rehearsed, executed and fully rescanned; or a new explicit audit
   decision that explains why the path is acceptable (this report recommends rewrite).
 - Personal email decision recorded and implemented.
-- Affected Actions logs removed with authorization; runner identity neutralized; replacement logs
-  scanned.
+- Affected Actions logs removed with authorization (`DONE`); runner identity neutralized and
+  replacement logs scanned (`PENDING`).
 - Local full security, technical and REL1 preflights pass on rewritten final history.
 - Remote Build, Compatibility 11/11 and Security pass on final synchronized `main`.
 - Code of Conduct selected; hosted untrusted-PR CI, ruleset, CodeQL, Dependency Review and PVR
@@ -603,10 +618,9 @@ implicitly.
 
 ### 87. Next recommended action
 
-Do **not** start `REL1-B — Public Repository Activation & External Verification`. Resolve and record
-the owner decisions in item 85, then perform a separately authorized privacy-remediation phase and
-repeat REL1-A against the rewritten/sanitized final state. Only a subsequent explicit GO may name
-REL1-B as the next action.
+Do **not** start `REL1-B — Public Repository Activation & External Verification`. Prepare the
+runner-neutralization plan and request `AUTHORIZE_RUNNER_REREGISTRATION`; synthetic PR-ref cleanup
+also remains separately governed. Only a subsequent explicit GO may name REL1-B as the next action.
 
 ## Boundary statement
 
@@ -615,9 +629,9 @@ REL1-A status: DONE
 full history audited: yes
 full-history secrets: PASS
 private-key exposure: PASS
-privacy exposure: FAIL
-author/email decision: PENDING
-history rewrite required: yes
+privacy exposure: PARTIALLY REMEDIATED; REMOTE IDENTITY BLOCKERS PENDING
+author/email decision: IMPLEMENTED
+history rewrite required: completed
 public PR self-hosted isolation ready: yes
 open-source activation verdict: NO-GO
 repository public: no
