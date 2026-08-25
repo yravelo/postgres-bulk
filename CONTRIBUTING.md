@@ -53,8 +53,8 @@ Use the SEC7 entrypoint for composed maintainer validation:
 
 `fast` is the normal change preflight, `full` adds fresh network/history, reactor, SBOM and runner
 health checks, and `release` additionally runs only ephemeral signing fixtures plus the technical
-release preflight. The REL1 preflight remains a separate fail-closed command while the private
-reporting channel is pending. See
+release preflight. The REL1 preflight remains a separate fail-closed command and validates the
+configured private reporting channel. See
 [continuous security validation](docs/security/continuous-security-validation.md).
 The integrated SEC8 threat, residual-risk and publication-boundary audit is
 `./scripts/check-security-baseline.py`; its source of truth and handoff are documented in
@@ -156,10 +156,9 @@ the [self-hosted runner security model](docs/security/self-hosted-runner.md).
 ## Responsible security reporting
 
 Do not report a suspected vulnerability in an Issue, Discussion, pull request, commit message or
-other public channel. Follow [`SECURITY.md`](SECURITY.md). The current private reporting channel is
-still pending owner configuration and verification; do not infer that the Git commit email is an
-approved security contact. A first supported release is blocked until the policy names a tested
-channel.
+other public channel. Follow [`SECURITY.md`](SECURITY.md) and use the verified project channel
+`postgresbulk-security@proton.me`; do not infer that the Git commit email is an approved security
+contact. Detailed delivery, reply, account-control, MFA and recovery evidence remains private.
 
 Use sanitized fixtures and descriptions. Never put a live credential, private key, personal data,
 production database content or weaponized exploit in Git, CI artifacts or chat. Incident records
