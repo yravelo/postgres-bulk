@@ -1,5 +1,15 @@
 # Release readiness for 0.1.0
 
+## REL1-MIG3 current-state addendum
+
+The historical private-CI evidence below remains valid for its cited commits, but it is superseded
+for the new canonical repository by the hosted-only public-trust architecture. MIG3 is `BLOCKED`,
+not `DONE`: local product/security validation passes, while GitHub rejected Build and all 11
+Compatibility jobs before their first step because the account billing/spending gate prevents
+hosted execution; Security was not dispatched against the same known gate. The archive runner was
+not registered to the new repository, repository secrets remain zero and MIG4 is `NOT READY`. See
+the [MIG3 CI/security public-trust report](rel1-mig3-ci-security-public-trust-baseline.md).
+
 ## Verdict
 
 The project is **READY FOR REL1**, not ready for public publication. Identity, the private GitHub

@@ -5,6 +5,16 @@ Audited source: `43fc6f5fdcb5a4c216c9e5a8898c7eb77be22cb4`
 Repository: `yravelo/postgres-bulk` (`PRIVATE`)  
 Decision: **OPEN-SOURCE ACTIVATION NO-GO — REMOTE IDENTITY BLOCKERS PENDING**
 
+## REL1-MIG3 public-trust addendum
+
+MIG3 supersedes the historical self-hosted workflow architecture described later in this audit.
+The new canonical repository now fixes every workflow job to `ubuntu-latest`; public PR paths are
+read-only and secret-free, and no persistent runner is registered there. Workflow fixtures pass,
+but MIG3 remains `BLOCKED` because GitHub's owner-account billing/spending gate rejected remote
+Build and all 11 Compatibility jobs before execution. Security was not dispatched against the same
+known gate, so MIG4 remains `NOT READY`. See the
+[MIG3 report](rel1-mig3-ci-security-public-trust-baseline.md).
+
 ## REL1-MIG2 clean-history addendum
 
 MIG2 pushed only canonical clean `main` to the new private repository and independently verified its
