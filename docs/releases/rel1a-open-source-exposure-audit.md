@@ -5,6 +5,15 @@ Audited source: `43fc6f5fdcb5a4c216c9e5a8898c7eb77be22cb4`
 Repository: `yravelo/postgres-bulk` (`PRIVATE`)  
 Decision: **OPEN-SOURCE ACTIVATION NO-GO — REMOTE IDENTITY BLOCKERS PENDING**
 
+## REL1-MIG1 repository-isolation addendum
+
+MIG1 retained the old GitHub repository and all GitHub-managed historical metadata privately as
+`yravelo/postgres-bulk-private-archive` (ID `1339652660`) and created a separate empty private
+`yravelo/postgres-bulk` (ID `1346700826`). The new repository inherited no pull requests, PR refs,
+Actions runs/jobs/logs/artifacts, runner or issues. This isolates the blockers instead of deleting
+them. The new repository is still empty and private: no clean `main` was pushed and REL1-B has not
+started. See the [MIG1 repository container migration](rel1-mig1-repository-container-migration.md).
+
 ## REL1-A-R R6 authorized-contact addendum
 
 R6 operated only within the authorized GitHub Support contact scope, reverified six synthetic PR refs,

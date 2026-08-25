@@ -6,6 +6,14 @@ Decision: **MIGRATION RECOMMENDED**
 
 Mode: **READ-ONLY / PLAN-ONLY**
 
+## MIG1 execution addendum
+
+MIG1 consumed the separately granted rename and creation authorizations on 2026-08-26. The old
+repository is now the private `yravelo/postgres-bulk-private-archive` with its original ID
+`1339652660`; a new private, empty `yravelo/postgres-bulk` exists with ID `1346700826`. No Git ref
+was pushed and the archive remains intact. See the
+[MIG1 repository container migration](rel1-mig1-repository-container-migration.md).
+
 This report evaluates replacing the current private GitHub repository with a clean repository that
 ultimately occupies the same public URL. It does not authorize or perform a rename, repository
 creation, push, settings mutation, visibility change, deletion, release or publication.
