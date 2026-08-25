@@ -5,6 +5,16 @@ Audited source: `43fc6f5fdcb5a4c216c9e5a8898c7eb77be22cb4`
 Repository: `yravelo/postgres-bulk` (`PRIVATE`)  
 Decision: **OPEN-SOURCE ACTIVATION NO-GO — REMOTE IDENTITY BLOCKERS PENDING**
 
+## REL1-A-R R5 remediation-plan addendum
+
+R5 reconstructed the two remaining GitHub-managed blockers without destructive action. Historical
+job metadata remains publicly queryable after a visibility change and contains
+`<OLD_RUNNER_NAME_REDACTED>` in 270 jobs across 58 runs. GitHub still advertises six read-only
+synthetic PR head refs that retain pre-rewrite personal email metadata, while cached old objects
+also remain authenticated-accessible. Both blockers remain `PENDING`; the repository remains
+`PRIVATE` and REL1-B has not started. See
+[R5 GitHub-managed exposure plan](rel1ar-github-managed-exposure-plan.md).
+
 ## REL1-A-R R4C remediation addendum
 
 R4C changed the active OS hostname and repository runner display identity to
