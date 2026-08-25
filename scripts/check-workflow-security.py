@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -14,31 +15,21 @@ except ImportError as exc:  # pragma: no cover - exercised by CI prerequisite in
     raise SystemExit("PyYAML is required: install the python3-yaml package") from exc
 
 
+ROOT = Path(__file__).resolve().parents[1]
+CONTINUOUS_POLICY = json.loads(
+    (ROOT / "config/security/continuous-security-policy.json").read_text(encoding="utf-8")
+)
 WORKFLOWS = {
-    "build.yml": {"push", "pull_request"},
-    "compatibility.yml": {"push", "pull_request"},
-    "benchmarks.yml": {"workflow_dispatch"},
-    "release.yml": {"workflow_dispatch"},
+    name: set(triggers) for name, triggers in CONTINUOUS_POLICY["workflows"].items()
 }
 FORBIDDEN_TRIGGERS = {
     "pull_request_target",
     "workflow_run",
     "repository_dispatch",
-    "schedule",
 }
 APPROVED_ACTIONS = {
-    "actions/checkout": (
-        "d23441a48e516b6c34aea4fa41551a30e30af803",
-        "v6",
-    ),
-    "actions/setup-java": (
-        "b6effb05e454b25005698d916606bdc6ffcbf961",
-        "v5",
-    ),
-    "actions/upload-artifact": (
-        "ea165f8d65b6e75b540449e92b4886f43607fa02",
-        "v4",
-    ),
+    name: (record["sha"], record["version"])
+    for name, record in CONTINUOUS_POLICY["actions"].items()
 }
 BENCHMARK_PROFILES = {
     "smoke",
@@ -47,7 +38,8 @@ BENCHMARK_PROFILES = {
     "multi-schema-smoke",
     "multi-schema-baseline",
 }
-SELF_HOSTED_WORKFLOWS = {"build.yml", "compatibility.yml"}
+SELF_HOSTED_WORKFLOWS = {"build.yml", "compatibility.yml", "security.yml"}
+TRUSTED_PR_WORKFLOWS = {"build.yml", "compatibility.yml"}
 SELF_HOSTED_LABELS = ["self-hosted", "linux", "x64", "postgres-bulk-ci"]
 TRUSTED_PULL_REQUEST_GUARD = (
     "github.event_name != 'pull_request' || "
@@ -200,7 +192,7 @@ def common_semantic_errors(name: str, workflow: dict[str, Any]) -> list[str]:
                 errors.append(f"{job_name}: checkout must set persist-credentials: false")
             if isinstance(inputs, dict) and "token" in inputs:
                 errors.append(f"{job_name}: checkout must not receive a custom token")
-            expected_depth = "0" if name == "release.yml" else "1"
+            expected_depth = "0" if name in {"release.yml", "security.yml"} else "1"
             if not isinstance(inputs, dict) or inputs.get("fetch-depth") != expected_depth:
                 errors.append(f"{job_name}: checkout fetch-depth must be {expected_depth}")
             if name in SELF_HOSTED_WORKFLOWS and (
@@ -246,7 +238,7 @@ def runner_boundary_errors(name: str, workflow: dict[str, Any]) -> list[str]:
 
     if name in SELF_HOSTED_WORKFLOWS:
         if secret_references(workflow):
-            errors.append("self-hosted Build/Compatibility must not reference repository secrets")
+            errors.append("self-hosted workflows must not reference repository secrets")
         for job_name, job in jobs.items():
             if not isinstance(job, dict):
                 continue
@@ -254,8 +246,10 @@ def runner_boundary_errors(name: str, workflow: dict[str, Any]) -> list[str]:
                 errors.append(
                     f"job {job_name} must use the exact dedicated self-hosted label set"
                 )
-            if job.get("if") != TRUSTED_PULL_REQUEST_GUARD:
+            if name in TRUSTED_PR_WORKFLOWS and job.get("if") != TRUSTED_PULL_REQUEST_GUARD:
                 errors.append(f"job {job_name} must use the exact trusted pull-request guard")
+            if name == "security.yml" and "if" in job:
+                errors.append(f"job {job_name} must not add an event-dependent bypass")
     else:
         for job_name, job in jobs.items():
             if isinstance(job, dict) and job.get("runs-on") != "ubuntu-latest":
@@ -291,12 +285,33 @@ def compatibility_errors(workflow: dict[str, Any]) -> list[str]:
 def build_errors(workflow: dict[str, Any]) -> list[str]:
     steps = workflow["jobs"]["verify"]["steps"]
     names = [step.get("name", "") for step in steps]
-    required = ["Audit workflow security", "Scan current tree for secrets", "Set up Java"]
+    required = ["Run fast security gates", "Set up Java"]
     if not all(item in names for item in required):
-        return ["Build must contain workflow audit, current secret scan and Java setup"]
-    if not names.index(required[0]) < names.index(required[1]) < names.index(required[2]):
-        return ["Build security gates must run before Java/build execution"]
+        return ["Build must contain the canonical fast security gates and Java setup"]
+    if not names.index(required[0]) < names.index(required[1]):
+        return ["Build fast security gates must run before Java/build execution"]
     return []
+
+
+def security_errors(workflow: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    schedule = workflow["on"].get("schedule")
+    if schedule != [{"cron": "17 4 * * 1"}]:
+        errors.append("Security must run weekly at the reviewed UTC cron")
+    concurrency = workflow.get("concurrency")
+    if concurrency != {"group": "continuous-security", "cancel-in-progress": "false"}:
+        errors.append("Security concurrency must serialize runs without cancellation")
+    jobs = workflow.get("jobs", {})
+    if set(jobs) != {"validate"}:
+        return errors + ["Security workflow must contain exactly one validation job"]
+    steps = jobs["validate"].get("steps", [])
+    names = [step.get("name", "") for step in steps if isinstance(step, dict)]
+    if "Run full continuous security validation" not in names:
+        errors.append("Security workflow must invoke the canonical full validation")
+    runs = "\n".join(step.get("run", "") for step in steps if isinstance(step, dict))
+    if "./scripts/check-security.sh full" not in runs:
+        errors.append("Security workflow lost the full orchestration command")
+    return errors
 
 
 def benchmark_errors(workflow: dict[str, Any]) -> list[str]:
@@ -343,6 +358,7 @@ def release_errors(workflow: dict[str, Any]) -> list[str]:
         "^[0-9a-f]{40}$",
         "expected_confirmation",
         "git merge-base --is-ancestor",
+        "./scripts/check-release-security-preflight.sh technical",
         "./scripts/check-workflow-security.py",
         "./scripts/check-secrets.sh history",
         "./scripts/test-release-signatures.py",
@@ -366,6 +382,8 @@ def audit_workflow(name: str, workflow: dict[str, Any], text: str) -> list[str]:
         errors.extend(benchmark_errors(workflow))
     elif name == "release.yml":
         errors.extend(release_errors(workflow))
+    elif name == "security.yml":
+        errors.extend(security_errors(workflow))
     return errors
 
 

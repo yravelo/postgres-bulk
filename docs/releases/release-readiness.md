@@ -72,7 +72,7 @@ session data or token is stored. The real Portal user token has not been generat
 
 | Control | Status |
 | --- | --- |
-| Current private vulnerability channel | BLOCKED — no approved/tested external channel; release forbidden until owner closes this action |
+| Current private vulnerability channel | PENDING — non-blocking for SEC7/SEC8/REL0; blocks REL1 and a supported release |
 | GitHub Private Vulnerability Reporting | DEFERRED (non-blocking as a feature) — public-repository feature; current private API returns 404 |
 | Vulnerability/incident governance | PASS — supported versions, triage, severity, GHSA/CVE/disclosure, compromise runbook and templates implemented |
 | OSV dependency gate | PASS — 2.5.1 checksum-pinned; 138/138 exact package versions, zero BLOCK |
@@ -86,7 +86,9 @@ session data or token is stored. The real Portal user token has not been generat
 | Protected OpenPGP key | PASS — RSA-3072 release identity; expires 2028-08-23; private material outside repo/runner |
 | GitHub branch protection/rules | DEFERRED (non-blocking) — unavailable for this private repository on the current plan |
 | Repository Secrets model | SUPERSEDED — signing is local; Release references zero repository secrets |
-| Trusted self-hosted Build/Compatibility runner | PASS — repository-scoped, non-root, dedicated labels, owner+same-repo PR guard; 11/11 lanes |
+| Trusted self-hosted Build/Compatibility/Security runner | PASS — repository-scoped, non-root, dedicated labels, owner+same-repo PR guard for PR workflows; 11/11 compatibility lanes |
+| Continuous Security workflow | IMPLEMENTED — weekly UTC plus manual dispatch, full-history/fresh gates, read-only and zero secrets; remote closure pending |
+| Expiry/drift and runner-health gates | PASS locally — policy fixtures, module/POM/workflow/tool drift, Docker/PostgreSQL smoke and Testcontainers residue boundary |
 | GitHub environment `maven-central` | DEFERRED (non-blocking) — retained as an inert marker; not referenced by release workflow |
 | Environment protection | DEFERRED (non-blocking) — unavailable for this private repository on the current entitlement |
 | `CENTRAL_USERNAME` / `CENTRAL_PASSWORD` | MISSING |
@@ -124,7 +126,8 @@ reactor, SBOM/license, consumer and documentation steps on the dedicated runner;
 `32774191674` passed all 11 lanes. The earlier pre-step billing rejections remain historical
 evidence, not an open SEC4 blocker. Benchmarks and Release were not executed. SEC4 and SEC5 are
 `DONE`; SEC6 policy/governance is implemented but remains `PARTIALLY DONE` until its private
-reporting channel is configured and tested. SEC7 has not started.
+reporting channel is configured and tested. SEC7 continuous validation is implemented; its channel
+exception is explicitly non-blocking for technical closure and blocking for REL1.
 
 SEC2 adds a fail-closed dependency gate to Build and the release candidate before any future
 upload. The applicable pgJDBC HIGH finding on 42.7.11 was remediated by selecting supported
@@ -259,8 +262,8 @@ Issues show explicit guidance not to disclose vulnerabilities publicly.
 
 The repository remains private and GitHub PVR/repository-advisory endpoints return 404. No security
 email was inferred from Git identity or invented. Until the owner approves a dedicated channel and
-passes benign inbound, reply, access and recovery tests, SEC6 remains `PARTIALLY DONE`, the first
-supported release is blocked and SEC7 must not start. See
+passes benign inbound, reply, access and recovery tests, SEC6 remains `PARTIALLY DONE` and the first
+supported release/REL1 is blocked. SEC7, SEC8 and REL0 technical work may proceed. See
 [vulnerability response and governance](../security/vulnerability-response-and-governance.md) and
 the [incident response runbook](../security/incident-response-runbook.md).
 
@@ -275,5 +278,9 @@ the [incident response runbook](../security/incident-response-runbook.md).
    separate authorization and make it point to that exact SHA.
 5. Reproduce and verify the signed candidate locally; authorize Central upload and Portal
    publication separately. The candidate workflow does not upload.
+
+SEC7 adds a separate technical release preflight that can pass before step 3 and a REL1 preflight
+that must fail until step 3 is complete. See
+[continuous security validation](../security/continuous-security-validation.md).
 
 No external action above is authorized by this document.

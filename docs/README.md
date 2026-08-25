@@ -56,6 +56,7 @@ This index separates adoption guidance from implementation details.
 - [Initial Dependabot PR review — 2026-08](security/dependabot-review-2026-08.md)
 - [Vulnerability response and repository governance](security/vulnerability-response-and-governance.md)
 - [Incident response runbook](security/incident-response-runbook.md)
+- [Continuous security validation and operational resilience](security/continuous-security-validation.md)
 - [Security roadmap](plans/security-roadmap.md)
 
 ## Decisions and evidence

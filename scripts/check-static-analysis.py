@@ -98,6 +98,17 @@ def audit_exclusions() -> None:
     if actual != EXPECTED_EXCLUSIONS:
         fail("the exclusion set changed without updating the reviewed static-analysis policy")
 
+    for _, class_name, method_name in actual:
+        top_level_class = class_name.split("$", 1)[0]
+        relative_source = Path(*top_level_class.split(".")).with_suffix(".java")
+        candidates = list(PARENT.glob(f"*/src/main/java/{relative_source}"))
+        if len(candidates) != 1:
+            fail(f"stale exclusion class target: {class_name}")
+        source = candidates[0].read_text(encoding="utf-8")
+        expected_method = top_level_class.rsplit(".", 1)[-1] if method_name == "<init>" else method_name
+        if re.search(rf"\b{re.escape(expected_method)}\s*\(", source) is None:
+            fail(f"stale exclusion method target: {class_name}.{method_name}")
+
 
 def audit_report(module: str) -> None:
     report = PARENT / module / "target" / "spotbugsXml.xml"

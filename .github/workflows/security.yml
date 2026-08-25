@@ -1,0 +1,51 @@
+name: Security
+
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: continuous-security
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Continuous security and runner resilience
+    runs-on: [self-hosted, linux, x64, postgres-bulk-ci]
+    timeout-minutes: 150
+    steps:
+      - name: Check out full repository history
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          clean: true
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify security audit prerequisites
+        run: |
+          command -v rg >/dev/null
+          python3 -c 'import yaml'
+
+      - name: Set up Java 17
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          overwrite-settings: false
+          settings-path: ${{ runner.temp }}
+          cache: maven
+          cache-dependency-path: |
+            code/postgres-bulk-parent/pom.xml
+            code/postgres-bulk-parent/*/pom.xml
+            examples/spring-boot-basic/pom.xml
+            examples/spring-boot-data-jdbc/pom.xml
+            verification/spring-boot-jdbc-consumer/pom.xml
+
+      - name: Run full continuous security validation
+        env:
+          CHECK_PUBLIC_KEY_REMOTE: "true"
+        run: ./scripts/check-security.sh full

@@ -96,9 +96,21 @@ class WorkflowSecurityTests(unittest.TestCase):
         self.assertTrue(any("trusted pull-request guard" in error for error in errors))
 
     def test_valid_self_hosted_selectors_pass(self) -> None:
-        for name in ("build.yml", "compatibility.yml"):
+        for name in ("build.yml", "compatibility.yml", "security.yml"):
             workflow = self.load(name)
             self.assertEqual([], SECURITY.runner_boundary_errors(name, workflow))
+
+    def test_security_schedule_drift_fails(self) -> None:
+        workflow = self.load("security.yml")
+        workflow["on"]["schedule"] = [{"cron": "0 0 * * *"}]
+        errors = SECURITY.security_errors(workflow)
+        self.assertTrue(any("reviewed UTC cron" in error for error in errors))
+
+    def test_security_secret_reference_fails(self) -> None:
+        workflow = self.load("security.yml")
+        workflow["jobs"]["validate"]["env"] = {"TOKEN": "${{ secrets.NOT_ALLOWED }}"}
+        errors = SECURITY.runner_boundary_errors("security.yml", workflow)
+        self.assertTrue(any("must not reference" in error for error in errors))
 
     def test_self_hosted_persistent_maven_settings_fail(self) -> None:
         workflow = self.load("build.yml")

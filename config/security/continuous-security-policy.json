@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "owner": "yravelo",
+  "reviewed_on": "2026-08-25",
+  "review_warning_days": 30,
+  "reporting_channel": {
+    "status": "PENDING",
+    "blocks_technical_security_work": false,
+    "blocks_rel0": false,
+    "blocks_rel1": true
+  },
+  "workflows": {
+    "build.yml": ["push", "pull_request"],
+    "compatibility.yml": ["push", "pull_request"],
+    "benchmarks.yml": ["workflow_dispatch"],
+    "release.yml": ["workflow_dispatch"],
+    "security.yml": ["schedule", "workflow_dispatch"]
+  },
+  "modules": {
+    "reactor": [
+      "postgres-bulk-core",
+      "postgres-bulk-pgjdbc",
+      "postgres-bulk-hibernate",
+      "postgres-bulk-spring-data",
+      "postgres-bulk-spring-data-jdbc",
+      "postgres-bulk-spring-boot-autoconfigure",
+      "postgres-bulk-spring-boot-starter",
+      "postgres-bulk-spring-boot-autoconfigure-jdbc",
+      "postgres-bulk-spring-boot-starter-data-jdbc",
+      "postgres-bulk-benchmarks",
+      "../../examples/spring-boot-basic",
+      "../../examples/spring-boot-data-jdbc"
+    ],
+    "publishable": [
+      "postgres-bulk-core",
+      "postgres-bulk-pgjdbc",
+      "postgres-bulk-hibernate",
+      "postgres-bulk-spring-data",
+      "postgres-bulk-spring-data-jdbc",
+      "postgres-bulk-spring-boot-autoconfigure",
+      "postgres-bulk-spring-boot-starter",
+      "postgres-bulk-spring-boot-autoconfigure-jdbc",
+      "postgres-bulk-spring-boot-starter-data-jdbc"
+    ],
+    "non_publishable": [
+      "postgres-bulk-benchmarks",
+      "spring-boot-basic",
+      "spring-boot-data-jdbc"
+    ],
+    "all_poms": [
+      "code/postgres-bulk-parent/pom.xml",
+      "code/postgres-bulk-parent/postgres-bulk-benchmarks/pom.xml",
+      "code/postgres-bulk-parent/postgres-bulk-core/pom.xml",
+      "code/postgres-bulk-parent/postgres-bulk-hibernate/pom.xml",
+      "code/postgres-bulk-parent/postgres-bulk-pgjdbc/pom.xml",
+      "code/postgres-bulk-parent/postgres-bulk-spring-boot-autoconfigure-jdbc/pom.xml",
+      "code/postgres-bulk-parent/postgres-bulk-spring-boot-autoconfigure/pom.xml",
+      "code/postgres-bulk-parent/postgres-bulk-spring-boot-starter-data-jdbc/pom.xml",
+      "code/postgres-bulk-parent/postgres-bulk-spring-boot-starter/pom.xml",
+      "code/postgres-bulk-parent/postgres-bulk-spring-data-jdbc/pom.xml",
+      "code/postgres-bulk-parent/postgres-bulk-spring-data/pom.xml",
+      "examples/spring-boot-basic/pom.xml",
+      "examples/spring-boot-data-jdbc/pom.xml",
+      "verification/spring-boot-jdbc-consumer/pom.xml"
+    ]
+  },
+  "actions": {
+    "actions/checkout": {"sha": "d23441a48e516b6c34aea4fa41551a30e30af803", "version": "v6"},
+    "actions/setup-java": {"sha": "b6effb05e454b25005698d916606bdc6ffcbf961", "version": "v5"},
+    "actions/upload-artifact": {"sha": "ea165f8d65b6e75b540449e92b4886f43607fa02", "version": "v4"}
+  },
+  "tools": [
+    {"id": "gitleaks", "version": "8.30.1", "source": "scripts/check-secrets.sh", "update": "Dependabot/manual upstream release review", "owner": "yravelo"},
+    {"id": "osv-scanner", "version": "2.5.1", "source": "scripts/check-vulnerabilities.sh", "update": "Dependabot/manual upstream release review", "owner": "yravelo"},
+    {"id": "maven-dependency-plugin", "version": "3.8.1", "source": "scripts/check-vulnerabilities.sh", "update": "Dependabot/manual Maven plugin review", "owner": "yravelo"},
+    {"id": "spotbugs-maven-plugin", "version": "4.10.4.0", "source": "code/postgres-bulk-parent/pom.xml", "update": "Dependabot Maven build-tools group", "owner": "yravelo"},
+    {"id": "spotbugs", "version": "4.10.4", "source": "code/postgres-bulk-parent/pom.xml", "update": "Dependabot Maven build-tools group", "owner": "yravelo"},
+    {"id": "findsecbugs", "version": "1.14.0", "source": "code/postgres-bulk-parent/pom.xml", "update": "Dependabot Maven build-tools group", "owner": "yravelo"},
+    {"id": "cyclonedx-maven-plugin", "version": "2.9.3", "source": "config/security/sbom-policy.json", "update": "Dependabot Maven build-tools group", "owner": "yravelo"}
+  ],
+  "gates": [
+    {"id": "policy-drift", "command": "./scripts/check-security-policy.py", "modes": ["fast", "full", "release"], "ci": "Build and Security", "failure": "CONTROL"},
+    {"id": "workflow-hardening", "command": "./scripts/check-workflow-security.py", "modes": ["fast", "full", "release"], "ci": "Build and Security", "failure": "CONTROL"},
+    {"id": "current-secrets", "command": "./scripts/check-secrets.sh current", "modes": ["fast", "full", "release"], "ci": "Build and Security", "failure": "SECURITY"},
+    {"id": "history-secrets", "command": "./scripts/check-secrets.sh history", "modes": ["full", "release"], "ci": "Security and Release", "failure": "SECURITY"},
+    {"id": "dependencies", "command": "./scripts/check-vulnerabilities.sh", "modes": ["full", "release"], "ci": "Build, Security and Release", "failure": "SECURITY_OR_EXTERNAL"},
+    {"id": "reactor-and-testcontainers", "command": "./mvnw --batch-mode --no-transfer-progress clean verify", "modes": ["full", "release"], "ci": "Build and Security", "failure": "CODE_OR_INFRASTRUCTURE"},
+    {"id": "static-analysis", "command": "./scripts/check-static-analysis.py", "modes": ["full", "release"], "ci": "Build and Security", "failure": "SECURITY"},
+    {"id": "sbom-license", "command": "./scripts/generate-sbom.sh 0.1.0", "modes": ["full", "release"], "ci": "Build and Security", "failure": "SECURITY_OR_EXTERNAL"},
+    {"id": "documentation-api", "command": "./scripts/check-documentation.sh", "modes": ["full", "release"], "ci": "Build and Security", "failure": "CODE"},
+    {"id": "runner-health", "command": "./scripts/check-runner-health.sh", "modes": ["full", "release"], "ci": "Security", "failure": "INFRASTRUCTURE"},
+    {"id": "release-preflight", "command": "./scripts/check-release-security-preflight.sh technical", "modes": ["release"], "ci": "manual release preparation", "failure": "RELEASE_CONTROL"}
+  ],
+  "runner": {
+    "minimum_free_disk_gib": 5,
+    "minimum_actions_runner_version": "2.328.0",
+    "postgres_image": "postgres:15.18-alpine"
+  },
+  "signing": {
+    "fingerprint": "11545CD242C9575DF408AC08F83D364143C798A3",
+    "public_key": "docs/security/keys/postgres-bulk-release-11545CD242C9575DF408AC08F83D364143C798A3.asc",
+    "expires": "2028-08-23",
+    "warning_days": 365,
+    "blocking_days": 90,
+    "remote_url": "https://keys.openpgp.org/vks/v1/by-fingerprint/11545CD242C9575DF408AC08F83D364143C798A3"
+  }
+}

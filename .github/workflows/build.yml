@@ -40,15 +40,9 @@ jobs:
           command -v rg >/dev/null
           python3 -c 'import yaml'
 
-      - name: Audit workflow security
+      - name: Run fast security gates
         working-directory: .
-        run: |
-          ./scripts/check-workflow-security.py
-          ./scripts/test-workflow-security.py
-
-      - name: Scan current tree for secrets
-        working-directory: .
-        run: ./scripts/check-secrets.sh current
+        run: ./scripts/check-security.sh fast
 
       - name: Set up Java
         uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5

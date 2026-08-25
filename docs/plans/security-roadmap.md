@@ -145,24 +145,25 @@ dependencies/build chain/secrets/OpenPGP/runner/workstation/repository/artifacts
 de excepciones, CODEOWNERS documental, checklist sensible, issue guidance y handoff REL1. La API
 read-only confirma que PVR/advisories devuelven 404 mientras el repo siga privado y que
 rulesets/protection requieren cambio de plan o visibilidad. Como no existe un alias privado aprobado
-y probado, el estado honesto es `PARTIALLY DONE — PENDING OWNER ACTION`; SEC7 no se inicia.
+y probado, el estado honesto es `PARTIALLY DONE — PENDING OWNER ACTION`. Esa acción bloquea REL1,
+pero no bloquea SEC7, SEC8 ni la evaluación técnica REL0.
 
-## SEC7 — Security CI and Compatibility Closure
+## SEC7 — Continuous Security Validation & Operational Resilience — IMPLEMENTED (2026-08-25)
 
 | Campo | Definición |
 | --- | --- |
-| Objective | compose controls into reliable PR/scheduled/release lanes across supported boundaries |
-| Scope | job placement, cache/outage behavior, Java 17/21 and Maven compatibility, PostgreSQL digests, artifact retention, required evidence |
+| Objective | compose existing controls into continuous, drift-aware and operationally resilient validation |
+| Scope | canonical inventory, fast/full/release orchestration, scheduled workflow, expiry/tool/module/workflow drift, runner health and separate technical/REL1 preflights |
 | Non-goals | new scanners, performance thresholds, release/publication |
 | Tools/cost | SEC1–SEC6 tools; €0, bounded CI minutes |
 | Affected | Build/Compatibility/security/Release workflows, scripts and compatibility evidence |
 | Gates | fast PR lane; fresh scheduled SCA; complete release lane; mandatory job absence/failure is visible and not silently ignored |
-| Tests | local commands plus remote Build/Compatibility/security jobs; outage/retry, cache-cold and no-secrets PR scenarios |
-| False positives | one shared risk register feeds tool configs; expired exception fixture fails |
-| Documentation | CI matrix, timing budget, ownership, troubleshooting and evidence run IDs |
-| Acceptance | green representative matrix, no duplicated expensive scans, PR overhead within documented budget |
+| Tests | local fast/full commands, expiry fixtures, Docker/Testcontainers cleanup, remote Build/Compatibility/Security jobs and explicit REL1 blocked fixture |
+| False positives | exact accepted risks/exclusions/license reviews retain owner and expiry; stale/expired entries fail |
+| Documentation | [`continuous-security-validation.md`](../security/continuous-security-validation.md), timing budget, ownership, outage classification and preflight boundaries |
+| Acceptance | implementation complete; final `DONE` requires local full plus remote Build, Compatibility 11/11 and manually dispatched Security PASS on the implementation SHA |
 | Risks | rate limits, flaky databases, cache poisoning assumptions, CI fatigue |
-| Dependencies | SEC1–SEC6 |
+| Dependencies | SEC1–SEC5 controls plus implemented SEC6 policy; SEC6 channel closure is non-blocking here and blocking only at REL1 |
 | Deferred | paid/private-only GitHub features and future Java/Boot generation |
 
 ## SEC8 — Security Baseline Technical Closure
@@ -201,8 +202,9 @@ SEC5 está cerrado con identidad OpenPGP local protegida, fingerprint público f
 source-bound de 46 archivos Central y tres evidencias, comparación unsigned/signed y regresiones
 fail-closed. El workflow remoto es candidate-only y no contiene clave, passphrase, token ni upload.
 No se creó tag, no se ejecutó Release y no hubo upload/publicación. SEC6 está implementado salvo el
-canal privado externo: la siguiente acción es que el owner configure y pruebe ese canal. Sólo
-después de cerrar SEC6 puede recomendarse **SEC7 — Security CI and Compatibility Closure**.
+canal privado externo, que bloquea REL1. SEC7 puede cerrar técnicamente con ese estado pendiente;
+tras su evidencia verde puede recomendarse **SEC8 — Security Baseline Technical Closure** sin
+iniciarlo automáticamente.
 
 ## Mantenimiento PRE-SEC6 — DONE (2026-08-25)
 
