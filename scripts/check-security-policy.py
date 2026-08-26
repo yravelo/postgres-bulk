@@ -132,6 +132,14 @@ def audit_tools(policy: dict[str, Any]) -> None:
             raise ValueError(f"tool {tool.get('id')} lacks freshness metadata")
 
     script_expectations = {
+        "pyyaml": (
+            ROOT / "config/security/python-requirements.txt",
+            r"PyYAML==([0-9.]+)",
+        ),
+        "ripgrep": (
+            ROOT / "scripts/install-ci-audit-prerequisites.sh",
+            r'RIPGREP_VERSION="([0-9.]+)"',
+        ),
         "gitleaks": (ROOT / "scripts/check-secrets.sh", r"GITLEAKS_VERSION=([0-9.]+)"),
         "osv-scanner": (ROOT / "scripts/check-vulnerabilities.sh", r'OSV_VERSION="([0-9.]+)"'),
         "maven-dependency-plugin": (

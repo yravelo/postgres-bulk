@@ -32,10 +32,7 @@ jobs:
 
       - name: Install pinned security audit dependencies
         working-directory: .
-        run: >-
-          python3 -m pip install --disable-pip-version-check --no-deps
-          --only-binary=:all: --require-hashes
-          --requirement config/security/python-requirements.txt
+        run: ./scripts/install-ci-audit-prerequisites.sh
 
       - name: Verify security audit prerequisites
         working-directory: .
