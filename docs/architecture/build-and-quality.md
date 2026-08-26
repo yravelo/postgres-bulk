@@ -9,9 +9,11 @@ ser 17 o superior. El build baseline usa Java 17; compatibility CI prueba Java 2
 el bytecode. Java 17/21 son soportados y JDK 25 es validación adicional. No se configura Maven
 Toolchains porque CI selecciona el JDK y el developer puede hacer lo mismo con `JAVA_HOME`.
 
-`0.1.0-SNAPSHOT` identifica desarrollo preestable: no existe garantía de compatibilidad de API ni
-publicación remota. `project.build.outputTimestamp` fija timestamps de artefactos durante esta etapa
-y deberá actualizarse de forma controlada en el proceso de release.
+`0.1.0-SNAPSHOT` identifica el estado de desarrollo de `main` posterior a la publicación estable de
+`0.1.0`; no es una coordenada remota ni sustituye el release soportado. El siguiente cambio de
+versión de desarrollo será una decisión explícita de roadmap, no una consecuencia automática de
+REL3. `project.build.outputTimestamp` mantiene builds deterministas y se actualiza solo mediante el
+proceso de release revisado.
 
 ## Dependency management
 
@@ -49,7 +51,7 @@ auto-configuration metadata. El starter agrega Data JPA y autoconfigure, sin có
 
 ## Formato
 
-Spotless 3.9.0 ejecuta `spotless:check` en `verify`. Java usa google-java-format 1.28.0, la línea compatible con ejecutar el formatter en Java 17. También prohíbe wildcard imports, elimina imports sin uso y normaliza whitespace/final newline. La corrección local será:
+Spotless 3.10.0 ejecuta `spotless:check` en `verify`. Java usa google-java-format 1.28.0, la línea compatible con ejecutar el formatter en Java 17. También prohíbe wildcard imports, elimina imports sin uso y normaliza whitespace/final newline. La corrección local será:
 
 ```bash
 ./mvnw spotless:apply
@@ -71,15 +73,11 @@ instalar el snapshot local.
 
 ## Análisis estático
 
-Phase 1 no incorpora SpotBugs, PMD, Error Prone ni Sonar:
-
-- no existe código que analizar;
-- Error Prone añade sensibilidad al compilador/JDK;
-- SpotBugs será evaluable cuando exista bytecode significativo;
-- PMD/Checkstyle sólo se añadirán si cubren reglas no satisfechas por compiler, tests, ArchUnit y Spotless;
-- Sonar pertenece a infraestructura de hosting y no al build reproducible mínimo.
-
-La prioridad actual es compiler explícito, dependency convergence, tests, formato y límites arquitectónicos.
+SpotBugs 4.10.4 con FindSecBugs 1.14.0 analiza los siete módulos productivos durante `verify`; el
+auditor posterior exige cero errores del analizador y cero findings sin decisión. CodeQL completa
+esa cobertura en GitHub. PMD, Error Prone y Sonar no forman parte de la baseline actual; cualquier
+incorporación futura debe cubrir una brecha demostrada sin duplicar compiler, tests, Spotless,
+SpotBugs o CodeQL.
 
 ## Límites arquitectónicos
 
@@ -95,7 +93,8 @@ Cuando existan clases, ArchUnit vivirá como dependencia `test` del módulo que 
 
 No se crean tests ArchUnit vacíos. Hasta entonces, el DAG Maven, Enforcer y comprobaciones de CI son la evidencia ejecutable disponible.
 
-Surefire y Failsafe quedan alineados en 3.5.4: durante la validación Phase 1, la documentación “current” anunciaba 3.6.0 pero el artefacto Failsafe correspondiente no estaba publicado en Central. El build usa la última pareja confirmada como resoluble, no una versión documental adelantada.
+Surefire y Failsafe quedan alineados en 3.5.6. El build usa una pareja publicada y confirmada como
+resoluble, no una versión documental adelantada.
 
 ## Reproducibilidad y seguridad
 
@@ -110,8 +109,9 @@ Los overrides reproducibles son `spring-boot.version`, `hibernate.version`,
 únicamente mediante el BOM Boot. La evidencia exacta se registra en
 [`compatibility-evidence.md`](compatibility-evidence.md).
 
-El build no publica ni firma. Phase 15 valida la documentación Javadoc pero no adjunta todavía JARs
-de sources/Javadocs; signing, provenance y esos artefactos de release pertenecen a Phase 16.
+El build normal no publica ni firma. El release `0.1.0` adjunta JARs de sources/Javadocs y SBOMs,
+con firmas OpenPGP y checksums verificables desde Maven Central. Firma, upload y publicación
+permanecen fuera de CI y requieren gates separados para cualquier release futuro.
 
 ## Benchmarks
 

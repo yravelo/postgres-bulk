@@ -19,7 +19,8 @@ internal-module dependencies.
 
 ## Run manually
 
-Install the development snapshot once from the repository root:
+The published release needs no local install. To exercise current `main` instead, install its
+development snapshot once from the repository root and omit the `revision` override below:
 
 ```bash
 cd code/postgres-bulk-parent
@@ -33,6 +34,7 @@ Start the pinned local database and application:
 docker compose -f examples/spring-boot-basic/compose.yaml up -d
 code/postgres-bulk-parent/mvnw \
   -f examples/spring-boot-basic/pom.xml \
+  -Drevision=0.1.0 \
   spring-boot:run
 ```
 
@@ -53,12 +55,13 @@ target schemas as a fixture; postgres-bulk never provisions them.
 
 ## Run the adoption test
 
-Docker is required. After installing the snapshot:
+Docker is required. The stable external-consumer path resolves only from Maven Central:
 
 ```bash
 code/postgres-bulk-parent/mvnw \
   --batch-mode --no-transfer-progress \
   -f examples/spring-boot-basic/pom.xml \
+  -Drevision=0.1.0 \
   clean verify
 ```
 

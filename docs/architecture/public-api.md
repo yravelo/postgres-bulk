@@ -422,8 +422,9 @@ J7 no añade tipos, métodos ni firmas públicas a los artifacts de la librería
 compila sólo contra `postgres-bulk-spring-boot-starter-data-jdbc` y las APIs públicas ya aceptadas:
 `PostgresBulkJdbcRepository<T>`, `SpringDataJdbcEntityMetadataResolver`,
 `PostgresBulkJdbcAutoConfiguration`, core metadata/options/results y Spring Data JDBC. Sus clases
-de dominio y servicio pertenecen al artifact de ejemplo, no a la API de postgres-bulk. El baseline
-binario de `0.1.0-SNAPSHOT` permanece sin cambios.
+de dominio y servicio pertenecen al artifact de ejemplo, no a la API de postgres-bulk. La baseline
+binaria pre-release evaluada durante J7 permaneció sin cambios; el resultado se publicó
+posteriormente como `0.1.0`.
 
 ## Auditoría multi-schema Boot MS6
 

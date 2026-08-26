@@ -12,7 +12,8 @@ rows are written.
 
 ## Run manually
 
-Install the development snapshot first:
+The published release needs no local install. To exercise current `main` instead, install its
+development snapshot and omit the `revision` override in the commands below:
 
 ```bash
 cd code/postgres-bulk-parent
@@ -23,7 +24,7 @@ Start the exact PostgreSQL image and run the application from the same directory
 
 ```bash
 docker compose -f ../../examples/spring-boot-data-jdbc/compose.yaml up -d
-./mvnw -f ../../examples/spring-boot-data-jdbc/pom.xml spring-boot:run
+./mvnw -f ../../examples/spring-boot-data-jdbc/pom.xml -Drevision=0.1.0 spring-boot:run
 docker compose -f ../../examples/spring-boot-data-jdbc/compose.yaml down
 ```
 
@@ -41,8 +42,7 @@ Docker must be available. Testcontainers starts the PostgreSQL patch selected by
 
 ```bash
 cd code/postgres-bulk-parent
-./mvnw install
-./mvnw -f ../../examples/spring-boot-data-jdbc/pom.xml clean verify
+./mvnw -f ../../examples/spring-boot-data-jdbc/pom.xml -Drevision=0.1.0 clean verify
 ```
 
 The test validates Boot startup, repository/fragment discovery, default and explicit inserts,

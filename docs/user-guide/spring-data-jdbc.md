@@ -2,13 +2,13 @@
 
 ## Getting started
 
-Install the local `0.1.0-SNAPSHOT` and add only this direct postgres-bulk dependency:
+Add the stable `0.1.0` release from Maven Central as the only direct postgres-bulk dependency:
 
 ```xml
 <dependency>
   <groupId>io.github.yravelo</groupId>
   <artifactId>postgres-bulk-spring-boot-starter-data-jdbc</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 

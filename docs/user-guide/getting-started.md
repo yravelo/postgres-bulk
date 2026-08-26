@@ -1,13 +1,8 @@
 # Getting started
 
-## Install the development snapshot
+## Install the stable release
 
-Version `0.1.0-SNAPSHOT` is not published to Maven Central. From a checkout:
-
-```bash
-cd code/postgres-bulk-parent
-./mvnw clean install
-```
+Version `0.1.0` is published in Maven Central. No local checkout or `mvn install` is required.
 
 Choose one library starter for a normal Spring Boot 3.5 application. For Spring Data JPA:
 
@@ -15,7 +10,7 @@ Choose one library starter for a normal Spring Boot 3.5 application. For Spring 
 <dependency>
   <groupId>io.github.yravelo</groupId>
   <artifactId>postgres-bulk-spring-boot-starter</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
@@ -27,7 +22,7 @@ For Spring Data JDBC:
 <dependency>
   <groupId>io.github.yravelo</groupId>
   <artifactId>postgres-bulk-spring-boot-starter-data-jdbc</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 

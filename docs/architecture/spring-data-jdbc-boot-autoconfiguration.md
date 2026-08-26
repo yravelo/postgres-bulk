@@ -86,16 +86,16 @@ batch, or temporary-table property.
 Schema remains mapping-derived. Future schema-per-operation or tenant resolution can be added at an
 operation boundary without overriding entity metadata through a global `postgres-bulk.schema`.
 
-## Installation from the local snapshot
+## Installation from Maven Central
 
-The artifacts are not published to Maven Central. After `./mvnw install` in
-`code/postgres-bulk-parent`, a JDBC application can use this single postgres-bulk dependency:
+The stable release is available from Maven Central. A JDBC application uses this single
+postgres-bulk dependency without installing the reactor locally:
 
 ```xml
 <dependency>
   <groupId>io.github.yravelo</groupId>
   <artifactId>postgres-bulk-spring-boot-starter-data-jdbc</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 

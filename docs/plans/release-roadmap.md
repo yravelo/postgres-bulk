@@ -88,18 +88,23 @@ authorized bundle and clean JPA/JDBC consumers resolved `0.1.0` from Maven Centr
 
 ## REL3 — Post-Publication Verification
 
-**Status:** `NOT STARTED`.
+**Status:** `COMPLETE`.
 
-Entry criteria: **PASS** — REL2 publication completed successfully. REL3 is deliberately not
-started by the REL2 closure.
+Entry criteria: **PASS** — REL2 publication completed successfully. REL3 started only after the
+REL2 closure and created the GitHub Release only after separate owner authorization.
 
 Scope: verify public Central resolution, signatures, checksums, POM/SBOM metadata, JPA and JDBC
 consumer adoption, public documentation and GitHub release notes; record any incident without
 attempting to replace immutable components.
 
+Closure: all ten coordinates resolve from Central; all 184 public files match the authorized
+bundle; signatures, clean-room JPA/JDBC consumers, an anonymous tag clone/build and the complete
+security gate pass. The non-draft, non-prerelease GitHub Release points to the unchanged signed
+`v0.1.0` tag and carries no duplicate Maven binaries.
+
 ## Current handoff
 
-REL0 remains `DONE`, REL1 is `COMPLETE`, and REL2 is `COMPLETE`. The canonical repository is public,
-the old private archive is deleted, EP-02/EP-03 are `PASS`, and `0.1.0` is published in Maven
-Central. No GitHub Release was created because repository governance requires separate owner
-authorization. REL3 is ready but has not started.
+REL0 remains `DONE`; REL1, REL2 and REL3 are `COMPLETE`. The canonical repository is public, the old
+private archive is deleted, EP-02/EP-03 are `PASS`, `0.1.0` is published in Maven Central, and the
+authorized GitHub Release is public at the existing signed tag. The project returns to
+`OBSERVE / MAINTAIN`; no `0.2.0` work starts automatically.

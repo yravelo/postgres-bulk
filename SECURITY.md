@@ -2,17 +2,17 @@
 
 ## Supported versions
 
-PostgreSQL Bulk has not published a supported release. `main` and `0.1.0-SNAPSHOT` are development
-states and receive no public support commitment.
-
-After the first release, this single-maintainer project will support only the newest patch in the
-current `0.1.x` line. Publishing a replacement patch ends support for older `0.1.x` patches unless
-an advisory explicitly states a transition period. Multiple maintenance branches are not promised.
+PostgreSQL Bulk `0.1.0` is the current supported release. `main` and snapshots are development
+states and receive no public support commitment. This single-maintainer project supports only the
+newest patch in the current `0.1.x` line. Publishing a replacement patch ends support for older
+`0.1.x` patches unless an advisory explicitly states a transition period. Multiple maintenance
+branches are not promised.
 
 | Version | Supported |
 | --- | --- |
 | `main` / snapshots | No — development only |
-| `0.1.x` | Not published; newest patch only after activation |
+| `0.1.0` | Yes |
+| other `0.1.x` patches | No — not published |
 | older patch lines | No, unless an advisory explicitly says otherwise |
 
 ## Reporting a vulnerability
@@ -63,9 +63,9 @@ The full process and state model are in
 Containment procedures are in the
 [Incident response runbook](docs/security/incident-response-runbook.md).
 
-## Before the first release
+## Release-candidate handling
 
-A vulnerability found before publication stops the candidate. The owner fixes or mitigates it,
+A vulnerability found before a future publication stops that candidate. The owner fixes or mitigates it,
 invalidates previous candidate evidence and reruns every affected security, compatibility,
 inventory, reproducibility and signing gate. SBOMs, checksums, release inventory and signatures
 are regenerated from the new clean source commit. No previous candidate is reused.
@@ -88,9 +88,9 @@ policy. Detailed commands are in the governance document.
 
 ## Official distribution identity
 
-The official public source repository is `https://github.com/yravelo/postgres-bulk`. Maven Central
-distribution is not active and no supported artifact has been published. After separately
-authorized publication, the official Maven group is `io.github.yravelo`. Treat look-alike
+The official public source repository is `https://github.com/yravelo/postgres-bulk`. Release
+`0.1.0` is distributed from Maven Central under the official group `io.github.yravelo` and is bound
+to signed tag `v0.1.0`. Treat look-alike
 repositories, Maven groups or unsigned release files as suspect. Preserve URLs and hashes without
 executing the artifact, then use the configured private channel and the relevant GitHub or Maven
 Central abuse process.

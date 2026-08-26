@@ -1,5 +1,14 @@
 # Release readiness for 0.1.0
 
+## REL3 post-release closure
+
+REL3 is `COMPLETE` as of 2026-08-26. Maven Central propagation and byte integrity, all artifact
+signatures, isolated JPA/JDBC consumers, the anonymous signed-tag build, public documentation and
+the complete security gate all pass. After separate owner authorization, the public non-draft,
+non-prerelease [GitHub Release](https://github.com/yravelo/postgres-bulk/releases/tag/v0.1.0) was
+created over the unchanged `v0.1.0` tag with no duplicate Maven binaries. See the
+[REL3 verification record](rel3-post-release-external-verification.md).
+
 ## REL2 publication closure
 
 REL2 is `COMPLETE` as of 2026-08-26. Signed tag `v0.1.0` points to frozen source commit
@@ -9,9 +18,9 @@ REL2 is `COMPLETE` as of 2026-08-26. Signed tag `v0.1.0` points to frozen source
 and reached `PUBLISHED`. All 184 public files matched the authorized bundle byte-for-byte. Clean
 JPA and JDBC consumers resolved all ten coordinates from Maven Central and passed.
 
-Build, Compatibility 11/11, Security and CodeQL passed on the release source SHA. No repository
-secret, runner signing material, visibility change or GitHub Release was created. See the
-[REL2 publication record](rel2-maven-central-0.1.0-publication.md).
+Build, Compatibility 11/11, Security and CodeQL passed on the release source SHA. At the REL2
+checkpoint, no repository secret, runner signing material, visibility change or GitHub Release was
+created. See the [REL2 publication record](rel2-maven-central-0.1.0-publication.md).
 
 ## REL2 EP-02 entry-gate addendum (historical)
 
@@ -81,10 +90,11 @@ entry verdict is superseded by the MIG3B addendum above. See the
 
 ## Verdict
 
-The project has completed controlled REL1 public source activation and REL2 Maven Central
-publication. Identity, the public GitHub repository, Central namespace, local OpenPGP release
-identity, private reporting, signed tag, exact bundle and external consumers are verified.
-`io.github.yravelo:*:0.1.0` is public. No GitHub Release or benchmark workflow ran.
+The project has completed controlled REL1 public source activation, REL2 Maven Central publication
+and REL3 external verification. Identity, the public GitHub repository, Central namespace, local
+OpenPGP release identity, private reporting, signed tag, exact bundle and external consumers are
+verified. `io.github.yravelo:*:0.1.0` and its GitHub Release are public. No post-release benchmark
+workflow ran.
 
 ## Final identity
 

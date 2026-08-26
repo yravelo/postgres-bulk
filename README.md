@@ -6,8 +6,8 @@ Data JPA/Hibernate and Spring Data JDBC through separate starters and repository
 not an ORM replacement.
 
 The first stable public release is `0.1.0`. Its ten Maven coordinates are published under
-`io.github.yravelo` in Maven Central and are bound to the signed [`v0.1.0`](https://github.com/yravelo/postgres-bulk/tree/v0.1.0)
-tag.
+`io.github.yravelo` in Maven Central and are bound to the signed
+[`v0.1.0`](https://github.com/yravelo/postgres-bulk/releases/tag/v0.1.0) tag.
 
 ## Why
 

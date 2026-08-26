@@ -204,12 +204,10 @@ and contains no signing or Central credentials.
 
 ## Local OpenPGP release ceremony (owner only)
 
-Central uses the Publisher Portal, not the legacy OSSRH workflow. Sign in at
-`https://central.sonatype.com` using GitHub identity `yravelo`. The owner confirmed on 2026-08-19
-that `io.github.yravelo` is `VERIFIED`. Reconfirm that state before activation, then generate a
-named, expiring user token at
-`https://central.sonatype.com/usertoken`. Its generated username/password pair maps to
-`CENTRAL_USERNAME` and `CENTRAL_PASSWORD`; neither value belongs in this repository or chat.
+Central uses the Publisher Portal, not the legacy OSSRH workflow. Release `0.1.0` is already
+published under the verified `io.github.yravelo` namespace. For a future authorized release,
+reconfirm the namespace and owner-local token before use. Neither token component belongs in this
+repository, GitHub Actions, logs or chat.
 
 Central requires an OpenPGP signature for every deployed file, including attached CycloneDX SBOMs.
 The approved release key and complete ceremony are documented in
@@ -232,5 +230,5 @@ The passphrase is entered only through pinentry/gpg-agent. Never export the secr
 repository, a GitHub secret, runner filesystem, argument, environment variable, Maven settings or
 log. The real script requires a clean synchronized `main`, produces 46 Central-bound signatures
 plus three evidence signatures, verifies the approved full fingerprint, and proves payload hashes
-are unchanged. `local-signing` and `central-publish` remain separate Maven profiles; enabling the
-latter, creating a tag, uploading or publishing each require separate future authorization.
+are unchanged for the `0.1.0` inventory. `local-signing` and `central-publish` remain separate Maven
+profiles; every future tag, upload and publication requires a new separate authorization.
