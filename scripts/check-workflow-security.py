@@ -39,8 +39,13 @@ BENCHMARK_PROFILES = {
     "multi-schema-baseline",
 }
 HOSTED_RUNNER = "ubuntu-latest"
-PUBLIC_PR_WORKFLOWS = {"build.yml", "compatibility.yml"}
-HARDENED_CHECKOUT_WORKFLOWS = {"build.yml", "compatibility.yml", "security.yml"}
+PUBLIC_PR_WORKFLOWS = {"build.yml", "compatibility.yml", "dependency-review.yml"}
+HARDENED_CHECKOUT_WORKFLOWS = {
+    "build.yml",
+    "compatibility.yml",
+    "dependency-review.yml",
+    "security.yml",
+}
 COMPATIBILITY_LANES = {
     "multi-schema-composition": None,
     "java": ("java", ["21", "25"]),
@@ -328,6 +333,33 @@ def security_errors(workflow: dict[str, Any]) -> list[str]:
     return errors
 
 
+def dependency_review_errors(workflow: dict[str, Any]) -> list[str]:
+    jobs = workflow.get("jobs", {})
+    if set(jobs) != {"dependency-review"}:
+        return ["Dependency Review must contain exactly one reviewed job"]
+    steps = jobs["dependency-review"].get("steps", [])
+    review = next(
+        (
+            step
+            for step in steps
+            if isinstance(step, dict)
+            and str(step.get("uses", "")).startswith("actions/dependency-review-action@")
+        ),
+        {},
+    )
+    expected = {
+        "comment-summary-in-pr": "never",
+        "fail-on-severity": "moderate",
+        "license-check": "true",
+        "show-openssf-scorecard": "true",
+        "vulnerability-check": "true",
+        "warn-only": "false",
+    }
+    return [] if review.get("with") == expected else [
+        "Dependency Review inputs must remain fail-closed, read-only and comment-free"
+    ]
+
+
 def benchmark_errors(workflow: dict[str, Any]) -> list[str]:
     dispatch = workflow["on"]["workflow_dispatch"]
     options = dispatch["inputs"]["profile"].get("options", [])
@@ -392,6 +424,8 @@ def audit_workflow(name: str, workflow: dict[str, Any], text: str) -> list[str]:
         errors.extend(build_errors(workflow))
     elif name == "compatibility.yml":
         errors.extend(compatibility_errors(workflow))
+    elif name == "dependency-review.yml":
+        errors.extend(dependency_review_errors(workflow))
     elif name == "benchmarks.yml":
         errors.extend(benchmark_errors(workflow))
     elif name == "release.yml":

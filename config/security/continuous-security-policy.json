@@ -20,6 +20,7 @@
   "workflows": {
     "build.yml": ["push", "pull_request"],
     "compatibility.yml": ["push", "pull_request"],
+    "dependency-review.yml": ["pull_request"],
     "benchmarks.yml": ["workflow_dispatch"],
     "release.yml": ["workflow_dispatch"],
     "security.yml": ["schedule", "workflow_dispatch"]
@@ -74,6 +75,7 @@
   },
   "actions": {
     "actions/checkout": {"sha": "d23441a48e516b6c34aea4fa41551a30e30af803", "version": "v6"},
+    "actions/dependency-review-action": {"sha": "a1d282b36b6f3519aa1f3fc636f609c47dddb294", "version": "v5.0.0"},
     "actions/setup-java": {"sha": "b6effb05e454b25005698d916606bdc6ffcbf961", "version": "v5"},
     "actions/upload-artifact": {"sha": "ea165f8d65b6e75b540449e92b4886f43607fa02", "version": "v4"}
   },

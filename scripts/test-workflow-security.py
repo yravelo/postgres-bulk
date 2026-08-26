@@ -169,6 +169,17 @@ class WorkflowSecurityTests(unittest.TestCase):
         for name in SECURITY.PUBLIC_PR_WORKFLOWS:
             self.assert_public_pr_path_is_hosted_and_secret_free(name)
 
+    def test_dependency_review_cannot_write_or_comment(self) -> None:
+        workflow = self.load("dependency-review.yml")
+        review = next(
+            step
+            for step in workflow["jobs"]["dependency-review"]["steps"]
+            if str(step.get("uses", "")).startswith("actions/dependency-review-action@")
+        )
+        review["with"]["comment-summary-in-pr"] = "always"
+        errors = SECURITY.dependency_review_errors(workflow)
+        self.assertTrue(any("comment-free" in error for error in errors))
+
     def test_external_actor_cannot_select_self_hosted(self) -> None:
         for name in SECURITY.PUBLIC_PR_WORKFLOWS:
             self.assert_public_pr_path_is_hosted_and_secret_free(name)
