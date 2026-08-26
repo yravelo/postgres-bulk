@@ -19,5 +19,10 @@ called out in release notes and the migration path is documented.
 - Add optional Micrometer observations and bounded-cardinality counters.
 - Publish the supported Java, Spring Boot, Hibernate, pgJDBC and PostgreSQL compatibility matrix.
 - Add reproducible benchmarks, adoption documentation and a standalone Spring Boot consumer.
+- Add Spring Data JDBC integration, a dedicated JDBC starter and operation-scoped multi-schema
+  targets for both persistence stacks.
+- Add signed release provenance, CycloneDX SBOMs, vulnerability/license/SAST gates and isolated
+  external consumer verification.
 
-`0.1.0` has no publication date because it has not been released.
+Released to Maven Central on 2026-08-26 from signed tag `v0.1.0` and source commit
+`9d05829ae66e54be82b33728bd6f56f8318f4b7a`.

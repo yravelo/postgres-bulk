@@ -137,7 +137,8 @@ Estado auditado para el candidato `0.1.0` tras el cierre de EP-01. Cada criterio
   reciben clave, passphrase ni token.
 - **PASS** — El repositorio público no contiene environment, secret ni variable de Central; el
   marcador inerte pertenecía al archive eliminado y ningún workflow lo referenciaba.
-- **EXTERNAL PREREQUISITE** — El Portal token sigue MISSING; no se configuró ningún secret remoto.
+- **PASS** — El token nominal del Portal está configurado únicamente en el settings Maven local
+  `0600`; el preflight autenticado y el deployment real pasaron sin crear ningún secret remoto.
 - **PASS** — Clave OpenPGP real RSA-3072 protegida, fingerprint
   `11545CD242C9575DF408AC08F83D364143C798A3`, revocación privada y export público preparado.
 - **PASS** — `origin` usa SSH, `main` está publicado y las URLs de project/SCM coinciden con el
@@ -152,20 +153,20 @@ Estado auditado para el candidato `0.1.0` tras el cierre de EP-01. Cada criterio
   y Compatibility `32774191674` pasó 11/11. MIG5B retiró después ese runner y dejó el servicio
   inactivo/deshabilitado; los workflows actuales usan infraestructura alojada. No se ejecutaron
   Benchmarks ni Release.
-- **PASS** — EP-01 está resuelto y REL1 quedó completado. Tag, upload y publicación siguen
-  separados y dependen de REL2, EP-02/EP-03 y autorización posterior.
+- **PASS** — EP-01, EP-02 y EP-03 están resueltos; REL1 y REL2 quedaron completados. Las tres
+  autorizaciones separadas de tag, upload y publicación fueron consumidas exclusivamente para
+  `v0.1.0` y deployment `04f5f426-9074-4077-87b2-ff838b57638a`.
 - **PASS** — Release es candidate-only, `workflow_dispatch` desde `main` por `yravelo`; exige stable
   SemVer, full SHA perteneciente a `origin/main` y confirmación literal.
 - **PASS** — El workflow no contiene job/input de upload ni referencias `secrets.*`; todas las
   Actions están pinned, `GITHUB_TOKEN` conserva `contents: read` y `autoPublish=false`.
 - **PASS** — Fork PRs y Dependabot no reciben Actions secrets en condiciones documentadas; release
   no usa `pull_request_target`, `workflow_run`, push, PR ni schedule.
-- **PASS** — Hubo push de `main`; no se creó tag ni se ejecutó release, upload o publicación.
+- **PASS** — El tag OpenPGP `v0.1.0` está publicado sobre el SHA congelado; el bundle exacto alcanzó
+  `PUBLISHED` con `autoPublish=false`. La GitHub Release permanece sin crear.
 
 ## Veredicto
 
-SEC0–SEC8 están `DONE`, la baseline técnica está `COMPLETE`, EP-01 está `PASS` y REL1/clean
-repository migration están `COMPLETE`. El repositorio fuente público está activado; REL2 continúa
-en preparación: EP-02 y EP-03 están `PASS`, pero falta congelar el SHA exacto, completar el
-candidate firmado y autorizar tag, upload y publicación por separado. No se requieren Repository
-Secrets.
+SEC0–SEC8 están `DONE`, la baseline técnica está `COMPLETE`, EP-01/EP-02/EP-03 están `PASS` y
+REL1/REL2 están `COMPLETE`. `io.github.yravelo:*:0.1.0` está publicado y verificado desde consumidores
+limpios. No se requieren Repository Secrets y REL3 no se inició automáticamente.

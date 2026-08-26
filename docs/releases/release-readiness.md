@@ -1,14 +1,27 @@
 # Release readiness for 0.1.0
 
-## REL2 EP-02 entry-gate addendum
+## REL2 publication closure
+
+REL2 is `COMPLETE` as of 2026-08-26. Signed tag `v0.1.0` points to frozen source commit
+`9d05829ae66e54be82b33728bd6f56f8318f4b7a`. The exact signed bundle with SHA-256
+`8da79fe7ed9eeec0728fc25cd90585dbae03a6f88b7cd0af804ea54ab58ceb30` was uploaded once as
+`USER_MANAGED`; Central deployment `04f5f426-9074-4077-87b2-ff838b57638a` validated without errors
+and reached `PUBLISHED`. All 184 public files matched the authorized bundle byte-for-byte. Clean
+JPA and JDBC consumers resolved all ten coordinates from Maven Central and passed.
+
+Build, Compatibility 11/11, Security and CodeQL passed on the release source SHA. No repository
+secret, runner signing material, visibility change or GitHub Release was created. See the
+[REL2 publication record](rel2-maven-central-0.1.0-publication.md).
+
+## REL2 EP-02 entry-gate addendum (historical)
 
 EP-02 is `PASS` on 2026-08-26 from the owner's explicit sanitized confirmation of protected
 offline backup, separate revocation recovery, isolated restore/test signature, exact fingerprint
 verification and transient-material cleanup. No secret value, location or recovery material was
 recorded. EP-03 is also `PASS`: exactly one owner-local Maven server uses ID `central`, its settings
 file has mode `0600`, and an authenticated no-upload status probe passed without logging credential
-material. No release SHA is frozen yet; signing, tag, Central upload and publication remain
-separately gated.
+material. Those prerequisites were later consumed by the separately authorized REL2 operations
+recorded above.
 
 ## REL1-MIG5B final-closure addendum
 
@@ -17,8 +30,8 @@ inactive/dead/disabled, `yravelo/postgres-bulk-private-archive` is deleted, and 
 remote is gone. The public repository retained ID `1346700826`, canonical history, protected
 `main`, zero runners/secrets and hosted Build/Compatibility 11/11/Security/CodeQL PASS evidence.
 Anonymous clone and full-history privacy checks pass after deletion. **REL1: COMPLETE; CLEAN
-REPOSITORY MIGRATION: COMPLETE; OPEN-SOURCE ACTIVATION COMPLETE.** REL2 remains `NOT STARTED` with
-EP-02 and EP-03 pending. See the
+REPOSITORY MIGRATION: COMPLETE; OPEN-SOURCE ACTIVATION COMPLETE.** At that historical checkpoint,
+REL2 had not started. See the
 [MIG5B closure report](rel1-mig5b-archive-deletion-and-rel1-closure.md).
 
 ## REL1-MIG5 archive-decommission readiness addendum (historical)
@@ -68,10 +81,10 @@ entry verdict is superseded by the MIG3B addendum above. See the
 
 ## Verdict
 
-The project has completed controlled REL1 public source activation and is **OPEN-SOURCE ACTIVATION:
-GO**. Identity, the public GitHub repository, Central namespace, local OpenPGP release identity and
-private reporting are approved. Offline key-backup verification, the Portal token, tag, upload and
-Portal publication remain intentionally withheld. No Release or benchmark workflow ran.
+The project has completed controlled REL1 public source activation and REL2 Maven Central
+publication. Identity, the public GitHub repository, Central namespace, local OpenPGP release
+identity, private reporting, signed tag, exact bundle and external consumers are verified.
+`io.github.yravelo:*:0.1.0` is public. No GitHub Release or benchmark workflow ran.
 
 ## Final identity
 
@@ -118,17 +131,19 @@ contains the project description, Apache-2.0 license, project URL, SCM and devel
 `yravelo`; no email is published. GitHub Issues is enabled. The GitHub repository description is
 currently empty and remains an explicit REL1 public-metadata activation item.
 
-The repository is a **public source repository**. This is distinct from publishing binary artifacts
-to Maven Central: no supported Maven release exists yet.
+The repository is a **public source repository**, and release `0.1.0` is also available as supported
+binary artifacts from Maven Central.
 
 ## Maven Central status
 
-Target: Maven Central Publisher Portal using Sonatype's official plugin with
-`autoPublish=false`.
+Status: **PUBLISHED** through Maven Central Publisher Portal. Upload used explicit
+`publishingType=USER_MANAGED`, preserving the `autoPublish=false` policy and the separate publication
+authorization boundary.
 
 Namespace `io.github.yravelo`: **PASS — VERIFIED** in Maven Central Portal, confirmed by owner
 `yravelo` on 2026-08-19. This owner-confirmed Portal state is the evidence of record; no screenshot,
-session data or token is stored. The real Portal user token has not been generated.
+session data or token is stored. The owner-local token is configured outside Git in a mode-`0600`
+Maven settings file and was used without logging its value.
 
 - [Central publication requirements](https://central.sonatype.org/publish/requirements/)
 - [Central namespace registration](https://central.sonatype.org/register/namespace/)
@@ -157,16 +172,16 @@ session data or token is stored. The real Portal user token has not been generat
 | Expiry/drift and runner-health gates | PASS locally — policy fixtures, module/POM/workflow/tool drift, Docker/PostgreSQL smoke and Testcontainers residue boundary |
 | GitHub environment `maven-central` | DEFERRED (non-blocking) — retained as an inert marker; not referenced by release workflow |
 | Environment protection | DEFERRED (non-blocking) — unavailable for this private repository on the current entitlement |
-| `CENTRAL_USERNAME` / `CENTRAL_PASSWORD` | MISSING |
+| `CENTRAL_USERNAME` / `CENTRAL_PASSWORD` | NOT USED — owner-local Maven token boundary; no Actions secret |
 | `GPG_PRIVATE_KEY` / `GPG_PASSPHRASE` | NOT USED — must not be created for the local strategy |
-| Tag `v0.1.0` | NOT EXECUTED — creation/push not authorized |
+| Tag `v0.1.0` | PASS — annotated OpenPGP tag, exact fingerprint and source SHA verified publicly |
 | Remote Build and Compatibility workflows | PASS |
-| Benchmarks and Release candidate workflows | NOT EXECUTED |
-| Central upload/publication | NOT EXECUTED |
+| Benchmarks and Release candidate workflows | NOT EXECUTED — local equivalent PASS; manual workflow was not registered by GitHub |
+| Central upload/publication | PASS — deployment `04f5f426-9074-4077-87b2-ff838b57638a` PUBLISHED |
 
 The Release workflow is candidate-only, owner-dispatched and secret-free. The private signing key
-and passphrase must never become Actions secrets or runner state. Central credentials remain absent;
-their eventual local handling and any upload require a separately reviewed activation.
+and passphrase never became Actions secrets or runner state. Central credentials remained local;
+the three separately reviewed tag, upload and publication gates were consumed for `0.1.0` only.
 
 ## License, supply chain and reproducibility
 
@@ -237,9 +252,9 @@ Two clean artifact builds and two semantic SBOM generations remain the release r
 gate. The technical release preflight passes on clean synchronized `main`; the REL1 preflight also
 passes after the verified reporting-channel closure.
 
-This technical closure does not make `0.1.0` publicly ready. SEC6 is `DONE`; offline OpenPGP
-recovery verification and a separately authorized Central token, tag, upload and publication
-remain REL2 activation work. See
+At SEC8 technical closure, `0.1.0` was not yet publicly ready. SEC6 was `DONE`, while offline
+OpenPGP recovery verification and separately authorized Central operations still remained. REL2
+subsequently completed those actions. See
 [security baseline technical closure](../security/security-baseline-closure.md). REL0 subsequently
 performs the private readiness decision without activating REL1.
 
@@ -250,9 +265,9 @@ complete product, public API, documentation, security baseline, candidate struct
 reproducibility, Central requirements and external prerequisites. REL0 remains `DONE`; its updated
 entry decision after EP-01 closure is **READY FOR REL1**.
 
-EP-01 private reporting is `PASS`. EP-02 offline OpenPGP recovery and EP-03 Central token remain
-`PENDING` REL2 prerequisites and are not REL1 blockers. REL0 changes no repository
-visibility, creates no tag and performs no upload or publication. The phased activation sequence is
+At the REL0 checkpoint, EP-01 private reporting was `PASS`, while EP-02 and EP-03 remained
+`PENDING`; REL2 later closed both. REL0 itself changed no repository visibility, created no tag and
+performed no upload or publication. The phased activation sequence is
 defined in the [release roadmap](../plans/release-roadmap.md).
 
 ## Phase 16B local validation
@@ -374,19 +389,9 @@ recovery verification passed on 2026-08-25. SEC6 is `DONE` and EP-01 no longer b
 [vulnerability response and governance](../security/vulnerability-response-and-governance.md) and
 the [incident response runbook](../security/incident-response-runbook.md).
 
-## Remaining activation sequence
+## Post-release handoff
 
-1. Execute REL1 separately: public-readiness/privacy audit, untrusted-PR CI isolation, public
-   metadata review and PVR reevaluation before any visibility change.
-2. Copy the protected key backup and revocation material to separate offline media and verify
-   recovery; never place them on a runner or in Actions secrets.
-3. Generate a Portal user token only when a local upload is separately authorized.
-4. Recheck an authorized candidate SHA from `main`, then create and push `v0.1.0` only with
-   separate authorization and make it point to that exact SHA.
-5. Reproduce and verify the signed candidate locally; authorize Central upload and Portal
-   publication separately. The candidate workflow does not upload.
-
-SEC7 keeps separate technical and REL1 preflights; both now pass, but neither initiates step 1. See
+REL1 and REL2 are complete. Keep the private signing/recovery material and Central token outside
+Git and runners, monitor the supported `0.1.x` line, and treat any future tag/upload/publication as
+new separately authorized operations. REL3 is ready but is not started by this record. See
 [continuous security validation](../security/continuous-security-validation.md).
-
-No external action above is authorized by this document.

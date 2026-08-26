@@ -68,7 +68,7 @@ open-source boundary. REL1 does not create `v0.1.0`, upload to Central or publis
 
 ## REL2 — Maven Central 0.1.0
 
-**Status:** `NOT STARTED`.
+**Status:** `COMPLETE` on 2026-08-26.
 
 Entry criteria:
 
@@ -81,11 +81,17 @@ Entry criteria:
 Scope: bind the authorized source commit to `v0.1.0`, reproduce the signed candidate, upload it,
 inspect Central validation and activate publication manually. `autoPublish=false` remains required.
 
+Closure: signed tag `v0.1.0` points to
+`9d05829ae66e54be82b33728bd6f56f8318f4b7a`; deployment
+`04f5f426-9074-4077-87b2-ff838b57638a` reached `PUBLISHED`; all 184 public files matched the
+authorized bundle and clean JPA/JDBC consumers resolved `0.1.0` from Maven Central.
+
 ## REL3 — Post-Publication Verification
 
 **Status:** `NOT STARTED`.
 
-Entry criteria: REL2 publication has completed successfully.
+Entry criteria: **PASS** — REL2 publication completed successfully. REL3 is deliberately not
+started by the REL2 closure.
 
 Scope: verify public Central resolution, signatures, checksums, POM/SBOM metadata, JPA and JDBC
 consumer adoption, public documentation and GitHub release notes; record any incident without
@@ -93,10 +99,7 @@ attempting to replace immutable components.
 
 ## Current handoff
 
-REL0 remains `DONE` and REL1 is `COMPLETE`; clean repository migration is `COMPLETE` and the old
-private archive is `DELETED`. The canonical final-name repository remains public and healthy with
-**OPEN-SOURCE ACTIVATION COMPLETE**. EP-02 offline recovery is `PASS` following the sanitized owner
-confirmation on 2026-08-26. EP-03 is also `PASS`: the named owner-local Portal token authenticated
-successfully through a no-upload probe. REL2 may proceed to candidate preparation and exact-SHA
-freeze, but this handoff authorizes no signing operation, tag, GitHub Release, Central upload or
-Maven publication.
+REL0 remains `DONE`, REL1 is `COMPLETE`, and REL2 is `COMPLETE`. The canonical repository is public,
+the old private archive is deleted, EP-02/EP-03 are `PASS`, and `0.1.0` is published in Maven
+Central. No GitHub Release was created because repository governance requires separate owner
+authorization. REL3 is ready but has not started.

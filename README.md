@@ -5,8 +5,9 @@ lookup while preserving an opt-in Spring Data repository experience. It integrat
 Data JPA/Hibernate and Spring Data JDBC through separate starters and repository fragments; it is
 not an ORM replacement.
 
-The project is currently `0.1.0-SNAPSHOT`. Coordinates and API may change before the first release,
-and the artifacts are **not published to Maven Central**.
+The first stable public release is `0.1.0`. Its ten Maven coordinates are published under
+`io.github.yravelo` in Maven Central and are bound to the signed [`v0.1.0`](https://github.com/yravelo/postgres-bulk/tree/v0.1.0)
+tag.
 
 ## Why
 
@@ -46,15 +47,8 @@ Spring Data 4 and Hibernate 7 are not supported by this artifact generation. See
 
 ## Installation
 
-There is no remote release yet. Install the current snapshot into your local Maven repository:
-
-```bash
-cd code/postgres-bulk-parent
-./mvnw clean install
-```
-
-Then choose the starter for the application's persistence stack. The JPA starter brings Spring Data
-JPA, Hibernate and pgJDBC:
+Use Maven Central and choose the starter for the application's persistence stack. The JPA starter
+brings Spring Data JPA, Hibernate and pgJDBC:
 
 Maven:
 
@@ -62,7 +56,7 @@ Maven:
 <dependency>
   <groupId>io.github.yravelo</groupId>
   <artifactId>postgres-bulk-spring-boot-starter</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
@@ -70,11 +64,11 @@ Gradle:
 
 ```kotlin
 repositories {
-    mavenLocal()
+    mavenCentral()
 }
 
 dependencies {
-    implementation("io.github.yravelo:postgres-bulk-spring-boot-starter:0.1.0-SNAPSHOT")
+    implementation("io.github.yravelo:postgres-bulk-spring-boot-starter:0.1.0")
 }
 ```
 
@@ -84,7 +78,7 @@ For a Spring Data JDBC application, use the JDBC-only starter instead:
 <dependency>
   <groupId>io.github.yravelo</groupId>
   <artifactId>postgres-bulk-spring-boot-starter-data-jdbc</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 

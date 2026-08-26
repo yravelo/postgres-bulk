@@ -1,8 +1,8 @@
 # Release signing, inventory and provenance
 
-**Estado:** SEC5 implementation complete; real `0.1.0` signed dry-run evidence is generated only
-from a clean, synchronized commit. No tag, Central upload, GitHub Release or publication is
-authorized by this document.
+**Estado:** SEC5 implementation complete and REL2 publication complete. Release `0.1.0` was signed
+from the frozen clean commit, uploaded once and manually published through separately authorized
+gates. This document grants no authority for any future release operation.
 
 ## Release identity
 
@@ -76,7 +76,8 @@ files do not themselves receive checksum/signature companions, matching Central'
 
 `release-inventory.json` binds each coordinate, relative filename, type/classifier, SHA-256,
 detached signature and signature SHA-256, SBOM relation, publishability role, version, planned
-`v0.1.0` tag and exact source commit. `tag_created` remains false. `SHA256SUMS` covers the 46
+`v0.1.0` tag and exact source commit. The candidate inventory recorded `tag_created=false` because
+it was generated before the independently authorized tag operation. `SHA256SUMS` covers the 46
 unsigned payload bytes plus aggregate SBOM and inventory; the manifest, checksum list and aggregate
 are then signed. Generated evidence stays under `target/signed-release-candidate/` and is not
 committed.
@@ -85,9 +86,10 @@ committed.
 
 The pinned Apache Maven GPG Plugin `3.2.8` lives in `local-signing`, separate from both normal
 `release` packaging and `central-publish`. It uses GnuPG, the full approved fingerprint,
-`bestPractices=true`, SHA-512 and `gpg-agent`. No Maven configuration stores a passphrase. A future
-authorized Central command would require all three profiles: `release,local-signing,central-publish`.
-SEC5 does not execute that command.
+`bestPractices=true`, SHA-512 and `gpg-agent`. No Maven configuration stores a passphrase. REL2
+created the Central bundle from the already verified signed staging tree without rebuilding or
+changing any payload. The upload used the Publisher API with `USER_MANAGED` publication so upload
+and publication remained separate owner-authorized operations.
 
 Run the real local ceremony only on the owner-controlled signing workstation:
 
@@ -115,6 +117,25 @@ Regression fixtures cover valid, missing signature, wrong signer, tampered conte
 unexpected artifact, SNAPSHOT and benchmark leakage. Fixture private keys are generated ephemerally
 under a temporary directory and removed; no fixture or real private key is tracked.
 
+## REL2 publication record
+
+Signed annotated tag `v0.1.0` points to source commit
+`9d05829ae66e54be82b33728bd6f56f8318f4b7a`; its tag object is
+`b77fb1bda8de5ecd73da51f0ef7b7b05ff6d86a8`. Independent verification against the tracked public
+key passed with the full approved fingerprint, RSA and SHA-512. GitHub displays `unknown_key`
+because the release key is not registered in the account; that UI result does not replace the
+independent cryptographic verification and no account key was added without separate authority.
+
+The exact Central bundle contained 184 files: 46 payloads, 46 detached signatures and 92 mandatory
+MD5/SHA-1 checksum companions. Its SHA-256 is
+`8da79fe7ed9eeec0728fc25cd90585dbae03a6f88b7cd0af804ea54ab58ceb30`. Deployment
+`04f5f426-9074-4077-87b2-ff838b57638a` reached `VALIDATED` with zero validation errors before the
+separate publication authorization and then reached terminal state `PUBLISHED`. All 184 public
+files were fetched anonymously from Maven Central and matched the authorized bundle byte-for-byte;
+clean JPA and JDBC consumers resolved all ten coordinates and passed. No GitHub Release, repository
+secret, visibility change or REL3 action was performed. The complete evidence is in the
+[REL2 publication report](../releases/rel2-maven-central-0.1.0-publication.md).
+
 ## CI and provenance decision
 
 The Release workflow is candidate-only and secret-free. It can validate source, dependencies,
@@ -123,11 +144,10 @@ The former `central-upload` job and four repository-secret references were remov
 placing a long-lived release key on a persistent Docker-capable self-hosted runner or exposing it to
 the complete Maven build graph on a remote ephemeral runner. No Actions signing secret exists.
 
-GitHub artifact attestations are not enabled: GitHub documents that private/internal use requires
-Enterprise Cloud, which is outside the current free private-repository boundary. The self-hosted
-runner does not change that entitlement. No SLSA level is claimed; a commit field in a custom JSON
-manifest is useful provenance but is not SLSA provenance. Sigstore is also not enabled because it
-would add a second identity and transparency-log model without replacing Central's OpenPGP rule.
+GitHub artifact attestations are not enabled and no SLSA level is claimed; a commit field in a
+custom JSON manifest is useful provenance but is not SLSA provenance. Sigstore is also not enabled
+because it would add a second identity and transparency-log model without replacing Central's
+OpenPGP rule.
 
 The minimum provenance baseline is therefore: exact clean source commit, reviewed version and
 planned tag, immutable dependency/action versions, reproducible payload comparison, per-artifact
