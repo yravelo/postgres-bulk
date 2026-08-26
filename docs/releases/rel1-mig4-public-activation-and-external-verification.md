@@ -1,5 +1,14 @@
 # REL1-MIG4 public activation and external verification
 
+## MIG5B final-closure addendum
+
+MIG5B consumed the separate exact deletion authorization, removed the archive runner registration,
+stopped/disabled its dedicated service, deleted only the old private archive and removed the local
+archive remote. The public repository identity and clean history remained intact and all hosted,
+security and anonymous checks pass. REL1 and clean repository migration are now `COMPLETE`; REL2
+is `NOT STARTED`. See the
+[MIG5B closure report](rel1-mig5b-archive-deletion-and-rel1-closure.md).
+
 ## MIG5 decommission-readiness addendum
 
 MIG5 subsequently proved that the old private archive is no longer a source, documentation,

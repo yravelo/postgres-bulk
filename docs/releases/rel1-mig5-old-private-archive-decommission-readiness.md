@@ -1,5 +1,14 @@
 # REL1-MIG5 old private archive decommission readiness
 
+## MIG5B execution addendum
+
+MIG5B consumed `AUTHORIZE_OLD_PRIVATE_REPOSITORY_DELETION`, removed the idle archive runner
+registration, verified its service inactive/dead/disabled, deleted the exact old repository ID
+`1339652660` and removed the obsolete local remote. The canonical public repository ID
+`1346700826` remained healthy. This readiness report is therefore historical input to the
+[MIG5B closure](rel1-mig5b-archive-deletion-and-rel1-closure.md); its pre-deletion state and request
+for authorization are superseded. No backup was created and REL2 was not started.
+
 Date: 2026-08-26  
 Mode: `DECOMMISSION / READINESS`  
 Canonical repository: `https://github.com/yravelo/postgres-bulk`

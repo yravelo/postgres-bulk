@@ -1,6 +1,17 @@
 # Release readiness for 0.1.0
 
-## REL1-MIG5 archive-decommission readiness addendum
+## REL1-MIG5B final-closure addendum
+
+REL1-MIG5B is `DONE`: the archive runner registration is removed, its dedicated service is
+inactive/dead/disabled, `yravelo/postgres-bulk-private-archive` is deleted, and the obsolete local
+remote is gone. The public repository retained ID `1346700826`, canonical history, protected
+`main`, zero runners/secrets and hosted Build/Compatibility 11/11/Security/CodeQL PASS evidence.
+Anonymous clone and full-history privacy checks pass after deletion. **REL1: COMPLETE; CLEAN
+REPOSITORY MIGRATION: COMPLETE; OPEN-SOURCE ACTIVATION COMPLETE.** REL2 remains `NOT STARTED` with
+EP-02 and EP-03 pending. See the
+[MIG5B closure report](rel1-mig5b-archive-deletion-and-rel1-closure.md).
+
+## REL1-MIG5 archive-decommission readiness addendum (historical)
 
 REL1-MIG5 is `DONE` in readiness mode with verdict **READY FOR OLD PRIVATE ARCHIVE DELETION**. The
 public repository contains the complete intended clean history and all source, CI/security,
@@ -11,7 +22,7 @@ would preserve the privacy-sensitive/non-canonical history that clean migration 
 isolated. The archive remains private and was not deleted. See the
 [MIG5 readiness report](rel1-mig5-old-private-archive-decommission-readiness.md).
 
-## REL1-MIG4 public-activation addendum
+## REL1-MIG4 public-activation addendum (historical)
 
 REL1-MIG4 is `DONE`: the clean canonical repository is public, its immutable repository identity
 and canonical `main` history were preserved, hosted Build is PASS, Compatibility is 11/11 PASS,

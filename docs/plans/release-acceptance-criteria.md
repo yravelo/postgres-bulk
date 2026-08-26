@@ -27,7 +27,7 @@ Estado auditado para el candidato `0.1.0` tras el cierre de EP-01. Cada criterio
 - **PASS** — POMs staged no contienen paths locales, repos privados, SNAPSHOTs ni módulos no publicables.
 - **PASS** — Name, description, license, project URL, SCM previsto y developer `yravelo` usan la
   identidad final aprobada; no se publica email.
-- **PASS** — El repository `yravelo/postgres-bulk` existe como PRIVATE, el SCM remoto coincide con
+- **PASS** — El repository `yravelo/postgres-bulk` existe como PUBLIC, el SCM remoto coincide con
   los POMs y GitHub Issues está habilitado.
 
 ## Transacciones, robustez y operación segura
@@ -93,12 +93,12 @@ Estado auditado para el candidato `0.1.0` tras el cierre de EP-01. Cada criterio
   cero unknown, seis reviews múltiples, dos excepciones exactas y cero BLOCK.
 - **PASS** — `release-inventory.json`, SHA-256, firma del aggregate y exact source commit forman la
   provenance mínima; no se afirma SLSA.
-- **DEFERRED (non-blocking)** — GitHub artifact attestations requiere Enterprise Cloud para este
-  repository privado; Sigstore no sustituye OpenPGP y queda diferido.
+- **DEFERRED (non-blocking)** — GitHub artifact attestations se reevaluará cuando exista un
+  artifact de release; Sigstore no sustituye OpenPGP y queda diferido.
 - **PASS** — Auditoría de patrones sensibles no encuentra tokens, passwords ni private keys hardcoded.
-- **PASS** — El inventario SEC7 reconcilia gates, tools, cinco workflows, 14 POMs, módulos
+- **PASS** — El inventario continuo reconcilia gates, tools, seis workflows, 14 POMs, módulos
   publicables/no publicables, expiries y fingerprint OpenPGP; drift o caducidad falla cerrado.
-- **PASS** — Security tiene schedule semanal UTC y dispatch manual sobre el runner confiable, con
+- **PASS** — Security tiene schedule semanal UTC y dispatch manual sobre runner alojado, con
   `contents: read`, cero secrets, full history, timeout y concurrencia explícitos.
 - **PASS** — Los preflights técnico y REL1 pasan con el canal privado configurado; una regresión de
   su estado vuelve a bloquear REL1.
@@ -117,42 +117,43 @@ Estado auditado para el candidato `0.1.0` tras el cierre de EP-01. Cada criterio
 - **PASS** — `CHANGELOG.md`, release notes y política SemVer `0.x` existen.
 - **PASS** — `postgresbulk-security@proton.me` es el canal privado aprobado; `SECURITY.md` prohíbe
   usar Issues y registra sólo evidencia sanitizada de la verificación del 2026-08-25.
-- **DEFERRED (non-blocking como feature)** — GitHub Private Vulnerability Reporting requiere que el
-  repository sea público; REL1 reevaluará/activará PVR y probará notifications/intake.
-- **DEFERRED (non-blocking)** — Branch protection/rules requiere GitHub Pro o hacer público el
-  repository; se preservó la visibilidad PRIVATE y no se aplicaron reglas.
+- **PASS** — GitHub Private Vulnerability Reporting está habilitado como intake preferido; el canal
+  Proton Mail verificado permanece como fallback.
+- **PASS** — `main` está protegido con 13 checks estrictos, PR/conversation requirements y sin
+  force-push ni deletion; el bypass administrativo queda para recuperación de emergencia.
 
 ## Coordinates y publicación
 
 - **PASS** — El Maven groupId final es `io.github.yravelo` y el namespace Java final es
   `io.ybr.postgresbulk`; no queda uso activo de `io.github.postgresbulk`.
 - **PASS** — ADR-008 está `ACCEPTED` y registra deliberadamente que Maven groupId y Java package
-  root son distintos; ADR-023 mantiene pendiente sólo la activación externa.
+  root son distintos; la activación externa antes pendiente en ADR-023 quedó completada por REL1.
 - **PASS** — `${revision}` cambia SNAPSHOT/release sin editar múltiples POMs.
 - **PASS** — Maven Central Publisher Portal y el plugin oficial `0.11.0` son el target, sin
   endpoints legacy y con `autoPublish=false`.
 - **PASS** — El owner confirma `io.github.yravelo` como `VERIFIED` en Maven Central Portal; no se
   almacena screenshot, sesión ni token.
-- **PASS** — La firma local es la frontera aprobada; el runner persistente y GitHub Actions no
+- **PASS** — La firma local es la frontera aprobada; GitHub Actions no
   reciben clave, passphrase ni token.
-- **DEFERRED (non-blocking)** — El environment vacío `maven-central` permanece como marcador inerte
-  y el workflow no lo referencia porque el plan no aporta secrets/protections utilizables.
+- **PASS** — El repositorio público no contiene environment, secret ni variable de Central; el
+  marcador inerte pertenecía al archive eliminado y ningún workflow lo referenciaba.
 - **EXTERNAL PREREQUISITE** — El Portal token sigue MISSING; no se configuró ningún secret remoto.
 - **PASS** — Clave OpenPGP real RSA-3072 protegida, fingerprint
   `11545CD242C9575DF408AC08F83D364143C798A3`, revocación privada y export público preparado.
 - **PASS** — `origin` usa SSH, `main` está publicado y las URLs de project/SCM coinciden con el
-  repository privado real.
+  repository público canónico.
 - **PASS** — Build remoto `32264391877` y los 10 jobs de Compatibility `32264393355` terminaron
   correctamente para `43d53db3bd996670ccf52f51d7ec614e2e9d9e8c`.
 - **PASS** — El hardening SHA `4a671d498de7ee12fd0d39416a9ce79648562a80` pasa Build
   `32274812469` y los 10 jobs de Compatibility `32274812453` (PostgreSQL 16.14 pasó al reintentar
   únicamente el job fallido, sin cambios ni reducción de matriz).
-- **PASS** — SEC4 queda cerrado para `6d6556b92a123b9720d39bcafef73a9bdf369119`: Build
-  self-hosted `32774191694` pasó todos los gates y Compatibility `32774191674` pasó 11/11. El runner
-  es repository-scoped, non-root y usa labels dedicadas; PRs fork/no confiables no se ejecutan
-  automáticamente. No se ejecutaron Benchmarks ni Release.
-- **PASS** — EP-01 está resuelto y el gate de entrada REL1 puede pasar. Tag, upload y publicación
-  siguen separados y dependen de REL2, EP-02/EP-03 y autorización posterior.
+- **PASS** — Como evidencia histórica, SEC4 quedó cerrado para
+  `6d6556b92a123b9720d39bcafef73a9bdf369119`: Build self-hosted `32774191694` pasó todos los gates
+  y Compatibility `32774191674` pasó 11/11. MIG5B retiró después ese runner y dejó el servicio
+  inactivo/deshabilitado; los workflows actuales usan infraestructura alojada. No se ejecutaron
+  Benchmarks ni Release.
+- **PASS** — EP-01 está resuelto y REL1 quedó completado. Tag, upload y publicación siguen
+  separados y dependen de REL2, EP-02/EP-03 y autorización posterior.
 - **PASS** — Release es candidate-only, `workflow_dispatch` desde `main` por `yravelo`; exige stable
   SemVer, full SHA perteneciente a `origin/main` y confirmación literal.
 - **PASS** — El workflow no contiene job/input de upload ni referencias `secrets.*`; todas las
@@ -163,7 +164,8 @@ Estado auditado para el candidato `0.1.0` tras el cierre de EP-01. Cada criterio
 
 ## Veredicto
 
-SEC0–SEC8 están `DONE`, la baseline técnica está `COMPLETE` y EP-01 está `PASS`. El candidato queda
-`READY FOR REL1`, no ready for publication. La release pública aún no está autorizada: REL1 no se
-ha iniciado, y para REL2 falta verificar el backup offline, generar el Portal token, crear el tag
-exacto y autorizar upload/publicación. No se requieren Repository Secrets.
+SEC0–SEC8 están `DONE`, la baseline técnica está `COMPLETE`, EP-01 está `PASS` y REL1/clean
+repository migration están `COMPLETE`. El repositorio fuente público está activado; REL2 continúa
+`NOT STARTED`. Falta verificar el backup offline EP-02, generar el Portal token EP-03, seleccionar y
+autorizar el SHA/tag exacto y autorizar upload/publicación por separado. No se requieren Repository
+Secrets.

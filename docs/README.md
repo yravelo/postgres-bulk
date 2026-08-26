@@ -78,6 +78,7 @@ This index separates adoption guidance from implementation details.
 - [REL1-MIG3B public-hosted CI activation bridge](releases/rel1-mig3b-public-hosted-ci-activation-bridge.md)
 - [REL1-MIG4 public activation and external verification](releases/rel1-mig4-public-activation-and-external-verification.md)
 - [REL1-MIG5 old private archive decommission readiness](releases/rel1-mig5-old-private-archive-decommission-readiness.md)
+- [REL1-MIG5B archive deletion and REL1 closure](releases/rel1-mig5b-archive-deletion-and-rel1-closure.md)
 - [0.1.0 public API baseline](releases/0.1.0-public-api.txt)
 
 ## Planning
