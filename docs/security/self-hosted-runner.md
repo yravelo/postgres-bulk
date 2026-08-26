@@ -50,21 +50,17 @@ receives a fresh VM, so persistent host or cache contamination is not part of th
 Never add a repository secret merely to make Testcontainers work. Never use host-wide Docker prune
 as a cleanup mechanism.
 
-## Historical archive runner
+## Decommissioned archive runner
 
-The private rollback archive `yravelo/postgres-bulk-private-archive` still owns one repository-level
-runner named `postgres-bulk-ci-01`. It is not registered in the canonical repository, is not
-selected by canonical workflow YAML and was not moved during MIG3. The local `archive` remote is
-fetch-only with push URL `DISABLED`.
+MIG5B removed the repository-level registration for `postgres-bulk-ci-01` before deleting the old
+private archive. The dedicated service is inactive, dead and disabled; no listener process remains.
+The installation filesystem and host were preserved because unrelated non-runner host use was not
+ruled out and deleting them was unnecessary. The canonical repository and every other inspected
+owner repository retain zero repository runners. The obsolete local `archive` remote was removed.
 
-The archive runner remains trusted persistent infrastructure with Docker/root-equivalent reach.
-It must never be registered to the canonical repository or exposed to public PR code without a new
-explicit authorization and a separate threat review. MIG5 classified it `DECOMMISSIONABLE`: it is
-registered only to the archive, the canonical repository and all other inspected owner repositories
-have zero repository runners, and current public gates do not select it. A future archive-deletion
-transaction must wait for the runner to be idle, use GitHub's supported removal flow, verify the
-registration and service are gone, and preserve the host because unrelated non-runner use has not
-been ruled out. MIG5 did not stop or remove it.
+The retired runner must never be registered to the canonical repository or exposed to public PR
+code without a new explicit authorization and separate threat review. All canonical workflows
+remain fixed to GitHub-hosted infrastructure.
 
 ## Public activation
 
@@ -81,9 +77,9 @@ boundary.
 
 If a canonical job unexpectedly reports a self-hosted label, persistent hostname/path, write token
 or secret access, cancel it, preserve sanitized metadata, disable the affected workflow and follow
-the [runner compromise runbook](incident-response-runbook.md#self-hosted-runner-compromise). If the
-archive runner is suspected compromised, stop/deregister it and rotate reachable credentials before
-cleanup; workspace cleanup alone is insufficient.
+the [runner compromise runbook](incident-response-runbook.md#self-hosted-runner-compromise). The
+historical archive runner is no longer registered or active; any unexpected resurrection must be
+treated as a new incident and stopped before credential review/rotation.
 
 ## Official references
 

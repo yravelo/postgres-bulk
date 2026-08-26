@@ -26,7 +26,6 @@
   ],
   "residual_risks": [
     {"id": "RR-01", "description": "Single maintainer and account/workstation trust concentration", "classification": "ACCEPTED RISK", "status": "OPEN", "control": "MFA, manual authorization, CI evidence and compromise runbook", "owner": "yravelo", "review_by": "2027-02-24", "blocks": []},
-    {"id": "RR-02", "description": "Archive retains a persistent Docker-capable runner with root-equivalent host reach", "classification": "ACCEPTED RISK", "status": "OPEN", "control": "archive remains private and fetch-only locally; canonical repository has zero registered runners and hosted-only workflows", "owner": "yravelo", "review_by": "2027-02-24", "blocks": []},
     {"id": "RR-03", "description": "PostgreSQL container patch tags are mutable rather than digest-pinned", "classification": "DEFERRED ENHANCEMENT", "status": "OPEN", "control": "exact tags, trusted registry path, smoke and compatibility tests", "owner": "yravelo", "review_by": "2027-02-24", "blocks": []},
     {"id": "RR-04", "description": "Five reviewed OSV findings remain accepted", "classification": "ACCEPTED RISK", "status": "OPEN", "control": "exact scope/reachability records and expiry gate", "owner": "yravelo", "review_by": "2026-10-24", "blocks": []},
     {"id": "RR-05", "description": "Six exact SpotBugs exclusions remain analyzer limitations", "classification": "ACCEPTED RISK", "status": "OPEN", "control": "Bug/Class/Method scope, source-target and expiry gates", "owner": "yravelo", "review_by": "2027-02-24", "blocks": []},

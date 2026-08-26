@@ -157,8 +157,8 @@ Secrets, variables, environments y runners canónicos permanecen en cero.
 
 La aprobación para contribuyentes externos y los rulesets respondieron que no están disponibles
 mientras el repo sea privado en el plan actual; MIG4 los configura después del cambio de visibilidad.
-El runner histórico `postgres-bulk-ci-01` permanece exclusivamente en el archive privado y no está
-registrado en NEW.
+MIG5B retiró la registración del runner histórico `postgres-bulk-ci-01`, detuvo/deshabilitó su
+servicio dedicado y eliminó el archive privado. El repositorio canónico conserva cero runners.
 
 ## Fuentes oficiales
 

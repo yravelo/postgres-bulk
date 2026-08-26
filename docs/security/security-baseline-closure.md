@@ -5,8 +5,9 @@
 The private-state statements in the original SEC8 closure below are historical. MIG4 activated the
 clean canonical repository publicly with hosted-only workflows, PVR, CodeQL, Dependency Review,
 secret scanning/push protection and protected `main`. MIG5 verified that all SEC0–SEC8 evidence
-needed by the canonical project and REL2 is present in public history; the old private archive is
-not an evidence dependency.
+needed by the canonical project and REL2 is present in public history. MIG5B removed the archive
+runner registration, stopped/disabled its dedicated service and deleted the old private archive;
+RR-02 is therefore closed and removed from the live residual-risk register.
 
 **SEC8 verdict:** `DONE` on 2026-08-25 after local adversarial closure and final remote
 Build, Compatibility and Security validation. The Security & Supply Chain technical roadmap is
@@ -151,7 +152,6 @@ EP-01 is retained in the inventory as resolved evidence.
 | ID | Classification | Risk | Control / review | Blocks |
 | --- | --- | --- | --- | --- |
 | RR-01 | `ACCEPTED RISK` | single-maintainer trust concentration | MFA/manual authorization/runbook; 2027-02-24 | none |
-| RR-02 | `ACCEPTED RISK` | archive retains persistent Docker-capable runner | private archive isolation; canonical workflows hosted-only; 2027-02-24 | none |
 | RR-03 | `DEFERRED ENHANCEMENT` | mutable PostgreSQL patch tags | exact tag/smoke/matrix; 2027-02-24 | none |
 | RR-04 | `ACCEPTED RISK` | five OSV WARN findings | exact registry; 2026-10-24 | none while valid |
 | RR-05 | `ACCEPTED RISK` | six SAST exclusions | exact source/expiry; 2027-02-24 | none while valid |
