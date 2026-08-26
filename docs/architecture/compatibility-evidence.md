@@ -1,5 +1,14 @@
 # Evidencia de compatibilidad
 
+## Evidencia pública alojada de MIG4
+
+El repositorio público ejecutó la matriz canónica exclusivamente en runners alojados por GitHub.
+Build `32925430081` pasó y Compatibility `32925429985` pasó sus 11/11 jobs para el commit
+`dd63b0d2a0cdbfe033b94afc07ef1a9d2c648752`. Los jobs conservaron `ubuntu-latest`, token de solo
+lectura, cero secretos de repositorio y cero runners self-hosted registrados. La primera ejecución
+pública reveló que la imagen alojada no incluía PyYAML ni `rg`; ambos prerrequisitos de auditoría
+quedaron fijados por versión y checksum antes de repetir la matriz con resultado PASS.
+
 **Corte de evidencia:** 2026-08-24, SEC2. Todos los comandos se ejecutaron desde
 `code/postgres-bulk-parent` en Linux, con Maven Wrapper 3.9.16, Docker 29.7.0 y sin omitir
 Enforcer ni tests de integración.

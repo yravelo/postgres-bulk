@@ -64,13 +64,14 @@ decommission are later rollback-retirement work; archive deletion is not part of
 
 ## Public activation
 
-When the repository becomes public, MIG4 must set the public fork-workflow approval policy to
-require approval for all external contributors and re-audit the effective settings. Approval is
-defense in depth: even an approved external workflow still runs only on GitHub-hosted infrastructure
-with read-only token permissions and no repository secrets.
+MIG4 set the public fork-workflow approval policy to require approval for all external contributors
+and re-audited the effective settings. Approval is defense in depth: even an approved external
+workflow still runs only on GitHub-hosted infrastructure with read-only token permissions and no
+repository secrets.
 
-Private Vulnerability Reporting, public-plan rulesets/branch protection and any public-only
-security features are also MIG4 steps. They do not weaken or replace this hosted-only boundary.
+Private Vulnerability Reporting, CodeQL, secret scanning with push protection, Dependency Review
+and `main` protection were also activated by MIG4. They do not weaken or replace this hosted-only
+boundary.
 
 ## Incident response
 

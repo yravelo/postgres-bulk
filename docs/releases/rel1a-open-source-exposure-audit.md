@@ -5,6 +5,18 @@ Audited source: `43fc6f5fdcb5a4c216c9e5a8898c7eb77be22cb4`
 Repository: `yravelo/postgres-bulk` (`PRIVATE`)  
 Decision: **OPEN-SOURCE ACTIVATION NO-GO — REMOTE IDENTITY BLOCKERS PENDING**
 
+## REL1-MIG4 public-activation addendum
+
+MIG4 supersedes the historical activation decisions below. The clean replacement repository
+retained ID `1346700826`, became public under exact authorization and exposed only canonical
+`main`. Hosted Build, Compatibility 11/11, Security, CodeQL, anonymous clone, full-history
+Gitleaks, clean-room adoption and public metadata/privacy checks passed. No old PR, synthetic ref,
+Actions history, runner metadata or private archive object was inherited. The old repository ID
+`1339652660` remains private as `yravelo/postgres-bulk-private-archive`. The current decision is
+**OPEN-SOURCE ACTIVATION: GO**. See the
+[MIG4 closure report](rel1-mig4-public-activation-and-external-verification.md). The original audit
+body is retained as historical evidence of why clean-container migration was required.
+
 ## REL1-MIG3B controlled-activation addendum
 
 MIG3B supersedes only the MIG4 entry conclusion in the MIG3 addendum below. It reverified that the

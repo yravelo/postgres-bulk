@@ -1,5 +1,17 @@
 # Release readiness for 0.1.0
 
+## REL1-MIG4 public-activation addendum
+
+REL1-MIG4 is `DONE`: the clean canonical repository is public, its immutable repository identity
+and canonical `main` history were preserved, hosted Build is PASS, Compatibility is 11/11 PASS,
+full Security is PASS, and clean-room/anonymous/privacy verification is PASS. Public trust controls
+include hosted-only workflows, read-only tokens, zero repository secrets/runners, approval for all
+external contributors, Private Vulnerability Reporting, CodeQL, secret scanning with push
+protection, Dependency Review and protected `main`. The old rollback archive remains private and
+unchanged. **OPEN-SOURCE ACTIVATION: GO.** MIG5 is the next separately authorized phase; no tag,
+GitHub Release, Central upload or Maven publication occurred. See the
+[MIG4 closure report](rel1-mig4-public-activation-and-external-verification.md).
+
 ## REL1-MIG3B controlled-activation addendum
 
 REL1-MIG3B is `DONE` and classifies the private Actions failure as
@@ -24,9 +36,9 @@ entry verdict is superseded by the MIG3B addendum above. See the
 
 ## Verdict
 
-The project is **READY FOR REL1**, not ready for public publication. Identity, the private GitHub
-repository, Central namespace, local OpenPGP release identity and EP-01 private reporting are
-approved. Offline key-backup verification, the Portal token, REL1 activation, tag, upload and
+The project has completed controlled REL1 public source activation and is **OPEN-SOURCE ACTIVATION:
+GO**. Identity, the public GitHub repository, Central namespace, local OpenPGP release identity and
+private reporting are approved. Offline key-backup verification, the Portal token, tag, upload and
 Portal publication remain intentionally withheld. No Release or benchmark workflow ran.
 
 ## Final identity
@@ -35,7 +47,7 @@ Portal publication remain intentionally withheld. No Release or benchmark workfl
 | --- | --- | --- |
 | Project | `postgres-bulk` | PASS |
 | GitHub owner | `yravelo` | PASS — approved identity |
-| Repository | `https://github.com/yravelo/postgres-bulk` | PASS — created and confirmed PRIVATE |
+| Repository | `https://github.com/yravelo/postgres-bulk` | PASS — public canonical repository |
 | Git remote | `git@github.com:yravelo/postgres-bulk.git` | PASS — `main` tracks `origin/main` |
 | Maven groupId | `io.github.yravelo` | PASS — final coordinate |
 | Java package root | `io.ybr.postgresbulk` | PASS — final binary namespace |
@@ -74,8 +86,8 @@ contains the project description, Apache-2.0 license, project URL, SCM and devel
 `yravelo`; no email is published. GitHub Issues is enabled. The GitHub repository description is
 currently empty and remains an explicit REL1 public-metadata activation item.
 
-The repository is a **private development repository**. That decision is distinct from
-publishing binary artifacts to Maven Central and does not promise a future public source repository.
+The repository is a **public source repository**. This is distinct from publishing binary artifacts
+to Maven Central: no supported Maven release exists yet.
 
 ## Maven Central status
 
@@ -95,7 +107,7 @@ session data or token is stored. The real Portal user token has not been generat
 | Control | Status |
 | --- | --- |
 | Current private vulnerability channel | PASS — `postgresbulk-security@proton.me`; Proton Mail; owner control/MFA/recovery and external delivery/reply verified 2026-08-25 |
-| GitHub Private Vulnerability Reporting | DEFERRED (non-blocking as a feature) — public-repository feature; current private API returns 404 |
+| GitHub Private Vulnerability Reporting | ENABLED — preferred private intake; verified mailbox retained as fallback |
 | Vulnerability/incident governance | PASS — supported versions, triage, severity, GHSA/CVE/disclosure, compromise runbook and templates implemented |
 | OSV dependency gate | PASS — 2.5.1 checksum-pinned; 138/138 exact package versions, zero BLOCK |
 | Java SAST gate | PASS — SpotBugs 4.10.4 + FindSecBugs 1.14.0; 7 modules, 6/6 initial findings triaged, 0 untriaged |
@@ -106,7 +118,7 @@ session data or token is stored. The real Portal user token has not been generat
 | GitHub dependency graph | ENABLED — bodyless endpoint check passed; no SBOM downloaded or committed |
 | OpenPGP strategy | PASS — local `local-signing` profile, gpg-agent/pinentry, SHA-512 and exact fingerprint |
 | Protected OpenPGP key | PASS — RSA-3072 release identity; expires 2028-08-23; private material outside repo/runner |
-| GitHub branch protection/rules | DEFERRED (non-blocking) — unavailable for this private repository on the current plan |
+| GitHub branch protection/rules | ENABLED — protected `main`, required hosted checks, no force push/deletion |
 | Repository Secrets model | SUPERSEDED — signing is local; Release references zero repository secrets |
 | Trusted self-hosted Build/Compatibility/Security runner | PASS — repository-scoped, non-root, dedicated labels, owner+same-repo PR guard for PR workflows; 11/11 compatibility lanes |
 | Continuous Security workflow | PASS — weekly UTC plus manual dispatch, full-history/fresh gates, read-only and zero secrets; run `32828466698` |

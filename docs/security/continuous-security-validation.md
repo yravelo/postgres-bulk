@@ -168,8 +168,21 @@ the failed gate/class without printing secrets, complete scanner JSON, private p
 ## Boundary and handoff
 
 SEC7 did not originally configure a private reporting address or mark SEC6 `DONE`; EP-01 later
-closed independently without reopening SEC7. Repository visibility remains private. Benchmarks,
-Release, signing, tag creation, Central upload and publication remain unexecuted.
+closed independently without reopening SEC7. At SEC7 closure the repository remained private.
+MIG4 subsequently activated the clean canonical repository publicly, enabled Private Vulnerability
+Reporting, secret scanning with push protection, CodeQL default setup and the pull-request
+Dependency Review gate. Benchmarks, Release, signing, tag creation, Central upload and publication
+remain unexecuted.
+
+## MIG4 public hosted-security evidence
+
+The public canonical repository retains `ubuntu-latest` for every workflow job, read-only default
+token permissions, no repository secrets and no self-hosted runner registration. Public hosted
+Build `32925430081`, all 11 Compatibility jobs in `32925429985`, CodeQL `32925429869` and manually
+dispatched full Security `32925758807` are the activation evidence. The public fork policy requires
+approval for every external contributor. Dependency Review is pinned by immutable commit, runs on
+pull requests with read-only contents access and fails at `moderate` severity; it does not comment
+or receive write permission.
 
 ## Closure evidence
 

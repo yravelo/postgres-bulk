@@ -17,20 +17,17 @@ an advisory explicitly states a transition period. Multiple maintenance branches
 
 ## Reporting a vulnerability
 
-Report vulnerabilities privately to **postgresbulk-security@proton.me**. This Proton Mail channel
-is controlled exclusively by the project owner and was verified on 2026-08-25: MFA and recovery
-are configured, external delivery passed, and a reply from the security account was received by
-the external tester. Only this sanitized result is public; authentication and message metadata are
-not retained in the repository.
+Use GitHub **Private Vulnerability Reporting** from the repository's Security page as the preferred
+channel. As a fallback, report vulnerabilities privately to **postgresbulk-security@proton.me**.
+This Proton Mail channel is controlled exclusively by the project owner and was verified on
+2026-08-25: MFA and recovery are configured, external delivery passed, and a reply from the
+security account was received by the external tester. Only this sanitized result is public;
+authentication and message metadata are not retained in the repository.
 
 Do not send vulnerability details to the Git commit email, open a GitHub Issue, start a public
-Discussion, or post them in another public forum. Use the address above for initial intake. If a
-report requires live secrets, private data or other unusually sensitive evidence, first send a
-minimal description and agree on a safer transfer method.
-
-When the repository becomes public, REL1 must reevaluate and preferably enable GitHub Private
-Vulnerability Reporting, test it from an independent account and retain this verified mailbox as a
-fallback. PVR is not enabled while the repository remains private.
+Discussion, or post them in another public forum. Use PVR or the fallback address above for initial
+intake. If a report requires live secrets, private data or other unusually sensitive evidence,
+first send a minimal description and agree on a safer transfer method.
 
 ## What a private report should include
 
@@ -91,12 +88,12 @@ policy. Detailed commands are in the governance document.
 
 ## Official distribution identity
 
-Before publication, the only official project repository is
-`https://github.com/yravelo/postgres-bulk`; it is private and Maven Central distribution is not
-active. After separately authorized publication, the official Maven group is
-`io.github.yravelo`. Treat look-alike repositories, Maven groups or unsigned release files as
-suspect. Preserve URLs and hashes without executing the artifact, then use the configured private
-channel and the relevant GitHub or Maven Central abuse process.
+The official public source repository is `https://github.com/yravelo/postgres-bulk`. Maven Central
+distribution is not active and no supported artifact has been published. After separately
+authorized publication, the official Maven group is `io.github.yravelo`. Treat look-alike
+repositories, Maven groups or unsigned release files as suspect. Preserve URLs and hashes without
+executing the artifact, then use the configured private channel and the relevant GitHub or Maven
+Central abuse process.
 
 ## Credential or signing-material exposure
 
