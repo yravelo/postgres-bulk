@@ -141,11 +141,12 @@ remains authoritative.
 | ID | State | Blocks | Required owner action |
 | --- | --- | --- | --- |
 | EP-01 private reporting channel | `PASS` | none | Proton Mail channel verified 2026-08-25: owner control, MFA, recovery, inbound and reply round-trip PASS |
-| EP-02 offline OpenPGP recovery | `PENDING` | tag, Central upload, publication | verify separate protected backup and revocation recovery |
+| EP-02 offline OpenPGP recovery | `PASS` | none | owner-confirmed isolated recovery/signature verification on 2026-08-26; no secret material recorded |
 | EP-03 Central Portal token | `MISSING` | Central upload | create a named token only after separate authorization |
 
-EP-02 and EP-03 remain external REL2 activation steps, not failures of the SEC8 technical baseline.
-EP-01 is retained in the inventory as resolved evidence.
+EP-02 is retained as resolved owner evidence without backup location, passphrase, key or revocation
+material. EP-03 remains the external REL2 activation step and is not a failure of the SEC8
+technical baseline. EP-01 is likewise retained as resolved evidence.
 
 ## Residual risk and security-debt register
 

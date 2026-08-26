@@ -1,5 +1,13 @@
 # Release readiness for 0.1.0
 
+## REL2 EP-02 entry-gate addendum
+
+EP-02 is `PASS` on 2026-08-26 from the owner's explicit sanitized confirmation of protected
+offline backup, separate revocation recovery, isolated restore/test signature, exact fingerprint
+verification and transient-material cleanup. No secret value, location or recovery material was
+recorded. EP-03 remains `MISSING`, so no release SHA is frozen and signing, tag, Central upload and
+publication remain blocked and separately authorized.
+
 ## REL1-MIG5B final-closure addendum
 
 REL1-MIG5B is `DONE`: the archive runner registration is removed, its dedicated service is

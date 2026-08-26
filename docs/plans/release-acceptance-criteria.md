@@ -166,6 +166,6 @@ Estado auditado para el candidato `0.1.0` tras el cierre de EP-01. Cada criterio
 
 SEC0–SEC8 están `DONE`, la baseline técnica está `COMPLETE`, EP-01 está `PASS` y REL1/clean
 repository migration están `COMPLETE`. El repositorio fuente público está activado; REL2 continúa
-`NOT STARTED`. Falta verificar el backup offline EP-02, generar el Portal token EP-03, seleccionar y
+bloqueado en su entrada: EP-02 está `PASS`, pero falta generar el Portal token EP-03, seleccionar y
 autorizar el SHA/tag exacto y autorizar upload/publicación por separado. No se requieren Repository
 Secrets.

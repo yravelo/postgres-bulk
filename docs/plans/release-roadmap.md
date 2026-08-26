@@ -95,7 +95,8 @@ attempting to replace immutable components.
 
 REL0 remains `DONE` and REL1 is `COMPLETE`; clean repository migration is `COMPLETE` and the old
 private archive is `DELETED`. The canonical final-name repository remains public and healthy with
-**OPEN-SOURCE ACTIVATION COMPLETE**. EP-02 offline recovery remains `PENDING` and EP-03 remains
-`PENDING` with its Portal token `MISSING`, so REL2 is `NOT STARTED`. The next phase is
-`REL2 — Maven Central 0.1.0 Publication`, but this handoff authorizes no key operation, token, tag,
-GitHub Release, Central upload or Maven publication.
+**OPEN-SOURCE ACTIVATION COMPLETE**. EP-02 offline recovery is `PASS` following the sanitized owner
+confirmation on 2026-08-26. EP-03 remains `PENDING` with its Portal token `MISSING`, so REL2 is
+blocked at its credential-entry gate and no release SHA is frozen. The next phase is `REL2 — Maven
+Central 0.1.0 Publication`, but this handoff authorizes no signing operation, token, tag, GitHub
+Release, Central upload or Maven publication.

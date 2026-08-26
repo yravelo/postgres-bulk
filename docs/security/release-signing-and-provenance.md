@@ -30,6 +30,13 @@ and remove any transient export. The private-key backup and passphrase must not 
 Repeat that recovery check annually and before key rotation. Repository backup, cloud sync and
 the persistent self-hosted runner are not offline backup.
 
+REL2 recorded the owner's explicit sanitized confirmation on 2026-08-26 that the protected secret
+key backup and separately stored revocation material are recoverable, an isolated restoration and
+test signature succeeded, the restored identity matched fingerprint
+`11545CD242C9575DF408AC08F83D364143C798A3`, and transient restored material was removed. This
+evidence records only the outcome: no private key, passphrase, backup/revocation content, storage
+location or screenshot entered Git, logs or chat. `EP-02` is therefore `PASS`.
+
 Only the public key may be sent to a keyserver. Central currently lists
 `keyserver.ubuntu.com`, `keys.openpgp.org` and `pgp.mit.edu`; the public key was sent to the Ubuntu
 and OpenPGP servers. The Ubuntu endpoint had not propagated the key during the immediate SEC5
