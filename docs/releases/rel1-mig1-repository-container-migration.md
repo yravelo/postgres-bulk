@@ -320,7 +320,7 @@ identity from the local remote name alone.
 ## 36. Proposed remote names for MIG2
 
 ```text
-origin-old -> git@github.com:yravelo/postgres-bulk-private-archive.git
+origin-old -> OLD private archive (fetch-only)
 origin-new -> git@github.com:yravelo/postgres-bulk.git
 ```
 

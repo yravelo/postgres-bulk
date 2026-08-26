@@ -1,5 +1,16 @@
 # Release readiness for 0.1.0
 
+## REL1-MIG3B controlled-activation addendum
+
+REL1-MIG3B is `DONE` and classifies the private Actions failure as
+`BLOCKED_EXTERNAL_BILLING_ONLY`. Full local Build-equivalent, Compatibility-equivalent 11/11 and
+Security validation, the hosted-only public-PR boundary, public-content audit and fail-closed MIG4
+transaction all pass. The repository remains private, MIG3 has no remote PASS, and REL1-B has not
+started. The entry verdict is now **READY FOR CONTROLLED MIG4 PUBLIC ACTIVATION**, subject to the
+separate authorization `AUTHORIZE_NEW_REPOSITORY_PUBLIC_ACTIVATION`; public Build, Compatibility
+11/11, Security and anonymous verification remain mandatory MIG4 gates. See the
+[MIG3B activation bridge](rel1-mig3b-public-hosted-ci-activation-bridge.md).
+
 ## REL1-MIG3 current-state addendum
 
 The historical private-CI evidence below remains valid for its cited commits, but it is superseded
@@ -7,8 +18,9 @@ for the new canonical repository by the hosted-only public-trust architecture. M
 not `DONE`: local product/security validation passes, while GitHub rejected Build and all 11
 Compatibility jobs before their first step because the account billing/spending gate prevents
 hosted execution; Security was not dispatched against the same known gate. The archive runner was
-not registered to the new repository, repository secrets remain zero and MIG4 is `NOT READY`. See
-the [MIG3 CI/security public-trust report](rel1-mig3-ci-security-public-trust-baseline.md).
+not registered to the new repository and repository secrets remain zero. This historical MIG3
+entry verdict is superseded by the MIG3B addendum above. See the
+[MIG3 CI/security public-trust report](rel1-mig3-ci-security-public-trust-baseline.md).
 
 ## Verdict
 

@@ -36,6 +36,11 @@ its hosted-only public-trust architecture, settings, security gates and document
 but GitHub rejected Build and all 11 Compatibility jobs before their first step because the owner
 account's billing/spending gate prevents hosted execution. Security was not dispatched against the
 same known gate. See the [MIG3 report](../releases/rel1-mig3-ci-security-public-trust-baseline.md).
+MIG3B is `DONE`: it reverified that external billing is the only blocker and completed the
+hosted-only trust, local-equivalence, public-content, settings, transaction and containment bridge.
+The repository remains private, but entry into controlled MIG4 is `READY` under a separate exact
+authorization. See the
+[MIG3B report](../releases/rel1-mig3b-public-hosted-ci-activation-bridge.md).
 Archive deletion is a much later, separately gated operation.
 
 Entry criteria:
@@ -79,6 +84,8 @@ attempting to replace immutable components.
 
 REL0 remains `DONE`. EP-01 is `PASS`, so the readiness decision is **READY FOR REL1**. REL1-MIG0,
 MIG1 and MIG2 are `DONE`; MIG3 is `BLOCKED` only on the remote hosted-runner billing/spending gate,
-and REL1-B is not started. MIG4 is `NOT READY`. The new final-name repository remains private and
+MIG3B is `DONE`, and REL1-B is not started. MIG4 entry is **READY FOR CONTROLLED PUBLIC
+ACTIVATION** but is not authorized or started. The new final-name repository remains private and
 the old private archive remains the rollback source. EP-02 and EP-03 remain `PENDING` REL2
-prerequisites. No downstream phase is active.
+prerequisites. No downstream phase is active. Exact next authorization:
+`AUTHORIZE_NEW_REPOSITORY_PUBLIC_ACTIVATION`.

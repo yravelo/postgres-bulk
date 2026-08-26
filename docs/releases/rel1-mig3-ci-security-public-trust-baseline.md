@@ -5,6 +5,18 @@ Repository: `yravelo/postgres-bulk`
 Implementation commit: `c99627dc95b2e57af051d9e461d53f2a8e9cca9e`  
 Result: **BLOCKED**
 
+## REL1-MIG3B superseding entry addendum
+
+MIG3 remains technically `BLOCKED`: its private-repository Build and Compatibility jobs never
+started, and Security was intentionally not dispatched against the same known account gate.
+REL1-MIG3B subsequently reverified `BLOCKED_EXTERNAL_BILLING_ONLY`, found no secondary technical
+blocker, and completed the local equivalence, trust-boundary and public-content audits. It therefore
+supersedes only this report's MIG4 entry verdict: the repository is **READY FOR CONTROLLED MIG4
+PUBLIC ACTIVATION**, while remaining private and without claiming any remote PASS. MIG4 requires
+the separate authorization `AUTHORIZE_NEW_REPOSITORY_PUBLIC_ACTIVATION` and must treat public
+Build, Compatibility 11/11 and Security as its first mandatory gates. See the
+[MIG3B activation bridge](rel1-mig3b-public-hosted-ci-activation-bridge.md).
+
 MIG3 implemented the public-safe CI and security baseline in the new canonical repository while it
 remains private. All local product and security validation passed. The remote Definition of Done is
 not complete because GitHub rejected every GitHub-hosted job before its first step with an account
@@ -245,8 +257,9 @@ No benchmark was needed or executed. Docker/Testcontainers feasibility is PASS a
 | Anonymous clone verification | planned for MIG4 after visibility changes |
 | Remote Build / Compatibility / Security | BLOCKED / 0 of 11 / NOT_RUN |
 
-Verdict: **NOT READY FOR MIG4**. The repository is technically arranged to protect untrusted PRs,
-but MIG3 cannot be `DONE` without successful remote execution on the new canonical repository.
+Historical MIG3 verdict: **NOT READY FOR MIG4**. MIG3 cannot be `DONE` without successful remote
+execution on the new canonical repository. The superseding MIG3B addendum above changes the
+controlled MIG4 entry decision to `READY`; it does not change this remote MIG3 result.
 
 ## 10. Changed files and commits
 

@@ -78,7 +78,7 @@ preflight tooling can verify the new canonical repository without weakening its 
 
 ```text
 origin fetch/push -> git@github.com:yravelo/postgres-bulk.git
-archive fetch     -> git@github.com:yravelo/postgres-bulk-private-archive.git
+archive fetch     -> OLD private archive (fetch-only)
 archive push      -> DISABLED
 ```
 
