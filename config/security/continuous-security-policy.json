@@ -78,6 +78,7 @@
     "actions/upload-artifact": {"sha": "ea165f8d65b6e75b540449e92b4886f43607fa02", "version": "v4"}
   },
   "tools": [
+    {"id": "pyyaml", "version": "6.0.3", "source": "config/security/python-requirements.txt", "update": "Dependabot/manual PyPI release review", "owner": "yravelo"},
     {"id": "gitleaks", "version": "8.30.1", "source": "scripts/check-secrets.sh", "update": "Dependabot/manual upstream release review", "owner": "yravelo"},
     {"id": "osv-scanner", "version": "2.5.1", "source": "scripts/check-vulnerabilities.sh", "update": "Dependabot/manual upstream release review", "owner": "yravelo"},
     {"id": "maven-dependency-plugin", "version": "3.8.1", "source": "scripts/check-vulnerabilities.sh", "update": "Dependabot/manual Maven plugin review", "owner": "yravelo"},

@@ -52,6 +52,11 @@ COMPATIBILITY_LANES = {
 }
 USES_LINE = re.compile(r"^\s*uses:\s*([^\s#]+)\s+#\s*(v\d+(?:\.\d+\.\d+)?)\s*$")
 SECRET_REFERENCE = re.compile(r"\$\{\{\s*secrets\.([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
+PINNED_PYTHON_INSTALL = (
+    "python3 -m pip install --disable-pip-version-check --no-deps "
+    "--only-binary=:all: --require-hashes "
+    "--requirement config/security/python-requirements.txt"
+)
 
 
 def public_pr_jobs_use_hosted_runner(workflow: dict[str, Any]) -> bool:
@@ -284,10 +289,18 @@ def compatibility_errors(workflow: dict[str, Any]) -> list[str]:
 def build_errors(workflow: dict[str, Any]) -> list[str]:
     steps = workflow["jobs"]["verify"]["steps"]
     names = [step.get("name", "") for step in steps]
-    required = ["Run fast security gates", "Set up Java"]
+    required = [
+        "Install pinned security audit dependencies",
+        "Verify security audit prerequisites",
+        "Run fast security gates",
+        "Set up Java",
+    ]
     if not all(item in names for item in required):
-        return ["Build must contain the canonical fast security gates and Java setup"]
-    if not names.index(required[0]) < names.index(required[1]):
+        return ["Build must install and verify pinned audit dependencies before its canonical gates"]
+    install = steps[names.index(required[0])].get("run", "")
+    if " ".join(install.split()) != PINNED_PYTHON_INSTALL:
+        return ["Build must install the reviewed hash-pinned Python audit dependencies"]
+    if not all(names.index(left) < names.index(right) for left, right in zip(required, required[1:])):
         return ["Build fast security gates must run before Java/build execution"]
     return []
 
@@ -305,6 +318,12 @@ def security_errors(workflow: dict[str, Any]) -> list[str]:
         return errors + ["Security workflow must contain exactly one validation job"]
     steps = jobs["validate"].get("steps", [])
     names = [step.get("name", "") for step in steps if isinstance(step, dict)]
+    if "Install pinned security audit dependencies" not in names:
+        errors.append("Security must install the pinned Python audit dependencies")
+    else:
+        install = steps[names.index("Install pinned security audit dependencies")].get("run", "")
+        if " ".join(install.split()) != PINNED_PYTHON_INSTALL:
+            errors.append("Security must install the reviewed hash-pinned Python audit dependencies")
     if "Run full continuous security validation" not in names:
         errors.append("Security workflow must invoke the canonical full validation")
     runs = "\n".join(step.get("run", "") for step in steps if isinstance(step, dict))

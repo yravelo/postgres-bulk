@@ -134,6 +134,17 @@ class WorkflowSecurityTests(unittest.TestCase):
         errors = SECURITY.common_semantic_errors("build.yml", workflow)
         self.assertTrue(any("settings must stay in runner.temp" in error for error in errors))
 
+    def test_build_unpinned_python_audit_dependency_fails(self) -> None:
+        workflow = self.load("build.yml")
+        install = next(
+            step
+            for step in workflow["jobs"]["verify"]["steps"]
+            if step.get("name") == "Install pinned security audit dependencies"
+        )
+        install["run"] = "python3 -m pip install PyYAML"
+        errors = SECURITY.build_errors(workflow)
+        self.assertTrue(any("hash-pinned" in error for error in errors))
+
     def test_checkout_with_persistent_credentials_fails(self) -> None:
         workflow = self.load("build.yml")
         checkout = next(

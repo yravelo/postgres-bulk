@@ -25,6 +25,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Install pinned security audit dependencies
+        run: >-
+          python3 -m pip install --disable-pip-version-check --no-deps
+          --only-binary=:all: --require-hashes
+          --requirement config/security/python-requirements.txt
+
       - name: Verify security audit prerequisites
         run: |
           command -v rg >/dev/null
