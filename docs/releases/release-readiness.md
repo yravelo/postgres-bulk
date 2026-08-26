@@ -1,5 +1,16 @@
 # Release readiness for 0.1.0
 
+## REL1-MIG5 archive-decommission readiness addendum
+
+REL1-MIG5 is `DONE` in readiness mode with verdict **READY FOR OLD PRIVATE ARCHIVE DELETION**. The
+public repository contains the complete intended clean history and all source, CI/security,
+release-readiness and documentation evidence; the archive contributes no unique branch, tag,
+commit or file required by the project or REL2. Its runner is `DECOMMISSIONABLE` and must be
+removed before the separately authorized repository deletion. No backup is recommended because it
+would preserve the privacy-sensitive/non-canonical history that clean migration intentionally
+isolated. The archive remains private and was not deleted. See the
+[MIG5 readiness report](rel1-mig5-old-private-archive-decommission-readiness.md).
+
 ## REL1-MIG4 public-activation addendum
 
 REL1-MIG4 is `DONE`: the clean canonical repository is public, its immutable repository identity
@@ -335,7 +346,8 @@ ownership, Dependabot/public-PR boundaries and incident procedures are documente
 preparatory and does not claim enforcement; read-only APIs still return 403 for rulesets/protection.
 Issues show explicit guidance not to disclose vulnerabilities publicly.
 
-The repository remains private and GitHub PVR/repository-advisory endpoints return 404. The owner
+At SEC6 closure the repository remained private and GitHub PVR/repository-advisory endpoints
+returned 404. The owner
 approved `postgresbulk-security@proton.me`; benign inbound, reply, exclusive access, MFA and
 recovery verification passed on 2026-08-25. SEC6 is `DONE` and EP-01 no longer blocks REL1. See
 [vulnerability response and governance](../security/vulnerability-response-and-governance.md) and

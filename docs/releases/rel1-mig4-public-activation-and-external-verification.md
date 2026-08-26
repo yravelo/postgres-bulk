@@ -1,5 +1,14 @@
 # REL1-MIG4 public activation and external verification
 
+## MIG5 decommission-readiness addendum
+
+MIG5 subsequently proved that the old private archive is no longer a source, documentation,
+CI/security, audit or REL2 dependency. Its remaining GitHub metadata is safe to lose, its dedicated
+runner is decommissionable, and no private backup is recommended. The archive remains private and
+undeleted pending the exact separate authorization
+`AUTHORIZE_OLD_PRIVATE_REPOSITORY_DELETION`. See the
+[MIG5 readiness report](rel1-mig5-old-private-archive-decommission-readiness.md).
+
 Date: 2026-08-26  
 Canonical repository: `https://github.com/yravelo/postgres-bulk`  
 Operational evidence commit: `dd63b0d2a0cdbfe033b94afc07ef1a9d2c648752`

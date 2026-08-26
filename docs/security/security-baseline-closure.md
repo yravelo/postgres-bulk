@@ -1,13 +1,22 @@
 # Security baseline technical closure
 
+## MIG4/MIG5 public-state addendum
+
+The private-state statements in the original SEC8 closure below are historical. MIG4 activated the
+clean canonical repository publicly with hosted-only workflows, PVR, CodeQL, Dependency Review,
+secret scanning/push protection and protected `main`. MIG5 verified that all SEC0–SEC8 evidence
+needed by the canonical project and REL2 is present in public history; the old private archive is
+not an evidence dependency.
+
 **SEC8 verdict:** `DONE` on 2026-08-25 after local adversarial closure and final remote
 Build, Compatibility and Security validation. The Security & Supply Chain technical roadmap is
 `COMPLETE`. EP-01 subsequently closed on 2026-08-25 with an owner-authorized, externally tested
 private reporting channel, so SEC6 and the full SEC0–SEC8 roadmap are now `DONE` without reopening
 the SEC8 technical audit.
 
-The repository remains private. This closure does not authorize REL0, REL1, a tag, a Release
-workflow run, OpenPGP use with the real private key, Central upload or publication.
+At the original SEC8 closure the repository remained private. That closure did not authorize REL0,
+REL1, a tag, a Release workflow run, OpenPGP use with the real private key, Central upload or
+publication.
 
 ## Final control inventory
 

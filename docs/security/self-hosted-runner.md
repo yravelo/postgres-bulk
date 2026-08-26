@@ -59,8 +59,12 @@ fetch-only with push URL `DISABLED`.
 
 The archive runner remains trusted persistent infrastructure with Docker/root-equivalent reach.
 It must never be registered to the canonical repository or exposed to public PR code without a new
-explicit authorization and a separate threat review. Its eventual stop, deregistration and host
-decommission are later rollback-retirement work; archive deletion is not part of this baseline.
+explicit authorization and a separate threat review. MIG5 classified it `DECOMMISSIONABLE`: it is
+registered only to the archive, the canonical repository and all other inspected owner repositories
+have zero repository runners, and current public gates do not select it. A future archive-deletion
+transaction must wait for the runner to be idle, use GitHub's supported removal flow, verify the
+registration and service are gone, and preserve the host because unrelated non-runner use has not
+been ruled out. MIG5 did not stop or remove it.
 
 ## Public activation
 

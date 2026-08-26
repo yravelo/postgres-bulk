@@ -25,7 +25,7 @@ Remote closure: Build `32850719665` PASS, Compatibility `32850719735` 11/11 PASS
 
 ## REL1 — Open Source Repository Activation
 
-**Status:** `IN PROGRESS — MIG4 DONE`.
+**Status:** `IN PROGRESS — MIG5 READINESS DONE`.
 
 REL1-MIG0 completed its read-only feasibility analysis on 2026-08-26 and recommended a clean
 replacement. MIG1 and MIG2 are `DONE`: the original repository is retained as private
@@ -43,7 +43,11 @@ anonymous verification pass, and the open-source activation verdict is `GO`. See
 [MIG3B report](../releases/rel1-mig3b-public-hosted-ci-activation-bridge.md).
 The complete activation evidence is in the
 [MIG4 report](../releases/rel1-mig4-public-activation-and-external-verification.md).
-Archive deletion is a much later, separately gated operation.
+MIG5 is `DONE` in decommission/readiness mode: source, documentation, CI/security, audit and REL2
+are independent of the old private archive; its metadata is safe to lose and its runner has a
+bounded decommission plan. The archive remains private and undeleted. See the
+[MIG5 report](../releases/rel1-mig5-old-private-archive-decommission-readiness.md). Deletion remains
+a separately authorized operation.
 
 Entry criteria:
 
@@ -84,10 +88,11 @@ attempting to replace immutable components.
 
 ## Current handoff
 
-REL0 remains `DONE`; MIG0, MIG1, MIG2, MIG3B and MIG4 are `DONE`. The clean final-name repository is
-public and **OPEN-SOURCE ACTIVATION: GO**. MIG4 resolved the former private hosted-runner billing
-gate through public GitHub-hosted execution; MIG3 remains historical evidence of that earlier
-blocked state. The old private archive remains the rollback source and was not deleted. REL1-B has
-not started. EP-02 and EP-03 remain `PENDING` REL2 prerequisites. The next separately authorized
-step is MIG5; this handoff does not authorize a tag, GitHub Release, Central upload, Maven
-publication or archive deletion.
+REL0 remains `DONE`; MIG0, MIG1, MIG2, MIG3B, MIG4 and MIG5 readiness are `DONE`. The clean
+final-name repository is public and **OPEN-SOURCE ACTIVATION: GO**. MIG4 resolved the former private
+hosted-runner billing gate through public GitHub-hosted execution; MIG3 remains historical evidence
+of that earlier blocked state. MIG5 concludes **READY FOR OLD PRIVATE ARCHIVE DELETION**, but the
+archive remains private, its runner remains online/idle, and neither was removed. EP-02 and EP-03
+remain `PENDING` REL2 prerequisites. The exact next authorization is
+`AUTHORIZE_OLD_PRIVATE_REPOSITORY_DELETION`; it does not authorize REL2, a tag, GitHub Release,
+Central upload or Maven publication.
