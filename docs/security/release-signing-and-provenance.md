@@ -102,6 +102,13 @@ is exactly reviewed and the approved secret key is present. It builds unsigned a
 independently, compares SHA-256 for all 46 payload files, signs three supplemental evidence files,
 and invokes the verifier. Signing may add only `.asc`; it may not change a POM, JAR or SBOM byte.
 
+The separate Central credential boundary became ready on 2026-08-26. The owner confirmed the
+`io.github.yravelo` namespace and configured exactly one `central` server in owner-local Maven
+settings with mode `0600`. A no-upload Publisher API status probe returned `401` without credentials
+and a non-authentication `404` for an intentionally nonexistent deployment when authenticated,
+proving token acceptance without creating or mutating a deployment. No credential value,
+identifier or Authorization header was printed, logged or versioned; `EP-03` is `PASS`.
+
 The gate verifies exact inventory, existence, cryptographic validity, full approved fingerprint,
 RSA signature algorithm, SHA-256-or-stronger digest, declared hashes and checksum completeness.
 Regression fixtures cover valid, missing signature, wrong signer, tampered content, wrong checksum,

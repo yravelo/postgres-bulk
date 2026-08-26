@@ -22,7 +22,7 @@
   "external_prerequisites": [
     {"id": "EP-01", "description": "Approved and tested private vulnerability reporting channel", "status": "PASS", "classification": "EXTERNAL PREREQUISITE", "owner": "yravelo", "resolved_on": "2026-08-25", "review_by": "2026-10-24", "blocks": []},
     {"id": "EP-02", "description": "Verified offline OpenPGP backup and revocation recovery", "status": "PASS", "classification": "EXTERNAL PREREQUISITE", "owner": "yravelo", "resolved_on": "2026-08-26", "review_by": "2027-08-26", "blocks": []},
-    {"id": "EP-03", "description": "Named Maven Central Portal token created only after authorization", "status": "MISSING", "classification": "EXTERNAL PREREQUISITE", "owner": "yravelo", "review_by": "2026-10-24", "blocks": ["Central upload"]}
+    {"id": "EP-03", "description": "Named Maven Central Portal token created only after authorization", "status": "PASS", "classification": "EXTERNAL PREREQUISITE", "owner": "yravelo", "resolved_on": "2026-08-26", "review_by": "2027-08-26", "blocks": []}
   ],
   "residual_risks": [
     {"id": "RR-01", "description": "Single maintainer and account/workstation trust concentration", "classification": "ACCEPTED RISK", "status": "OPEN", "control": "MFA, manual authorization, CI evidence and compromise runbook", "owner": "yravelo", "review_by": "2027-02-24", "blocks": []},

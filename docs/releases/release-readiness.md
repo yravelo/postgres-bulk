@@ -5,8 +5,10 @@
 EP-02 is `PASS` on 2026-08-26 from the owner's explicit sanitized confirmation of protected
 offline backup, separate revocation recovery, isolated restore/test signature, exact fingerprint
 verification and transient-material cleanup. No secret value, location or recovery material was
-recorded. EP-03 remains `MISSING`, so no release SHA is frozen and signing, tag, Central upload and
-publication remain blocked and separately authorized.
+recorded. EP-03 is also `PASS`: exactly one owner-local Maven server uses ID `central`, its settings
+file has mode `0600`, and an authenticated no-upload status probe passed without logging credential
+material. No release SHA is frozen yet; signing, tag, Central upload and publication remain
+separately gated.
 
 ## REL1-MIG5B final-closure addendum
 
