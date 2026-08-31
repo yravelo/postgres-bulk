@@ -12,7 +12,7 @@
     <java.version>17</java.version>
     <maven.compiler.release>${java.version}</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <postgres-bulk.version>0.1.0-SNAPSHOT</postgres-bulk.version>
+    <postgres-bulk.version>0.1.0</postgres-bulk.version>
     <spring-boot.version>3.5.16</spring-boot.version>
     <postgresql.version>42.7.13</postgresql.version>
     <testcontainers.version>2.0.5</testcontainers.version>
