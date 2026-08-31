@@ -20,7 +20,7 @@
   <properties>
     <revision>0.1.0-SNAPSHOT</revision>
     <java.version>17</java.version>
-    <postgres-bulk.version>${revision}</postgres-bulk.version>
+    <postgres-bulk.version>0.1.0</postgres-bulk.version>
     <postgresql.version>42.7.13</postgresql.version>
     <postgres.version>15.18-alpine</postgres.version>
     <testcontainers.version>2.0.5</testcontainers.version>
